@@ -3,23 +3,40 @@ const { EntitySchema } = require("typeorm");
 module.exports = new EntitySchema({
   name: "Asignacion",
   tableName: "asignaciones",
+
   columns: {
     id: {
       primary: true,
       type: "int",
       generated: true,
     },
-    empleadoId: {
-      type: "int",
-    },
-    supervisorId: {
-      type: "int",
-    },
-    departamento: {
+
+    fecha: {
       type: "varchar",
     },
-    fecha_inicio: {
-      type: "varchar",
+
+    estado: {
+      type: "varchar", // activa o finalizada
+    },
+  },
+
+  relations: {
+    supervisor: {
+      type: "many-to-one",
+      target: "Usuario",
+      joinColumn: {
+        name: "supervisorId",
+      },
+      nullable: false,
+    },
+
+    empleado: {
+      type: "many-to-one",
+      target: "Usuario",
+      joinColumn: {
+        name: "empleadoId",
+      },
+      nullable: false,
     },
   },
 });

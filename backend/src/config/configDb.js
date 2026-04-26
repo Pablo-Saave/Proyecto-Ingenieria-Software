@@ -1,7 +1,7 @@
 "use strict";
 import { DataSource } from "typeorm";
 import { DATABASE, DB_USERNAME, HOST, PASSWORD, DB_PORT } from "./configEnv.js";
-import Usuario from "../entities/user.entity.js";
+import Usuario from "../entities/usuario.entity.js";
 import Asignacion from "../entities/asignacion.entity.js";
 import Ausencia from "../entities/ausencia.entity.js";
 
