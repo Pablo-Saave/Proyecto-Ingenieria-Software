@@ -73,9 +73,13 @@ function Login({ onLoginSuccess }) {
           </button>
         </div>
 
-        <p className="login-footer">
-          ¿No tienes cuenta? <a href="#">Solicita acceso</a>
+      <p className="login-footer">
+        ¿No tienes cuenta?{' '}
+        <button type="button" className="login-link">Solicita acceso</button>
         </p>
+
+
+
       </div>
     </div>
   );

@@ -136,3 +136,13 @@
   color: var(--primary-dark);
   text-decoration: underline;
 }
+
+.login-link {
+  background: none;
+  border: none;
+  color: #4F46E5;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
+}
