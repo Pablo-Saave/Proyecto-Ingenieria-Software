@@ -1,26 +1,39 @@
 const { EntitySchema } = require("typeorm");
 
 module.exports = new EntitySchema({
-  name: "User",
+  name: "Usuario",
   tableName: "usuarios",
+
   columns: {
     id: {
-      primary: true, // id unico
+      primary: true,
       type: "int",
-      generated: true, //generated significa que genere secuencialmente 1, 2, 3...
+      generated: true,
     },
+
     nombre: {
       type: "varchar",
     },
+
     email: {
       type: "varchar",
       unique: true,
     },
+
     contraseña: {
       type: "varchar",
     },
+
     rol: {
-      type: "varchar", // administrador, supervisor o empleado
+      type: "varchar", // administrador, supervisor, empleado
+    },
+  },
+
+  relations: {
+    ausencias: {
+      type: "one-to-many",
+      target: "Ausencia",
+      inverseSide: "usuario",
     },
   },
 });
