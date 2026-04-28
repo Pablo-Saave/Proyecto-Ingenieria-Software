@@ -3,6 +3,9 @@ import cors from "cors";
 import "reflect-metadata";
 import { connectDB } from "./config/configDb.js";
 import clienteRoutes from "./routes/cliente.routes.js";
+import ausenciaRoutes from "./routes/ausencia.routes.js";
+import justificacionRoutes from "./routes/justificacion.routes.js";
+import asignadoRoutes from "./routes/asignado.routes.js";
 
 export const app = express();
 
@@ -14,9 +17,9 @@ app.use(cors());
 export async function initializeApp() {
   try {
     await connectDB();
-    console.log("✓ Base de datos conectada correctamente");
+    console.log("Base de datos conectada correctamente");
   } catch (error) {
-    console.error("✗ Error durante la inicialización:", error);
+    console.error("Error durante la inicialización:", error);
     process.exit(1);
   }
 }
@@ -32,6 +35,9 @@ app.get("/", (req, res) => {
 
 // Rutas
 app.use("/api/clientes", clienteRoutes);
+app.use("/api/ausencias", ausenciaRoutes);
+app.use("/api/justificaciones", justificacionRoutes);
+app.use("/api/asignados", asignadoRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
