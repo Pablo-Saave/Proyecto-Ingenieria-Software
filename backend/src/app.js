@@ -6,6 +6,11 @@ import clienteRoutes from "./routes/cliente.routes.js";
 import ausenciaRoutes from "./routes/ausencia.routes.js";
 import justificacionRoutes from "./routes/justificacion.routes.js";
 import asignadoRoutes from "./routes/asignado.routes.js";
+import contratoRoutes from "./routes/contrato.routes.js";
+import trabajadorRoutes from "./routes/trabajador.routes.js";
+import { seedRoles } from "./seeders/rol.seeder.js";
+import { seedTrabajadores } from "./seeders/trabajador.seeder.js";
+import { seedContratos } from "./seeders/contrato.seeder.js";
 
 export const app = express();
 
@@ -18,6 +23,11 @@ export async function initializeApp() {
   try {
     await connectDB();
     console.log("Base de datos conectada correctamente");
+    
+    // Ejecutar seeders en orden: roles -> trabajadores -> contratos
+    await seedRoles();
+    await seedTrabajadores();
+    await seedContratos();
   } catch (error) {
     console.error("Error durante la inicialización:", error);
     process.exit(1);
@@ -38,6 +48,8 @@ app.use("/api/clientes", clienteRoutes);
 app.use("/api/ausencias", ausenciaRoutes);
 app.use("/api/justificaciones", justificacionRoutes);
 app.use("/api/asignados", asignadoRoutes);
+app.use("/api/contratos", contratoRoutes);
+app.use("/api/trabajadores", trabajadorRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
