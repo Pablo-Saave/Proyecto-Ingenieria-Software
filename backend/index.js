@@ -1,10 +1,18 @@
-const express = require("express");
-const app = express();
+import { app, initializeApp } from "./src/app.js";
+import { PORT } from "./src/config/configEnv.js";
 
-app.get("/", (req, res) => {
-  res.send("API funcionando");
-});
+async function startServer() {
+  // Inicializar la aplicación y conectar a la base de datos
+  await initializeApp();
 
-app.listen(3000, () => {
-  console.log("Servidor en puerto 3000");
+  // Levantar el servidor
+  app.listen(PORT, () => {
+    console.log(`\nServidor ejecutándose en http://localhost:${PORT}`);
+    console.log(`   Presiona Ctrl+C para detener el servidor\n`);
+  });
+}
+
+startServer().catch((error) => {
+  console.error("Error al iniciar el servidor:", error);
+  process.exit(1);
 });

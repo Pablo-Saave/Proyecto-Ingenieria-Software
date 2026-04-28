@@ -1,6 +1,6 @@
-const { EntitySchema } = require("typeorm");
+import { EntitySchema } from "typeorm";
 
-module.exports = new EntitySchema({
+export const ContratoTrabajadorSchema = new EntitySchema({
   name: "ContratoTrabajador",
   tableName: "contratos_trabajadores",
 

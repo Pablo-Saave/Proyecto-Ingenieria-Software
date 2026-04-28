@@ -2,7 +2,7 @@ import { EntitySchema } from "typeorm";
 
 export const PermisoSchema = new EntitySchema({
 
-    name:'permiso',
+    name:'Permiso',
     tableName:"permiso",
 
     columns: {
@@ -27,7 +27,7 @@ export const PermisoSchema = new EntitySchema({
     relations: {
         permisos_vinculados: {
             type: "one-to-many",
-            target: "permiso_vinculado",
+            target: "PermisoVinculado",
             inverseSide: "permiso",
         },
     },

@@ -2,7 +2,7 @@ import { EntitySchema } from "typeorm";
 
 export const PermisoVinculadoSchema = new EntitySchema({
     
-    name: 'permiso_vinculado',
+    name: 'PermisoVinculado',
     tableName: "permiso_vinculado",
 
     columns: {
@@ -28,7 +28,7 @@ export const PermisoVinculadoSchema = new EntitySchema({
     relations: {
         rol: {
             type: "many-to-one",
-            target: "rol",
+            target: "Rol",
             joinColumn: { name: "id_rol" },
             nullable: false,
             onDelete: "CASCADE",
@@ -36,7 +36,7 @@ export const PermisoVinculadoSchema = new EntitySchema({
         },
         permiso: {
             type: "many-to-one",
-            target: "permiso",
+            target: "Permiso",
             joinColumn: { name: "id_permiso" },
             nullable: false,
             onDelete: "CASCADE",

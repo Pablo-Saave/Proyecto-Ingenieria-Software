@@ -2,7 +2,7 @@ import { EntitySchema } from "typeorm";
 
 export const RolSchema = new EntitySchema({
 
-    name:'rol',
+    name:'Rol',
     tableName:"rol",
 
     columns: {
@@ -25,9 +25,14 @@ export const RolSchema = new EntitySchema({
     },
 
     relations: {
+        trabajadores: {
+            type: "one-to-many",
+            target: "Trabajador",
+            inverseSide: "rol",
+        },
         permisos_vinculados: {
             type: "one-to-many",
-            target: "permiso_vinculado",
+            target: "PermisoVinculado",
             inverseSide: "rol",
         },
     },

@@ -1,6 +1,14 @@
 "use strict";
 import { DataSource } from "typeorm";
 import { DATABASE, DB_USERNAME, HOST, PASSWORD, DB_PORT } from "./configEnv.js";
+import { TrabajadorSchema } from "../entities/trabajador.entity.js";
+import { RolSchema } from "../entities/rol.entity.js";
+import { AusenciaSchema } from "../entities/ausencia.entity.js";
+import { JustificacionAusenciaSchema } from "../entities/ausencia_justificacion.entity.js";
+import { ContratoTrabajadorSchema } from "../entities/contrato_trabajador.entity.js";
+import { PermisoSchema } from "../entities/permiso.entity.js";
+import { PermisoVinculadoSchema } from "../entities/permiso_vinculado.entity.js";
+import { AsignadoSchema } from "../entities/asignado.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -9,7 +17,16 @@ export const AppDataSource = new DataSource({
   username: `${DB_USERNAME}`,
   password: `${PASSWORD}`,
   database: `${DATABASE}`,
-  entities: ['src/entities/**/*.js'],
+  entities: [
+    TrabajadorSchema,
+    RolSchema,
+    AusenciaSchema,
+    JustificacionAusenciaSchema,
+    ContratoTrabajadorSchema,
+    PermisoSchema,
+    PermisoVinculadoSchema,
+    AsignadoSchema,
+  ],
   synchronize: true, 
   logging: true,
 });
