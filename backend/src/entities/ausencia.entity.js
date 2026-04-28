@@ -38,5 +38,11 @@ module.exports = new EntitySchema({
       },
       nullable: false,
     },
+
+    justificaciones: {
+      type: "one-to-many",
+      target: "JustificacionAusencia",
+      inverseSide: "ausencia",
+    },
   },
 });

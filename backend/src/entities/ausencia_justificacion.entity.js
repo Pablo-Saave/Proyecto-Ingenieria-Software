@@ -11,6 +11,15 @@ module.exports = new EntitySchema({
       generated: true,
     },
 
+    id_ausencia: {
+      type: "int",
+    },
+
+    revisado_por: {
+      type: "int",
+      nullable: true,
+    },
+
     estado_revision: { type: "varchar" },
     fecha_registro: { type: "date" },
     motivo: { type: "varchar" },
@@ -22,6 +31,7 @@ module.exports = new EntitySchema({
       type: "many-to-one",
       target: "Ausencia",
       joinColumn: { name: "id_ausencia" },
+      inverseSide: "justificaciones",
     },
 
     revisor: {

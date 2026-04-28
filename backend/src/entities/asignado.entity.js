@@ -37,6 +37,7 @@ module.exports = new EntitySchema({
         name: "id_trabajador",
       },
       nullable: false,
+      inverseSide: "asignados",
     },
 
     proyecto: {
@@ -46,6 +47,7 @@ module.exports = new EntitySchema({
         name: "id_proyecto",
       },
       nullable: false,
+      inverseSide: "asignados",
     },
   },
 });

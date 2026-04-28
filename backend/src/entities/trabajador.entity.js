@@ -82,5 +82,11 @@ module.exports = new EntitySchema({
       target: "Ausencia",
       inverseSide: "trabajador",
     },
+
+    asignados: {
+      type: "one-to-many",
+      target: "Asignado",
+      inverseSide: "trabajador",
+    },
   },
 });
