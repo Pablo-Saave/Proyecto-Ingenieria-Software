@@ -67,19 +67,51 @@ Incluye módulos de asignación de personal, gestión de ausencias, contratos, p
 ### Pasos
 
 1. **Clonar el repositorio:**
-   ```bash
-   git clone https://github.com/TU_USUARIO/Proyecto-Servicio-Aseo.git
-   cd Proyecto-Servicio-Aseo
-2. **Configurar el Backend:**
+   
+   Primero clonas el repositorio
+   
+   ```
+   git clone https://github.com/Pablo-Saave/Proyecto-Ingenieria-Software.git
+   ```
+   
+   Y entras
+   
+   ```
+   cd Proyecto-Ingenieria-Software
+   ```
+   
+1. **Configurar el Backend:**
+2. 
+   Avanzas en a la carpeta backend con
+   
+    ```
    cd backend
+    ```
+   
+   E instalas
+   
+    ```
    npm install
-3. **Configurar el Frontend:**
+    ```
+   
+4. **Configurar el Frontend:**
+   
+   Retrocedes y luego avanzas a la carpeta de frontend
+   
+    ```
    cd ../frontend
+    ```
+   
+   E instalas
+   
+    ```
    npm install
-4. **Iniciar la base de datos:**
+    ```
+   
+6. **Iniciar la base de datos:**
    Asegúrate de que tu servidor de PostgreSQL esté corriendo.
    Crea una base de datos con el nombre especificado en el .env del backend.
-5. **Ejecutar el proyecto:**
+7. **Ejecutar el proyecto:**
    Backend:
    npm run dev
    Frontend:
