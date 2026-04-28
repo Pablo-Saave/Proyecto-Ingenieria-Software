@@ -80,8 +80,8 @@ Incluye módulos de asignación de personal, gestión de ausencias, contratos, p
    cd Proyecto-Ingenieria-Software
    ```
    
-1. **Configurar el Backend:**
-2. 
+2. **Configurar el Backend:**
+   
    Avanzas en a la carpeta backend con
    
     ```
@@ -94,7 +94,7 @@ Incluye módulos de asignación de personal, gestión de ausencias, contratos, p
    npm install
     ```
    
-4. **Configurar el Frontend:**
+3. **Configurar el Frontend:**
    
    Retrocedes y luego avanzas a la carpeta de frontend
    
@@ -108,18 +108,47 @@ Incluye módulos de asignación de personal, gestión de ausencias, contratos, p
    npm install
     ```
    
-6. **Iniciar la base de datos:**
-   Asegúrate de que tu servidor de PostgreSQL esté corriendo.
-   Crea una base de datos con el nombre especificado en el .env del backend.
-7. **Ejecutar el proyecto:**
+4. **Iniciar la base de datos:**
+   
+   Asegúrate de que en PostgreSQL y en el archivo ".env" coincidan los datos de usuario, nombre de la base de datos, contraseña, puerto y host.
+
+   Ejemplo de un .env:
+   
+   ```
+   # Base de datos
+   
+   DB_HOST = localhost
+   DB_PORT = 5432
+   DB_USERNAME = Aquí va el usuario de PostgreSQL
+   DB_PASSWORD = Aquí va la contraseña de tu usuario en PostgreSQL
+   DATABASE = Aquí va el nombre de la base de datos en PostgreSQL
+   
+   # Servidor
+   
+   HOST = localhost
+   PORT = 3000
+   ```
+
+6. **Ejecutar el proyecto:**
+   
    Backend:
+
+   ```
    npm run dev
+   ```
+   
    Frontend:
+
+   ```
    npm run dev
+   ```
+   
+## Miembros del equipo:
 
-Miembros del equipo:
+- Maximiliano De Gregorio
 
-Maximiliano De Gregorio
-Pablo Saavedra Araneda 
-Kevin Romero
-Francisco Díaz   
+- Pablo Saavedra Araneda
+
+- Kevin Romero
+
+- Francisco Díaz   
