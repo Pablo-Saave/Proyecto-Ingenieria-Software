@@ -25,12 +25,12 @@ export const ProyectoSchema = new EntitySchema({
       nullable: false,
       inverseSide: "proyecto",
     },
-    trabajador: {
+    /*trabajador: {
       type: "many-to-many",
       target: "trabajador",
       joinTable: true,
       inverseSide: "proyecto",
-    },
+    },*/
     /*
     contrato_proyecto: {
       type: "one-to-one",
