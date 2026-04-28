@@ -1,6 +1,6 @@
-const { EntitySchema } = require("typeorm");
+import { EntitySchema } from "typeorm";
 
-module.exports = new EntitySchema({
+export const AsignadoSchema = new EntitySchema({
   name: "Asignado",
   tableName: "asignados",
 
@@ -40,14 +40,14 @@ module.exports = new EntitySchema({
       inverseSide: "asignados",
     },
 
-    proyecto: {
-      type: "many-to-one",
-      target: "Proyecto",
-      joinColumn: {
-        name: "id_proyecto",
-      },
-      nullable: false,
-      inverseSide: "asignados",
-    },
+    // proyecto: {
+    //   type: "many-to-one",
+    //   target: "Proyecto",
+    //   joinColumn: {
+    //     name: "id_proyecto",
+    //   },
+    //   nullable: false,
+    //   inverseSide: "asignados",
+    // },
   },
 });
