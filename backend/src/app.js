@@ -10,6 +10,7 @@ import contratoRoutes from "./routes/contrato.routes.js";
 import trabajadorRoutes from "./routes/trabajador.routes.js";
 import proyectoRoutes from "./routes/proyecto.routes.js";
 import remuneracionRoutes from "./routes/remuneracion.routes.js"
+import rolRoutes from "./routes/rol.routes.js";
 import { seedRoles } from "./seeders/rol.seeder.js";
 import { seedTrabajadores } from "./seeders/trabajador.seeder.js";
 import { seedContratos } from "./seeders/contrato.seeder.js";
@@ -54,6 +55,7 @@ app.use("/api/contratos", contratoRoutes);
 app.use("/api/trabajadores", trabajadorRoutes);
 app.use("/api/proyectos", proyectoRoutes);
 app.use("/api/remuneraciones", remuneracionRoutes);
+app.use("/api/roles", rolRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
