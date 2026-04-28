@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import "reflect-metadata";
 import { connectDB } from "./config/configDb.js";
+import clienteRoutes from "./routes/cliente.routes.js";
 
 export const app = express();
 
@@ -28,6 +29,9 @@ app.get("/", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Rutas
+app.use("/api/clientes", clienteRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {

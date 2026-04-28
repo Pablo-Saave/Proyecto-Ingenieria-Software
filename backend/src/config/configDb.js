@@ -9,6 +9,9 @@ import { ContratoTrabajadorSchema } from "../entities/contrato_trabajador.entity
 import { PermisoSchema } from "../entities/permiso.entity.js";
 import { PermisoVinculadoSchema } from "../entities/permiso_vinculado.entity.js";
 import { AsignadoSchema } from "../entities/asignado.entity.js";
+import {RemuneracionSchema} from "../entities/remuneracion.entity.js"
+import {ProyectoSchema} from "../entities/proyecto.entity.js"
+import {ClienteSchema} from "../entities/cliente.entity.js"
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -26,6 +29,9 @@ export const AppDataSource = new DataSource({
     PermisoSchema,
     PermisoVinculadoSchema,
     AsignadoSchema,
+    RemuneracionSchema,
+    ProyectoSchema,
+    ClienteSchema
   ],
   synchronize: true, 
   logging: true,
