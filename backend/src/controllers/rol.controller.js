@@ -1,7 +1,7 @@
 "use strict";
 
-import { RolSchema } from '../entities/user.entity.js';
-import { appDataSource } from '../config/configDb.js';
+import { RolSchema } from '../entities/rol.entity.js';
+import { AppDataSource } from '../config/configDb.js';
 
 const rolRepo = AppDataSource.getRepository(RolSchema);
 
