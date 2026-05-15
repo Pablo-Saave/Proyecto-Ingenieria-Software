@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import './styles/globals.css';
@@ -27,6 +28,12 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route 
+          path="/" 
+          element={
+            isLoggedIn ? <Navigate to="/admin" replace /> : <Landing onLoginSuccess={handleLoginSuccess} />
+          } 
+        />
+        <Route 
           path="/login" 
           element={
             isLoggedIn ? <Navigate to="/admin" replace /> : <Login onLoginSuccess={handleLoginSuccess} />
@@ -40,7 +47,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/" element={<Navigate to={isLoggedIn ? "/admin" : "/login"} replace />} />
       </Routes>
     </BrowserRouter>
   );
