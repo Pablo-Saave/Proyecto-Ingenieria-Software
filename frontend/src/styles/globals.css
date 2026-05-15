@@ -63,3 +63,28 @@ select {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* ── FIX: el body hereda color a todos los span/b
+   esto fuerza el azul en el brand de AseoCorp ── */
+.login-card-left * {
+  color: inherit;
+}
+
+.login-card-left {
+  color: #ffffff;
+}
+
+.login-brand-corp-color {
+  color: #4d79ff !important;
+}
+
+/* Evita que CSS global pise los colores del SVG del brand */
+.login-brand svg text tspan {
+  fill: unset;
+}
+.login-brand svg text tspan:first-child {
+  fill: #ffffff !important;
+}
+.login-brand svg text tspan:last-child {
+  fill: #4d79ff !important;
+}
