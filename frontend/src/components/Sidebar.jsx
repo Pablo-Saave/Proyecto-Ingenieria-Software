@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/sidebar.css';
 import {
   LayoutDashboard,
@@ -6,48 +7,60 @@ import {
   Clock,
   FileText,
   DollarSign,
-  Trash2,
 } from 'lucide-react';
 
 function Sidebar() {
-  const [activeItem, setActiveItem] = useState('dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activeItem, setActiveItem] = useState(() => {
+    if (location.pathname === '/admin/contratos') return 'contratos';
+    return 'dashboard';
+  });
 
   const menuItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
       icon: LayoutDashboard,
+      path: '/admin',
     },
     {
       id: 'trabajadores',
       label: 'Trabajadores',
       icon: Users,
+      path: '/admin/trabajadores',
     },
     {
       id: 'asistencia',
       label: 'Asistencia',
       icon: Clock,
+      path: '/admin/asistencia',
     },
     {
       id: 'contratos',
       label: 'Contratos',
       icon: FileText,
+      path: '/admin/contratos',
     },
     {
       id: 'pagos',
       label: 'Pagos',
       icon: DollarSign,
+      path: '/admin/pagos',
     },
   ];
+
+  const handleMenuClick = (item) => {
+    setActiveItem(item.id);
+    navigate(item.path);
+  };
 
   return (
     <div className="sidebar">
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="logo-icon-broom">
-          <Trash2 size={22} />
-        </div>
-        <span className="logo-text">AseoCorp</span>
+        <img src="/img/aseo-corp-logo.png" alt="AseoCorp" className="logo-icon-image" />
+        <span className="logo-text">Aseo<span className="logo-text-corp">Corp</span></span>
       </div>
 
       {/* Menu Items */}
@@ -58,9 +71,7 @@ function Sidebar() {
             <button
               key={item.id}
               className={`sidebar-item ${activeItem === item.id ? 'active' : ''}`}
-              onClick={() => {
-                setActiveItem(item.id);
-              }}
+              onClick={() => handleMenuClick(item)}
             >
               <Icon size={20} />
               <span>{item.label}</span>
@@ -71,7 +82,7 @@ function Sidebar() {
 
       {/* User Profile */}
       <div className="sidebar-user">
-        <div className="user-avatar">A</div>
+        <img src="/img/usuario.png" alt="Usuario" className="user-avatar-img" />
         <div className="user-info">
           <p className="user-name">Admin</p>
         </div>

@@ -115,10 +115,10 @@
 .login-button-demo {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1.5px solid #d0d7ee;
+  border: 1.5px solid #003d82;
   border-radius: 0.65rem;
   background: #fff;
-  color: #4f46e5;
+  color: #00154d;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -130,9 +130,9 @@
 }
 
 .login-button-demo:hover:not(:disabled) {
-  border-color: #6266ff;
-  background: #f5f4ff;
-  box-shadow: 0 2px 8px rgba(98, 102, 255, 0.1);
+  border-color: #00154d;
+  background: #f0f4f8;
+  box-shadow: 0 2px 8px rgba(0, 21, 77, 0.1);
 }
 
 .login-button-demo--disabled,
@@ -154,7 +154,7 @@
 .login-link {
   background: none;
   border: none;
-  color: #5551e8;
+  color: #00154d;
   font-weight: 600;
   cursor: pointer;
   padding: 0;

@@ -3,9 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Contratos from './pages/Contratos';
 import './styles/globals.css';
 
-// Componente para rutas protegidas
 function ProtectedRoute({ isLoggedIn, children }) {
   return isLoggedIn ? children : <Navigate to="/login" replace />;
 }
@@ -44,6 +44,14 @@ function App() {
           element={
             <ProtectedRoute isLoggedIn={isLoggedIn}>
               <Dashboard userRole={userRole} onLogout={handleLogout} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/contratos"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <Contratos onLogout={handleLogout} />
             </ProtectedRoute>
           }
         />

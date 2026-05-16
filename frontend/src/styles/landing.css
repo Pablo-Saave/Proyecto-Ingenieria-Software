@@ -281,15 +281,16 @@
 /* Estadísticas Section */
 .landing-stats {
   background: #ffffff;
-  padding: 4rem 2rem;
+  padding: 3.5rem 2rem;
 }
 
 .stats-container {
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 0;
+  align-items: stretch;
 }
 
 .stat-card {
@@ -299,53 +300,66 @@
   text-align: center;
   padding: 2rem;
   background: transparent;
-  border-right: 1px solid #e2e8f0;
-  border-radius: 0;
+  border: none;
   box-shadow: none;
+  outline: none;
 }
 
-.stat-card:last-child {
-  border-right: none;
-}
-
+/* Icono circular con color fuerte y visible */
 .stat-icon {
   width: 70px;
   height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f4ff;
+  background: #dde4ff;
   border-radius: 50%;
-  color: #4466ff;
+  color: #2244cc;
   margin-bottom: 1rem;
 }
 
 .stat-icon svg {
   width: 36px;
   height: 36px;
-  stroke: currentColor;
+  stroke: #2244cc !important;
+  fill: none !important;
+  stroke-width: 2;
+  color: #2244cc;
 }
 
 .stat-number {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 600;
   color: #4466ff;
-  margin: 0 0 0.25rem 0;
+  margin: 0.1rem 0 0.5rem 0;
 }
 
 .stat-label {
   font-size: 0.85rem;
   font-weight: 700;
   color: #001a4d;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   margin: 0 0 0.75rem 0;
 }
 
 .stat-description {
   font-size: 0.9rem;
-  color: #64748b;
+  color: #6b7a90;
   line-height: 1.5;
   margin: 0;
+  max-width: 220px;
+}
+
+@media (max-width: 1024px) {
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-container {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Login Modal */
@@ -486,7 +500,6 @@
   align-items: center;
 }
 
-/* Iconos de redes — sin recuadro, solo el ícono */
 .social-link {
   display: flex;
   align-items: center;
