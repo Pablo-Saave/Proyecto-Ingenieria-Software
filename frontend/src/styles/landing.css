@@ -439,7 +439,6 @@
   gap: 2rem;
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-brand {
@@ -483,29 +482,32 @@
 
 .footer-socials {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
+  align-items: center;
 }
 
+/* Iconos de redes — sin recuadro, solo el ícono */
 .social-link {
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  color: #fff;
-  transition: background 0.3s ease;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.75);
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .social-link:hover {
-  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  background: transparent;
 }
 
 .social-link svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
 .footer-section {

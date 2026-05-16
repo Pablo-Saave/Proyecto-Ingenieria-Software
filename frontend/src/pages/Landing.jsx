@@ -15,13 +15,12 @@ function Landing({ onLoginSuccess }) {
       const targetPosition = contactSection.offsetTop;
       const startPosition = window.pageYOffset;
       const distance = targetPosition - startPosition;
-      const duration = 1000; // 1 segundo para un scroll más rápido pero suave
+      const duration = 1000;
       let start = null;
 
       const ease = (t) => {
-        // Función de easing suave (ease-in-out-cubic)
-        return t < 0.5 
-          ? 4 * t * t * t 
+        return t < 0.5
+          ? 4 * t * t * t
           : 1 - Math.pow(-2 * t + 2, 3) / 2;
       };
 
@@ -29,13 +28,8 @@ function Landing({ onLoginSuccess }) {
         if (start === null) start = currentTime;
         const elapsed = currentTime - start;
         const progress = Math.min(elapsed / duration, 1);
-        const ease_progress = ease(progress);
-        
-        window.scrollTo(0, startPosition + distance * ease_progress);
-        
-        if (progress < 1) {
-          requestAnimationFrame(animation);
-        }
+        window.scrollTo(0, startPosition + distance * ease(progress));
+        if (progress < 1) requestAnimationFrame(animation);
       };
 
       requestAnimationFrame(animation);
@@ -54,16 +48,10 @@ function Landing({ onLoginSuccess }) {
             </span>
           </div>
           <div className="navbar-actions">
-            <button 
-              className="nav-btn nav-login-btn" 
-              onClick={handleLoginClick}
-            >
+            <button className="nav-btn nav-login-btn" onClick={handleLoginClick}>
               Iniciar sesión
             </button>
-            <button 
-              className="nav-btn nav-contact-btn" 
-              onClick={handleContactClick}
-            >
+            <button className="nav-btn nav-contact-btn" onClick={handleContactClick}>
               Contacto
             </button>
           </div>
@@ -197,24 +185,32 @@ function Landing({ onLoginSuccess }) {
               Espacios limpios, ambientes mejores.
             </p>
             <div className="footer-socials">
-              <a href="#" className="social-link">
+
+              {/* Facebook */}
+              <a href="#" className="social-link" title="Facebook">
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2s9 5 20 5a9.5 9.5 0 00-9-5.5c4.75 2.25 7-7 7-7"></path>
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
                 </svg>
               </a>
-              <a href="#" className="social-link">
-                <svg viewBox="0 0 24 24" fill="currentColor">
+
+              {/* Instagram */}
+              <a href="#" className="social-link" title="Instagram">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                  <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" fill="white"></path>
-                  <circle cx="17.5" cy="6.5" r="1.5" fill="white"></circle>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
                 </svg>
               </a>
-              <a href="#" className="social-link">
+
+              {/* LinkedIn */}
+              <a href="#" className="social-link" title="LinkedIn">
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"></path>
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                  <rect x="2" y="9" width="4" height="12"></rect>
                   <circle cx="4" cy="4" r="2"></circle>
                 </svg>
               </a>
+
             </div>
           </div>
 
@@ -247,21 +243,21 @@ function Landing({ onLoginSuccess }) {
           <div className="footer-section">
             <h3 className="footer-section-title">Servicios</h3>
             <ul className="footer-links">
-              <li><a href="#">Limpieza de oficinas</a></li>
-              <li><a href="#">Limpieza comercial</a></li>
-              <li><a href="#">Limpieza residencial</a></li>
-              <li><a href="#">Desinfección</a></li>
-              <li><a href="#">Mantenimiento</a></li>
+              <li>Limpieza de oficinas</li>
+              <li>Limpieza comercial</li>
+              <li>Limpieza residencial</li>
+              <li>Desinfección</li>
+              <li>Mantenimiento</li>
             </ul>
           </div>
 
           <div className="footer-section">
             <h3 className="footer-section-title">Empresa</h3>
             <ul className="footer-links">
-              <li><a href="#">Nosotros</a></li>
-              <li><a href="#">Nuestros servicios</a></li>
-              <li><a href="#">Clientes</a></li>
-              <li><a href="#">Contacto</a></li>
+              <li>Nosotros</li>
+              <li>Nuestros servicios</li>
+              <li>Clientes</li>
+              <li>Contacto</li>
             </ul>
           </div>
         </div>
