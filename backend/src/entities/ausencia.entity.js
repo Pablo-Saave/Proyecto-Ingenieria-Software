@@ -11,11 +11,15 @@ export const AusenciaSchema = new EntitySchema({
       generated: true,
     },
 
-    fecha_ausencia: {
+    fecha_inicio: {
       type: "date",
     },
 
-    tipo_ausencia: {
+    fecha_termino: {
+      type: "date",
+    },
+
+    motivo: {
       type: "varchar",
     },
 
@@ -23,8 +27,13 @@ export const AusenciaSchema = new EntitySchema({
       type: "varchar",
     },
 
-    observacion: {
+    comentario_revision: {
       type: "varchar",
+      nullable: true,
+    },
+
+    fecha_revision: {
+      type: "date",
       nullable: true,
     },
   },
@@ -39,10 +48,13 @@ export const AusenciaSchema = new EntitySchema({
       nullable: false,
     },
 
-    justificaciones: {
-      type: "one-to-many",
-      target: "JustificacionAusencia",
-      inverseSide: "ausencia",
+    revisor: {
+      type: "many-to-one",
+      target: "Trabajador",
+      joinColumn: {
+        name: "revisado_por",
+      },
+      nullable: true,
     },
   },
 });
