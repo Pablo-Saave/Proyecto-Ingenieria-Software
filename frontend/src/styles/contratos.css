@@ -4,46 +4,72 @@
   width: 100%;
 }
 
+/* Header con título + botón */
 .contratos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 2rem;
 }
 
 .contratos-header h1 {
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 600;
   color: #000;
   margin: 0 0 0.5rem 0;
 }
 
 .contratos-header p {
   color: #64748b;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   margin: 0;
 }
 
-/* Stats Grid */
+.btn-nuevo-contrato {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: #4466ff;
+  color: #fff;
+  border: none;
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-nuevo-contrato:hover {
+  background: #2244cc;
+}
+
+/* Stats Grid — layout horizontal */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .stat-card {
   background: #fff;
   border-radius: 0.75rem;
-  padding: 1.5rem;
+  padding: 1rem 1.25rem;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid #e2e8f0;
 }
 
 .stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 0.75rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 0.6rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,45 +77,36 @@
 }
 
 .stat-icon svg {
-  width: 28px;
-  height: 28px;
-  color: #fff;
+  width: 22px;
+  height: 22px;
 }
 
 .stat-icon.total {
   background: #e5e7eb;
-  color: #6b7280;
 }
-
 .stat-icon.total svg {
-  color: #6b7280;
+  stroke: #6b7280;
 }
 
 .stat-icon.activo {
   background: #dcfce7;
-  color: #16a34a;
 }
-
 .stat-icon.activo svg {
-  color: #16a34a;
+  stroke: #16a34a;
 }
 
 .stat-icon.por-vencer {
   background: #fef3c7;
-  color: #d97706;
 }
-
 .stat-icon.por-vencer svg {
-  color: #d97706;
+  stroke: #d97706;
 }
 
 .stat-icon.vencido {
   background: #fee2e2;
-  color: #dc2626;
 }
-
 .stat-icon.vencido svg {
-  color: #dc2626;
+  stroke: #dc2626;
 }
 
 .stat-content {
@@ -97,24 +114,29 @@
 }
 
 .stat-value {
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #000;
   line-height: 1;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .stat-label {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .stat-sub {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #9ca3af;
 }
+
+/* Colores especiales en stat-sub por tipo */
+.stat-card:nth-child(2) .stat-sub { color: #16a34a; }
+.stat-card:nth-child(3) .stat-sub { color: #d97706; }
+.stat-card:nth-child(4) .stat-sub { color: #dc2626; }
 
 /* Filters */
 .contratos-filters {
@@ -151,6 +173,7 @@
   background: #f9fafb;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
+  box-sizing: border-box;
 }
 
 .search-box input::placeholder {
@@ -158,7 +181,7 @@
 }
 
 .search-box input:focus {
-  border-color: #6266ff;
+  border-color: #4466ff;
   background: #fff;
 }
 
@@ -198,7 +221,7 @@
 }
 
 .filter-group select:focus {
-  border-color: #6266ff;
+  border-color: #4466ff;
 }
 
 .btn-filtros {
@@ -245,10 +268,10 @@
 }
 
 .contratos-table th {
-  padding: 1rem 0.75rem;
+  padding: 0.75rem 0.6rem;
   text-align: left;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 600;
   color: #6b7280;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -264,8 +287,8 @@
 }
 
 .contratos-table td {
-  padding: 1.25rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.75rem 0.6rem;
+  font-size: 0.8rem;
   color: #1f2937;
 }
 
@@ -280,23 +303,23 @@
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
-  border-radius: 0.5rem;
+  border-radius: 0.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
 .trabajador-info .nombre {
-  font-weight: 600;
+  font-weight: 500;
   color: #000;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .trabajador-info .rut {
@@ -307,10 +330,10 @@
 
 .estado-badge {
   display: inline-block;
-  padding: 0.35rem 0.75rem;
-  border-radius: 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -346,21 +369,12 @@
 
 .progress-fill {
   height: 100%;
-  background: #4466ff;
   transition: width 0.3s;
 }
 
-.progress-rojo .progress-fill {
-  background: #dc2626;
-}
-
-.progress-naranja .progress-fill {
-  background: #f59e0b;
-}
-
-.progress-azul .progress-fill {
-  background: #4466ff;
-}
+.progress-rojo .progress-fill { background: #dc2626; }
+.progress-naranja .progress-fill { background: #f59e0b; }
+.progress-azul .progress-fill { background: #4466ff; }
 
 .dias-text {
   font-size: 0.75rem;
@@ -375,11 +389,11 @@
 }
 
 .btn-accion {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border: 1px solid #e5e7eb;
   background: #fff;
-  border-radius: 0.5rem;
+  border-radius: 0.4rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -470,6 +484,16 @@
 @media (max-width: 768px) {
   .contratos-container {
     padding: 1rem;
+  }
+
+  .contratos-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .btn-nuevo-contrato {
+    width: 100%;
+    justify-content: center;
   }
 
   .stats-grid {

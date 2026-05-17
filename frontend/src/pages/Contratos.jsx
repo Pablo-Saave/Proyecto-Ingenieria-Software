@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/contratos.css';
-import { Eye, MoreVertical } from 'lucide-react';
+import { Eye, MoreVertical, Plus } from 'lucide-react';
 
 function Contratos({ onLogout }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,14 +85,10 @@ function Contratos({ onLogout }) {
 
   const getEstadoClass = (estado) => {
     switch (estado) {
-      case 'Activo':
-        return 'estado-activo';
-      case 'Por vencer':
-        return 'estado-por-vencer';
-      case 'Vencido':
-        return 'estado-vencido';
-      default:
-        return '';
+      case 'Activo': return 'estado-activo';
+      case 'Por vencer': return 'estado-por-vencer';
+      case 'Vencido': return 'estado-vencido';
+      default: return '';
     }
   };
 
@@ -116,15 +112,24 @@ function Contratos({ onLogout }) {
         <Header onLogout={onLogout} />
         <div className="dashboard-content">
           <div className="contratos-container">
+
+            {/* Header con título y botón */}
             <div className="contratos-header">
-              <h1>Contratos</h1>
-              <p>Gestiona y consulta todos los contratos laborales.</p>
+              <div>
+                <h1>Contratos</h1>
+                <p>Gestiona y consulta todos los contratos laborales.</p>
+              </div>
+              <button className="btn-nuevo-contrato">
+                <Plus size={16} />
+                Nuevo Contrato
+              </button>
             </div>
 
+            {/* Stats */}
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-icon total">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                   </svg>
                 </div>
@@ -137,23 +142,23 @@ function Contratos({ onLogout }) {
 
               <div className="stat-card">
                 <div className="stat-icon activo">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m2.98 2.98l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m2.98-2.98l4.24-4.24"></path>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
                   </svg>
                 </div>
                 <div className="stat-content">
                   <div className="stat-value">{stats.activos}</div>
                   <div className="stat-label">Activos</div>
-                  <div className="stat-sub">76% del total</div>
+                  <div className="stat-sub">{Math.round((stats.activos / stats.total) * 100)}% del total</div>
                 </div>
               </div>
 
               <div className="stat-card">
                 <div className="stat-icon por-vencer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m2.98 2.98l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m2.98-2.98l4.24-4.24"></path>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                 </div>
                 <div className="stat-content">
@@ -165,9 +170,10 @@ function Contratos({ onLogout }) {
 
               <div className="stat-card">
                 <div className="stat-icon vencido">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m2.98 2.98l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m2.98-2.98l4.24-4.24"></path>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
                   </svg>
                 </div>
                 <div className="stat-content">
@@ -178,6 +184,7 @@ function Contratos({ onLogout }) {
               </div>
             </div>
 
+            {/* Filtros */}
             <div className="contratos-filters">
               <div className="search-box">
                 <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -202,7 +209,6 @@ function Contratos({ onLogout }) {
                     <option>Vencido</option>
                   </select>
                 </div>
-
                 <div className="filter-group">
                   <label>Sede</label>
                   <select>
@@ -215,7 +221,6 @@ function Contratos({ onLogout }) {
                     <option>Sede Centro</option>
                   </select>
                 </div>
-
                 <div className="filter-group">
                   <label>Fecha</label>
                   <select>
@@ -225,7 +230,6 @@ function Contratos({ onLogout }) {
                     <option>Este año</option>
                   </select>
                 </div>
-
                 <button className="btn-filtros">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -235,6 +239,7 @@ function Contratos({ onLogout }) {
               </div>
             </div>
 
+            {/* Tabla */}
             <div className="contratos-table-wrapper">
               <table className="contratos-table">
                 <thead>
@@ -273,7 +278,7 @@ function Contratos({ onLogout }) {
                       <td>
                         <div className="tiempo-restante">
                           <div className={`progress-bar ${getProgressClass(contrato.diasRestantes, contrato.diasTotal)}`}>
-                            <div 
+                            <div
                               className="progress-fill"
                               style={{ width: `${(contrato.diasRestantes / contrato.diasTotal) * 100}%` }}
                             ></div>
@@ -295,6 +300,7 @@ function Contratos({ onLogout }) {
               </table>
             </div>
 
+            {/* Paginación */}
             <div className="pagination">
               <span className="pagination-info">Mostrando 1 a 10 de {stats.total} contratos.</span>
               <div className="pagination-controls">
@@ -308,6 +314,7 @@ function Contratos({ onLogout }) {
                 <button className="btn-pagina next">›</button>
               </div>
             </div>
+
           </div>
         </div>
       </div>

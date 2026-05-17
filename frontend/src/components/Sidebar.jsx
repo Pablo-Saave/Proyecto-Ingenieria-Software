@@ -28,13 +28,11 @@ function Sidebar() {
       id: 'trabajadores',
       label: 'Trabajadores',
       icon: Users,
-      path: '/admin/trabajadores',
     },
     {
       id: 'asistencia',
       label: 'Asistencia',
       icon: Clock,
-      path: '/admin/asistencia',
     },
     {
       id: 'contratos',
@@ -46,11 +44,13 @@ function Sidebar() {
       id: 'pagos',
       label: 'Pagos',
       icon: DollarSign,
-      path: '/admin/pagos',
     },
   ];
 
   const handleMenuClick = (item) => {
+    if (!item.path) {
+      return;
+    }
     setActiveItem(item.id);
     navigate(item.path);
   };

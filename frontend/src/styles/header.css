@@ -1,9 +1,9 @@
 .header {
   background: white;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e2e8f0;
   padding: 12px 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   height: 56px;
   flex-shrink: 0;
