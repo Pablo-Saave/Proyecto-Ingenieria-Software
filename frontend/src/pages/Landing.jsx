@@ -2,6 +2,38 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/landing.css';
 
+// Estilos inline para las stats (evitan conflictos con otros CSS)
+const statCardStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  textAlign: 'center',
+  padding: '2rem',
+  background: 'transparent',
+  border: 'none',
+  borderRight: 'none',
+  borderRadius: '0',
+  boxShadow: 'none',
+  outline: 'none',
+};
+
+const statCardLastStyle = {
+  ...statCardStyle,
+};
+
+const statIconStyle = {
+  width: '70px',
+  height: '70px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: '#eef1ff',
+  borderRadius: '50%',
+  color: '#4466ff',
+  marginBottom: '1rem',
+  flexShrink: '0',
+};
+
 function Landing({ onLoginSuccess }) {
   const navigate = useNavigate();
 
@@ -117,13 +149,14 @@ function Landing({ onLoginSuccess }) {
       {/* Estadísticas Section */}
       <section className="landing-stats">
         <div className="stats-container">
-          <div className="stat-card">
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+
+          <div className="stat-card" style={statCardStyle}>
+            <div className="stat-icon" style={statIconStyle}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.5"></path>
+                <path d="M16 3.5a4 4 0 0 1 0 7"></path>
               </svg>
             </div>
             <h3 className="stat-number">+2500</h3>
@@ -131,9 +164,9 @@ function Landing({ onLoginSuccess }) {
             <p className="stat-description">Han confiado en AseoCorp para el cuidado de sus espacios.</p>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="stat-card" style={statCardStyle}>
+            <div className="stat-icon" style={statIconStyle}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
@@ -143,12 +176,16 @@ function Landing({ onLoginSuccess }) {
             <p className="stat-description">Disfrutan cada día de espacios más limpios y agradables.</p>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="9" y1="9" x2="15" y2="9"></line>
-                <line x1="9" y1="15" x2="15" y2="15"></line>
+          <div className="stat-card" style={statCardStyle}>
+            <div className="stat-icon" style={statIconStyle}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                <line x1="9" y1="8" x2="11" y2="8"></line>
+                <line x1="13" y1="8" x2="15" y2="8"></line>
+                <line x1="9" y1="12" x2="11" y2="12"></line>
+                <line x1="13" y1="12" x2="15" y2="12"></line>
+                <line x1="9" y1="16" x2="11" y2="16"></line>
+                <line x1="13" y1="16" x2="15" y2="16"></line>
               </svg>
             </div>
             <h3 className="stat-number">+20.000.000</h3>
@@ -156,9 +193,9 @@ function Landing({ onLoginSuccess }) {
             <p className="stat-description">De espacios cuidados con dedicación, compromiso y excelencia.</p>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="stat-card" style={statCardLastStyle}>
+            <div className="stat-icon" style={statIconStyle}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
             </div>
@@ -166,6 +203,7 @@ function Landing({ onLoginSuccess }) {
             <p className="stat-label">COMPROMETIDOS</p>
             <p className="stat-description">Con la calidad, la confianza y tu satisfacción.</p>
           </div>
+
         </div>
       </section>
 

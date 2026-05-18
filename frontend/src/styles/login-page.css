@@ -289,7 +289,7 @@
   padding: 0.8rem 1rem;
   border: none;
   border-radius: 0.6rem;
-  background: linear-gradient(135deg, #6a3fff 0%, #7c55ff 100%);
+  background: linear-gradient(135deg, #003d82 0%, #00154d 100%);
   color: #fff;
   font-size: 0.9rem;
   font-weight: 600;
@@ -299,7 +299,7 @@
   justify-content: center;
   gap: 0.5rem;
   transition: opacity 0.15s, transform 0.12s, box-shadow 0.15s;
-  box-shadow: 0 4px 18px rgba(106, 63, 255, 0.42);
+  box-shadow: 0 4px 18px rgba(0, 21, 77, 0.42);
   letter-spacing: 0.01em;
   font-family: inherit;
 }
@@ -307,12 +307,12 @@
 .login-card-right .login-button-primary:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(91, 79, 255, 0.52);
+  box-shadow: 0 6px 22px rgba(0, 21, 77, 0.52);
 }
 
 /* Disabled: mismo color vibrante pero con opacidad */
 .login-card-right .login-button-primary:disabled {
-  background: linear-gradient(135deg, #5540ff 0%, #6a55ff 100%);
+  background: linear-gradient(135deg, #002d66 0%, #001a40 100%);
   opacity: 0.82;
   cursor: not-allowed;
   box-shadow: none;

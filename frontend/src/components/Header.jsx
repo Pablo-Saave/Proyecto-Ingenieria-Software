@@ -13,12 +13,6 @@ function Header({ onLogout }) {
 
   return (
     <header className="header">
-      <div className="breadcrumb">
-        <span className="breadcrumb-item">AseoCorp</span>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-item active">Dashboard</span>
-      </div>
-
       <div className="header-actions">
         <button className="notification-btn">
           <Bell size={20} />

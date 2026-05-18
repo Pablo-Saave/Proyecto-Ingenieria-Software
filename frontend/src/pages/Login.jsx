@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/login.css';
 import '../styles/login-page.css';
@@ -8,6 +8,15 @@ function Login({ onLoginSuccess }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleBackButton = () => {
+      navigate('/', { replace: false });
+    };
+
+    window.addEventListener('popstate', handleBackButton);
+    return () => window.removeEventListener('popstate', handleBackButton);
+  }, [navigate]);
 
   const handleAdminDemo = () => {
     setTimeout(() => {

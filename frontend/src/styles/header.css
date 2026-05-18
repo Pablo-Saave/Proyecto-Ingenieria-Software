@@ -1,9 +1,9 @@
 .header {
   background: white;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e2e8f0;
   padding: 12px 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   height: 56px;
   flex-shrink: 0;
@@ -23,18 +23,14 @@
   transition: color 0.2s ease;
 }
 
-.breadcrumb-item:hover {
-  color: var(--text-primary);
-}
+.breadcrumb-item:hover { color: var(--text-primary); }
 
 .breadcrumb-item.active {
   color: #000;
   font-weight: 500;
 }
 
-.breadcrumb-separator {
-  color: var(--border-color);
-}
+.breadcrumb-separator { color: var(--border-color); }
 
 .header-actions {
   display: flex;
@@ -42,62 +38,78 @@
   gap: 16px;
 }
 
+/* Campana — gris por defecto, azul al hover, sin fondo ni sombra */
 .notification-btn {
   position: relative;
   background: none;
   border: none;
-  color: #000;
+  color: #6b7280;
   cursor: pointer;
-  transition: color 0.2s ease;
-  padding: 6px;
+  padding: 4px;
   border-radius: 6px;
   width: 28px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.2s;
+  box-shadow: none;
+}
+
+.notification-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .notification-btn:hover {
-  background: var(--secondary-color);
-  color: var(--primary-color);
+  color: #4466ff;
+  background: none;
+  box-shadow: none;
 }
 
 .notification-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -8px;
+  right: -8px;
   background: #EF4444;
   color: white;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 700;
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+/* Logout — gris por defecto, rojo al hover, sin fondo ni sombra */
 .logout-btn {
   background: none;
   border: none;
-  color: #EF4444;
+  color: #6b7280;
   cursor: pointer;
-  transition: color 0.2s ease;
-  padding: 6px;
+  padding: 4px;
   border-radius: 6px;
   width: 28px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.2s;
+  box-shadow: none;
   font-size: 0;
 }
 
+.logout-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 .logout-btn:hover {
-  color: #DC2626;
-  background: #FEE2E2;
+  color: #EF4444;
+  background: none;
+  box-shadow: none;
 }
 
 /* Responsive */
@@ -107,7 +119,5 @@
     height: 60px;
   }
 
-  .breadcrumb {
-    font-size: 12px;
-  }
+  .breadcrumb { font-size: 12px; }
 }
