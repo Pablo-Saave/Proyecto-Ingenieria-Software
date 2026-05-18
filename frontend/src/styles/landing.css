@@ -20,6 +20,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  border-bottom: none;
 }
 
 .navbar-container {
@@ -121,6 +122,8 @@
   );
 
   position: relative;
+  /* FIX: elimina cualquier gap de subpíxel entre navbar sticky y hero */
+  margin-top: -2px;
 }
 
 .hero-content {
@@ -600,6 +603,7 @@
 
   .landing-hero {
     height: 70vh;
+    margin-top: -2px;
 
     clip-path: polygon(
       0 0,
@@ -608,5 +612,8 @@
       0 100%
     );
   }
+}
 
+.landing-page .header {
+  display: none;
 }

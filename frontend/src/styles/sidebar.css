@@ -1,7 +1,7 @@
 .sidebar {
   width: 260px;
   background: white;
-  box-shadow: var(--shadow-md);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -27,7 +27,7 @@
 }
 
 .logo-text {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #000;
   letter-spacing: -0.2px;
@@ -43,7 +43,8 @@
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
+  border-right: 1px solid #e2e8f0;
 }
 
 .sidebar-item {
@@ -52,39 +53,44 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 6px;
-  color: #000;
+  color: #6b7280;
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: color 0.2s;
   cursor: pointer;
   background: none;
   border: none;
+  box-shadow: none;
   font-family: inherit;
   width: 100%;
   text-align: left;
 }
 
 .sidebar-item:hover {
-  background: #F3F4F6;
-  color: #000;
+  color: #4466ff;
+  background: none;
+  box-shadow: none;
 }
 
 .sidebar-item.active {
-  background: #E5E7EB;
-  color: #000;
-  border-left: 3px solid #E5E7EB;
-  padding-left: 9px;
+  color: #4466ff;
+  font-weight: 600;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding-left: 12px;
 }
 
 .sidebar-item svg {
   flex-shrink: 0;
-  color: #666;
+  color: inherit;
 }
 
 .sidebar-user {
   padding: 12px 8px;
   border-top: 1px solid var(--border-color);
+  border-right: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   gap: -4px;
@@ -112,22 +118,10 @@
 }
 
 /* Scrollbar */
-.sidebar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 3px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
-}
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -153,9 +147,7 @@
     overflow-x: auto;
   }
 
-  .sidebar-item {
-    flex-shrink: 0;
-  }
+  .sidebar-item { flex-shrink: 0; }
 
   .sidebar-user {
     border-top: none;

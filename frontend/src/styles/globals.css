@@ -25,7 +25,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F9FAFB;
+  /* FIX: era #F9FAFB (gris) — se veía como línea entre navbar y hero */
+  background-color: #00154d;
   color: var(--text-primary);
 }
 
