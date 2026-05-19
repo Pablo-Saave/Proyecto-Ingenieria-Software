@@ -4,6 +4,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Contratos from './pages/Contratos';
+import Trabajadores from './pages/Trabajadores';
 import './styles/globals.css';
 
 function ProtectedRoute({ isLoggedIn, children }) {
@@ -44,6 +45,14 @@ function App() {
           element={
             <ProtectedRoute isLoggedIn={isLoggedIn}>
               <Dashboard userRole={userRole} onLogout={handleLogout} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/trabajadores"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+               <Trabajadores onLogout={handleLogout} />
             </ProtectedRoute>
           }
         />
