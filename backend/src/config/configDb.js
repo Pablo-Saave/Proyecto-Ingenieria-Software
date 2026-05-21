@@ -2,15 +2,13 @@
 import { DataSource } from "typeorm";
 import { DATABASE, DB_USERNAME, HOST, PASSWORD, DB_PORT } from "./configEnv.js";
 import { TrabajadorSchema } from "../entities/trabajador.entity.js";
-import { RolSchema } from "../entities/rol.entity.js";
+import { EtiquetaSchema } from "../entities/etiqueta.entity.js";
 import { AusenciaSchema } from "../entities/ausencia.entity.js";
 import { ContratoTrabajadorSchema } from "../entities/contrato_trabajador.entity.js";
-import { PermisoSchema } from "../entities/permiso.entity.js";
-import { PermisoVinculadoSchema } from "../entities/permiso_vinculado.entity.js";
 import { AsignadoSchema } from "../entities/asignado.entity.js";
-import {RemuneracionSchema} from "../entities/remuneracion.entity.js"
-import {ProyectoSchema} from "../entities/proyecto.entity.js"
-import {ClienteSchema} from "../entities/cliente.entity.js"
+import { RemuneracionSchema } from "../entities/remuneracion.entity.js";
+import { ProyectoSchema } from "../entities/proyecto.entity.js";
+import { ClienteSchema } from "../entities/cliente.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -21,17 +19,15 @@ export const AppDataSource = new DataSource({
   database: `${DATABASE}`,
   entities: [
     TrabajadorSchema,
-    RolSchema,
+    EtiquetaSchema,
     AusenciaSchema,
     ContratoTrabajadorSchema,
-    PermisoSchema,
-    PermisoVinculadoSchema,
     AsignadoSchema,
     RemuneracionSchema,
     ProyectoSchema,
-    ClienteSchema
+    ClienteSchema,
   ],
-  synchronize: true, 
+  synchronize: true,
   logging: true,
 });
 
