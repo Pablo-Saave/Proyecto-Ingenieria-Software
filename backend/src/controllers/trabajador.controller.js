@@ -1,6 +1,9 @@
 "use strict";
 import { AppDataSource } from "../config/configDb.js";
 
+// Valores válidos para tipo_usuario. Definir aquí para validación consistente.
+const TIPOS_USUARIO_VALIDOS = ["trabajador", "supervisor", "administrador"];
+
 function getRepo() {
   return AppDataSource.getRepository("Trabajador");
 }
@@ -9,7 +12,9 @@ function getRepo() {
 export async function getAllTrabajadores(req, res) {
   try {
     const repo = getRepo();
-    const trabajadores = await repo.find({ relations: ["rol", "contratos"] });
+    const trabajadores = await repo.find({
+      relations: ["etiqueta", "contratos"],
+    });
     res.json({ status: "success", data: trabajadores });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });
@@ -22,7 +27,7 @@ export async function getTrabajadorById(req, res) {
     const repo = getRepo();
     const trabajador = await repo.findOne({
       where: { id_trabajador: parseInt(req.params.id) },
-      relations: ["rol", "contratos"],
+      relations: ["etiqueta", "contratos"],
     });
     if (!trabajador)
       return res.status(404).json({ status: "error", message: "Trabajador no encontrado" });
@@ -32,20 +37,75 @@ export async function getTrabajadorById(req, res) {
   }
 }
 
+// GET /api/trabajadores/etiqueta/:id_etiqueta
+// Obtiene todos los trabajadores de una unidad organizacional (para segmentar avisos, canales, etc.)
+export async function getTrabajadoresByEtiqueta(req, res) {
+  try {
+    const repo = getRepo();
+    const trabajadores = await repo.find({
+      where: {
+        etiqueta: { id_etiqueta: parseInt(req.params.id_etiqueta) },
+      },
+      relations: ["etiqueta"],
+    });
+    res.json({ status: "success", data: trabajadores });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: error.message });
+  }
+}
+
 // POST /api/trabajadores
 export async function createTrabajador(req, res) {
   try {
-    const { id_rol, rut, nombres, apellidos, sexo, telefono, correo, direccion, fecha_nacimiento, fecha_ingreso, estado_laboral, experiencia_previa } = req.body;
+    const {
+      tipo_usuario,
+      id_etiqueta,
+      rut,
+      nombres,
+      apellidos,
+      sexo,
+      telefono,
+      correo,
+      direccion,
+      fecha_nacimiento,
+      fecha_ingreso,
+      estado_laboral,
+      experiencia_previa,
+    } = req.body;
 
-    if (!id_rol || !rut || !nombres || !apellidos || !correo) {
+    // Validar campos obligatorios
+    if (!tipo_usuario || !rut || !nombres || !apellidos || !correo) {
       return res.status(400).json({
         status: "error",
-        message: "Faltan campos obligatorios: id_rol, rut, nombres, apellidos, correo",
+        message: "Faltan campos obligatorios: tipo_usuario, rut, nombres, apellidos, correo",
+      });
+    }
+
+    // Validar que tipo_usuario sea un valor permitido
+    if (!TIPOS_USUARIO_VALIDOS.includes(tipo_usuario)) {
+      return res.status(400).json({
+        status: "error",
+        message: `tipo_usuario inválido. Valores permitidos: ${TIPOS_USUARIO_VALIDOS.join(", ")}`,
       });
     }
 
     const repo = getRepo();
-    const nuevo = repo.create({ id_rol, rut, nombres, apellidos, sexo, telefono, correo, direccion, fecha_nacimiento, fecha_ingreso, estado_laboral, experiencia_previa });
+    const nuevo = repo.create({
+      tipo_usuario,
+      id_etiqueta: id_etiqueta ? parseInt(id_etiqueta) : null,
+      rut,
+      nombres,
+      apellidos,
+      sexo,
+      telefono,
+      correo,
+      direccion,
+      fecha_nacimiento,
+      fecha_ingreso,
+      estado_laboral,
+      experiencia_previa,
+    });
+
     const guardado = await repo.save(nuevo);
     res.status(201).json({ status: "success", data: guardado });
   } catch (error) {
@@ -57,9 +117,20 @@ export async function createTrabajador(req, res) {
 export async function updateTrabajador(req, res) {
   try {
     const repo = getRepo();
-    const trabajador = await repo.findOne({ where: { id_trabajador: parseInt(req.params.id) } });
+    const trabajador = await repo.findOne({
+      where: { id_trabajador: parseInt(req.params.id) },
+    });
+
     if (!trabajador)
       return res.status(404).json({ status: "error", message: "Trabajador no encontrado" });
+
+    // Validar tipo_usuario si viene en el body
+    if (req.body.tipo_usuario && !TIPOS_USUARIO_VALIDOS.includes(req.body.tipo_usuario)) {
+      return res.status(400).json({
+        status: "error",
+        message: `tipo_usuario inválido. Valores permitidos: ${TIPOS_USUARIO_VALIDOS.join(", ")}`,
+      });
+    }
 
     repo.merge(trabajador, req.body);
     const actualizado = await repo.save(trabajador);
@@ -73,7 +144,10 @@ export async function updateTrabajador(req, res) {
 export async function deleteTrabajador(req, res) {
   try {
     const repo = getRepo();
-    const trabajador = await repo.findOne({ where: { id_trabajador: parseInt(req.params.id) } });
+    const trabajador = await repo.findOne({
+      where: { id_trabajador: parseInt(req.params.id) },
+    });
+
     if (!trabajador)
       return res.status(404).json({ status: "error", message: "Trabajador no encontrado" });
 
