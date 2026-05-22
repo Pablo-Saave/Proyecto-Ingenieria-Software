@@ -33,8 +33,9 @@ function Sidebar() {
     },
     {
       id: 'asistencia',
-      label: 'Asistencia',
+      label: 'Ausencias',
       icon: Clock,
+      path: '/admin/ausencias',
     },
     {
       id: 'contratos',

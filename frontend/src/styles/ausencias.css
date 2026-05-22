@@ -1,0 +1,29 @@
+/* Reutiliza todas las clases de trabajadores.css */
+/* Solo agrega estilos específicos de ausencias     */
+
+.aus-tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #EEF2FF;
+  color: #4F46E5;
+  white-space: nowrap;
+}
+
+.aus-duracion {
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.aus-motivo {
+  color: #6b7280;
+  font-size: 13px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

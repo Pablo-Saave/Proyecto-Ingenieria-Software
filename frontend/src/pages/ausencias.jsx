@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import '../styles/trabajadores.css';
+import '../styles/ausencias.css';
 import {
-  Users, Plus, Search, Edit2, Trash2, X, Save, UserCheck, AlertCircle,
+  CalendarOff, Plus, Search, Edit2, Trash2, X, Save, AlertCircle, ClipboardList,
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:3000';
@@ -25,20 +25,21 @@ async function apiFetch(path, options = {}) {
 }
 
 const EMPTY_FORM = {
-  nombres: '',
-  apellidos: '',
-  rut: '',
-  correo: '',
-  telefono: '',
-  direccion: '',
-  fecha_nacimiento: '',
-  fecha_ingreso: '',
-  sexo: 'M',
-  estado_laboral: 'Activo',
-  experiencia_previa: '',
+  id_ausencia: '',
+  fecha_inicio: '',
+  fecha_termino: '',
+  motivo: '',
+  estado: 'Pendiente',
+  id_trabajador: '',
 };
 
-function Trabajadores({ onLogout }) {
+// ── Tipos de ausencia disponibles ─────────────────────────────────────────
+const TIPOS = ['Licencia Médica', 'Vacaciones', 'Permiso', 'Inasistencia', 'Otro'];
+const ESTADOS_AUSENCIA = ['Pendiente', 'Aprobada', 'Rechazada'];
+const FILTROS = ['Todos', 'Pendiente', 'Aprobada', 'Rechazada'];
+
+function Ausencias({ onLogout }) {
+  const [ausencias, setAusencias]       = useState([]);
   const [trabajadores, setTrabajadores] = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
@@ -52,12 +53,16 @@ function Trabajadores({ onLogout }) {
   const [saving, setSaving]             = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const fetchTrabajadores = async () => {
+  const fetchAusencias = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch('/api/trabajadores');
-      setTrabajadores(Array.isArray(res) ? res : res.data ?? []);
+      const [resA, resT] = await Promise.all([
+        apiFetch('/api/ausencias'),
+        apiFetch('/api/trabajadores'),
+      ]);
+      setAusencias(Array.isArray(resA) ? resA : resA.data ?? []);
+      setTrabajadores(Array.isArray(resT) ? resT : resT.data ?? []);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -65,21 +70,23 @@ function Trabajadores({ onLogout }) {
     }
   };
 
-  useEffect(() => { fetchTrabajadores(); }, []);
+  useEffect(() => { fetchAusencias(); }, []);
 
-  const ESTADOS = ['Todos', 'Activo', 'Inactivo', 'Licencia'];
+  // Mapa id → nombre completo para mostrar en tabla
+  const nombreTrabajador = (id) => {
+    const t = trabajadores.find((w) => w.id_trabajador === id);
+    return t ? `${t.nombres} ${t.apellidos}` : `ID ${id}`;
+  };
 
-  const filtered = trabajadores.filter((t) => {
+  const filtered = ausencias.filter((a) => {
     const q = searchQuery.toLowerCase();
+    const nombre = nombreTrabajador(a.id_trabajador).toLowerCase();
     const matchSearch =
       !q ||
-      `${t.nombres} ${t.apellidos}`.toLowerCase().includes(q) ||
-      t.rut?.toLowerCase().includes(q) ||
-      t.correo?.toLowerCase().includes(q) ||
-      t.rol?.nombre_rol?.toLowerCase().includes(q);
+      nombre.includes(q) ||
+      a.motivo?.toLowerCase().includes(q);
     const matchEstado =
-      filterEstado === 'Todos' ||
-      t.estado_laboral?.toLowerCase() === filterEstado.toLowerCase();
+      filterEstado === 'Todos' || a.estado === filterEstado;
     return matchSearch && matchEstado;
   });
 
@@ -91,21 +98,15 @@ function Trabajadores({ onLogout }) {
     setShowModal(true);
   };
 
-  const openEditar = (t) => {
+  const openEditar = (a) => {
     setFormData({
-      nombres:            t.nombres ?? '',
-      apellidos:          t.apellidos ?? '',
-      rut:                t.rut ?? '',
-      correo:             t.correo ?? '',
-      telefono:           t.telefono ?? '',
-      direccion:          t.direccion ?? '',
-      fecha_nacimiento:   t.fecha_nacimiento?.slice(0, 10) ?? '',
-      fecha_ingreso:      t.fecha_ingreso?.slice(0, 10) ?? '',
-      sexo:               t.sexo ?? 'M',
-      estado_laboral:     t.estado_laboral ?? 'Activo',
-      experiencia_previa: t.experiencia_previa ?? '',
+      id_trabajador: a.id_trabajador ?? '',
+      fecha_inicio:  a.fecha_inicio?.slice(0, 10) ?? '',
+      fecha_termino: a.fecha.termino?.slice(0, 10) ?? '',
+      motivo:        a.motivo ?? '',
+      estado:        a.estado ?? 'Pendiente',
     });
-    setSelectedId(t.id_trabajador);
+    setSelectedId(a.id_ausencia);
     setFormError(null);
     setModalMode('editar');
     setShowModal(true);
@@ -118,22 +119,15 @@ function Trabajadores({ onLogout }) {
     setFormError(null);
     setSaving(true);
     try {
+      const payload = { ...formData, id_trabajador: Number(formData.id_trabajador) };
       if (modalMode === 'crear') {
-        const nuevo = await apiFetch('/api/trabajadores', {
-          method: 'POST',
-          body: JSON.stringify(formData),
-        });
-        const item = nuevo.data ?? nuevo;
-        setTrabajadores((prev) => [...prev, item]);
+        const res  = await apiFetch('/api/ausencias', { method: 'POST', body: JSON.stringify(payload) });
+        const item = res.data ?? res;
+        setAusencias((prev) => [...prev, item]);
       } else {
-        const actualizado = await apiFetch(`/api/trabajadores/${selectedId}`, {
-          method: 'PUT',
-          body: JSON.stringify(formData),
-        });
-        const item = actualizado.data ?? actualizado;
-        setTrabajadores((prev) =>
-          prev.map((t) => (t.id_trabajador === selectedId ? item : t))
-        );
+        const res  = await apiFetch(`/api/ausencias/${selectedId}`, { method: 'PUT', body: JSON.stringify(payload) });
+        const item = res.data ?? res;
+        setAusencias((prev) => prev.map((a) => (a.id_ausencia === selectedId ? item : a)));
       }
       closeModal();
     } catch (e) {
@@ -145,8 +139,8 @@ function Trabajadores({ onLogout }) {
 
   const handleDelete = async (id) => {
     try {
-      await apiFetch(`/api/trabajadores/${id}`, { method: 'DELETE' });
-      setTrabajadores((prev) => prev.filter((t) => t.id_trabajador !== id));
+      await apiFetch(`/api/ausencias/${id}`, { method: 'DELETE' });
+      setAusencias((prev) => prev.filter((a) => a.id_ausencia !== id));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -158,11 +152,19 @@ function Trabajadores({ onLogout }) {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const estadoBadgeClass = (estado) => {
-    const e = estado?.toLowerCase();
-    if (e === 'activo')   return 'badge-activo';
-    if (e === 'inactivo') return 'badge-inactivo';
-    return 'badge-licencia';
+    if (estado === 'Aprobada')  return 'badge-activo';
+    if (estado === 'Rechazada') return 'badge-inactivo';
+    return 'badge-licencia'; // Pendiente
   };
+
+  const diasAusencia = (inicio, fin) => {
+    if (!inicio || !fin) return '—';
+    const diff = (new Date(fin) - new Date(inicio)) / (1000 * 60 * 60 * 24);
+    return diff >= 0 ? `${diff + 1} día${diff !== 0 ? 's' : ''}` : '—';
+  };
+
+  const formatFecha = (f) =>
+    f ? new Date(f).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
   return (
     <div className="dashboard-wrapper">
@@ -174,11 +176,11 @@ function Trabajadores({ onLogout }) {
           {/* Encabezado */}
           <div className="vista-general-header">
             <div>
-              <h1 className="vista-general-title">Trabajadores</h1>
-              <p className="vista-general-subtitle">Gestión de personal del servicio de aseo</p>
+              <h1 className="vista-general-title">Ausencias</h1>
+              <p className="vista-general-subtitle">Registro de licencias, permisos e inasistencias</p>
             </div>
             <button className="btn-nuevo-trabajador" onClick={openCrear}>
-              <Plus size={16} /> Nuevo Trabajador
+              <Plus size={16} /> Nueva Ausencia
             </button>
           </div>
 
@@ -189,13 +191,13 @@ function Trabajadores({ onLogout }) {
               <input
                 type="text"
                 className="tw-search-input"
-                placeholder="Buscar por nombre, RUT, rol..."
+                placeholder="Buscar por trabajador, tipo, motivo..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <div className="tw-filters">
-              {ESTADOS.map((f) => (
+              {FILTROS.map((f) => (
                 <button
                   key={f}
                   className={`tw-filter-btn ${filterEstado === f ? 'tw-filter-active' : ''}`}
@@ -209,8 +211,8 @@ function Trabajadores({ onLogout }) {
 
           {/* Contador */}
           <div className="tw-count">
-            <Users size={14} />
-            {filtered.length} trabajador{filtered.length !== 1 ? 'es' : ''}
+            <CalendarOff size={14} />
+            {filtered.length} ausencia{filtered.length !== 1 ? 's' : ''}
             {filterEstado !== 'Todos' && ` · ${filterEstado}`}
           </div>
 
@@ -224,54 +226,60 @@ function Trabajadores({ onLogout }) {
           <div className="tw-table-card">
             {loading ? (
               <div className="tw-loading">
-                <div className="tw-spinner" /> Cargando trabajadores...
+                <div className="tw-spinner" /> Cargando ausencias...
               </div>
             ) : filtered.length === 0 ? (
               <div className="tw-empty">
-                <UserCheck size={40} />
-                <p>No se encontraron trabajadores</p>
+                <ClipboardList size={40} />
+                <p>No se encontraron ausencias</p>
               </div>
             ) : (
               <table className="tw-table">
                 <thead>
                   <tr>
-                    <th>Nombre</th>
-                    <th>RUT</th>
-                    <th>Rol</th>
-                    <th>Correo</th>
-                    <th>Teléfono</th>
+                    <th>Trabajador</th>
+                    <th>Tipo</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Termino</th>
+                    <th>Duración</th>
+                    <th>Motivo</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((t) => (
-                    <tr key={t.id_trabajador}>
+                  {filtered.map((a) => (
+                    <tr key={a.id_ausencia}>
                       <td>
                         <div className="tw-name-cell">
                           <div className="tw-avatar">
-                            {(t.nombres?.[0] ?? '?').toUpperCase()}
+                            {(a.trabajador?.nombres?.charAt(0) ?? '?').toUpperCase()}
                           </div>
                           <div className="tw-fullname">
-                            {t.nombres} {t.apellidos}
+                            {a.trabajador
+                              ? `${a.trabajador.nombres} ${a.trabajador.apellidos}`
+                              : 'Sin trabajador'}
                           </div>
                         </div>
                       </td>
-                      <td className="tw-rut">{t.rut ?? '—'}</td>
-                      <td>{t.rol?.nombre_rol ?? '—'}</td>
-                      <td className="tw-email">{t.correo ?? '—'}</td>
-                      <td>{t.telefono ?? '—'}</td>
                       <td>
-                        <span className={`tw-badge ${estadoBadgeClass(t.estado_laboral)}`}>
-                          {t.estado_laboral ?? '—'}
+                        <span className="aus-tipo-badge">{a.motivo?.slice(0, 15) ?? '—'}</span>
+                      </td>
+                      <td>{formatFecha(a.fecha_inicio)}</td>
+                      <td>{formatFecha(a.fecha_termino)}</td>
+                      <td className="aus-duracion">{diasAusencia(a.fecha_inicio, a.fecha_termino)}</td>
+                      <td className="aus-motivo">{a.motivo ?? '—'}</td>
+                      <td>
+                        <span className={`tw-badge ${estadoBadgeClass(a.estado)}`}>
+                          {a.estado ?? '—'}
                         </span>
                       </td>
                       <td>
                         <div className="tw-actions">
-                          <button className="tw-btn-edit" title="Editar" onClick={() => openEditar(t)}>
+                          <button className="tw-btn-edit" title="Editar" onClick={() => openEditar(a)}>
                             <Edit2 size={14} />
                           </button>
-                          <button className="tw-btn-delete" title="Eliminar" onClick={() => setConfirmDelete(t.id_trabajador)}>
+                          <button className="tw-btn-delete" title="Eliminar" onClick={() => setConfirmDelete(a.id_ausencia)}>
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -290,7 +298,7 @@ function Trabajadores({ onLogout }) {
         <div className="tw-modal-overlay" onClick={closeModal}>
           <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
-              <h2>{modalMode === 'crear' ? 'Nuevo Trabajador' : 'Editar Trabajador'}</h2>
+              <h2>{modalMode === 'crear' ? 'Nueva Ausencia' : 'Editar Ausencia'}</h2>
               <button className="tw-modal-close" onClick={closeModal}><X size={18} /></button>
             </div>
             {formError && (
@@ -298,64 +306,48 @@ function Trabajadores({ onLogout }) {
             )}
             <form className="tw-form" onSubmit={handleSubmit}>
               <div className="tw-form-grid">
-                <div className="tw-field">
-                  <label>Nombres *</label>
-                  <input name="nombres" value={formData.nombres} onChange={handleChange} required placeholder="Ej: Juan Carlos" />
-                </div>
-                <div className="tw-field">
-                  <label>Apellidos *</label>
-                  <input name="apellidos" value={formData.apellidos} onChange={handleChange} required placeholder="Ej: García López" />
-                </div>
-                <div className="tw-field">
-                  <label>RUT *</label>
-                  <input name="rut" value={formData.rut} onChange={handleChange} required placeholder="Ej: 12.345.678-9" />
-                </div>
-                <div className="tw-field">
-                  <label>Correo</label>
-                  <input name="correo" type="email" value={formData.correo} onChange={handleChange} placeholder="Ej: juan@empresa.cl" />
-                </div>
-                <div className="tw-field">
-                  <label>Teléfono</label>
-                  <input name="telefono" value={formData.telefono} onChange={handleChange} placeholder="+56 9 1234 5678" />
-                </div>
-                <div className="tw-field">
-                  <label>Sexo</label>
-                  <select name="sexo" value={formData.sexo} onChange={handleChange}>
-                    <option value="M">Masculino</option>
-                    <option value="F">Femenino</option>
-                    <option value="Otro">Otro</option>
+                <div className="tw-field tw-field-full">
+                  <label>Trabajador *</label>
+                  <select name="id_trabajador" value={formData.id_trabajador} onChange={handleChange} required>
+                    <option value="">— Seleccionar —</option>
+                    {trabajadores.map((t) => (
+                      <option key={t.id_trabajador} value={t.id_trabajador}>
+                        {t.nombres} {t.apellidos} — {t.rut}
+                      </option>
+                    ))}
                   </select>
+                </div>
+                <div className="tw-field">
+                  <label>Tipo de Ausencia *</label>
+                  <select name="tipo_ausencia" value={formData.tipo_ausencia} onChange={handleChange} required>
+                    <option value="">— Seleccionar —</option>
+                    {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="tw-field">
+                  <label>Estado</label>
+                  <select name="estado" value={formData.estado} onChange={handleChange}>
+                    {ESTADOS_AUSENCIA.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="tw-field">
+                  <label>Fecha Inicio *</label>
+                  <input name="fecha_inicio" type="date" value={formData.fecha_inicio} onChange={handleChange} required />
+                </div>
+                <div className="tw-field">
+                  <label>Fecha Fin</label>
+                  <input name="fecha_fin" type="date" value={formData.fecha_fin} onChange={handleChange} />
                 </div>
                 <div className="tw-field tw-field-full">
-                  <label>Dirección</label>
-                  <input name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Ej: Calle Principal 123, Santiago" />
-                </div>
-                <div className="tw-field">
-                  <label>Fecha Nacimiento</label>
-                  <input name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onChange={handleChange} />
-                </div>
-                <div className="tw-field">
-                  <label>Fecha Ingreso</label>
-                  <input name="fecha_ingreso" type="date" value={formData.fecha_ingreso} onChange={handleChange} />
-                </div>
-                <div className="tw-field">
-                  <label>Experiencia Previa (años)</label>
-                  <input name="experiencia_previa" type="number" min="0" value={formData.experiencia_previa} onChange={handleChange} placeholder="Ej: 3" />
-                </div>
-                <div className="tw-field">
-                  <label>Estado Laboral</label>
-                  <select name="estado_laboral" value={formData.estado_laboral} onChange={handleChange}>
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                    <option value="Licencia">Con Licencia</option>
-                  </select>
+                  <label>Motivo</label>
+                  <input name="motivo" value={formData.motivo} onChange={handleChange} placeholder="Descripción breve del motivo" />
                 </div>
               </div>
               <div className="tw-modal-footer">
                 <button type="button" className="tw-btn-cancel" onClick={closeModal}>Cancelar</button>
                 <button type="submit" className="tw-btn-save" disabled={saving}>
                   <Save size={14} />
-                  {saving ? 'Guardando...' : modalMode === 'crear' ? 'Crear Trabajador' : 'Guardar Cambios'}
+                  {saving ? 'Guardando...' : modalMode === 'crear' ? 'Registrar Ausencia' : 'Guardar Cambios'}
                 </button>
               </div>
             </form>
@@ -372,7 +364,7 @@ function Trabajadores({ onLogout }) {
               <button className="tw-modal-close" onClick={() => setConfirmDelete(null)}><X size={18} /></button>
             </div>
             <p className="tw-confirm-text">
-              ¿Estás seguro de que deseas eliminar este trabajador? Esta acción no se puede deshacer.
+              ¿Estás seguro de que deseas eliminar esta ausencia? Esta acción no se puede deshacer.
             </p>
             <div className="tw-modal-footer">
               <button className="tw-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancelar</button>
@@ -387,4 +379,4 @@ function Trabajadores({ onLogout }) {
   );
 }
 
-export default Trabajadores;
+export default Ausencias;
