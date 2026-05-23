@@ -14,6 +14,7 @@ function Sidebar() {
   const location = useLocation();
   const [activeItem, setActiveItem] = useState(() => {
     if (location.pathname === '/admin/contratos') return 'contratos';
+    if (location.pathname === '/admin/trabajadores') return 'trabajadores';
     return 'dashboard';
   });
 
@@ -28,11 +29,13 @@ function Sidebar() {
       id: 'trabajadores',
       label: 'Trabajadores',
       icon: Users,
+      path: '/admin/trabajadores',
     },
     {
       id: 'asistencia',
-      label: 'Asistencia',
+      label: 'Ausencias',
       icon: Clock,
+      path: '/admin/ausencias',
     },
     {
       id: 'contratos',

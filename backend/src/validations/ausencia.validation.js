@@ -60,13 +60,6 @@ export const validarCrearAusencia = (req, res, next) => {
     });
   }
 
-  // tipo ausencia obligatorio
-  if (!tipo_ausencia) {
-    return res.status(400).json({
-      error: "El tipo de ausencia es obligatorio",
-    });
-  }
-
   // motivo obligatorio
   if (!motivo || !motivo.trim()) {
     return res.status(400).json({

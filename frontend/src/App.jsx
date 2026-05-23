@@ -4,6 +4,8 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Contratos from './pages/Contratos';
+import Trabajadores from './pages/Trabajadores';
+import Ausencias from './pages/ausencias';
 import './styles/globals.css';
 
 function ProtectedRoute({ isLoggedIn, children }) {
@@ -47,6 +49,19 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/trabajadores"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+               <Trabajadores onLogout={handleLogout} />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/admin/ausencias" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}>
+             <Ausencias onLogout={handleLogout} />
+          </ProtectedRoute>
+        } />
         <Route
           path="/admin/contratos"
           element={
