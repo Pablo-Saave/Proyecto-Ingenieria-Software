@@ -76,7 +76,7 @@ function Trabajadores({ onLogout }) {
       `${t.nombres} ${t.apellidos}`.toLowerCase().includes(q) ||
       t.rut?.toLowerCase().includes(q) ||
       t.correo?.toLowerCase().includes(q) ||
-      t.rol?.nombre_rol?.toLowerCase().includes(q);
+      t.etiqueta?.nombre_etiqueta?.toLowerCase().includes(q);
     const matchEstado =
       filterEstado === 'Todos' ||
       t.estado_laboral?.toLowerCase() === filterEstado.toLowerCase();
@@ -189,7 +189,7 @@ function Trabajadores({ onLogout }) {
               <input
                 type="text"
                 className="tw-search-input"
-                placeholder="Buscar por nombre, RUT, rol..."
+                placeholder="Buscar por nombre, RUT, etiqueta..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -237,7 +237,7 @@ function Trabajadores({ onLogout }) {
                   <tr>
                     <th>Nombre</th>
                     <th>RUT</th>
-                    <th>Rol</th>
+                    <th>Etiqueta</th>
                     <th>Correo</th>
                     <th>Teléfono</th>
                     <th>Estado</th>
@@ -258,7 +258,7 @@ function Trabajadores({ onLogout }) {
                         </div>
                       </td>
                       <td className="tw-rut">{t.rut ?? '—'}</td>
-                      <td>{t.rol?.nombre_rol ?? '—'}</td>
+                      <td>{t.etiqueta?.nombre_etiqueta ?? '—'}</td>
                       <td className="tw-email">{t.correo ?? '—'}</td>
                       <td>{t.telefono ?? '—'}</td>
                       <td>

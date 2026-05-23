@@ -9,7 +9,6 @@ export const crearAusencia = async (req, res) => {
     const nueva = repo.create({
       fecha_inicio: req.body.fecha_inicio,
       fecha_termino: req.body.fecha_termino,
-      tipo_ausencia: req.body.tipo_ausencia,
       motivo: req.body.motivo,
 
       // estado inicial
@@ -110,18 +109,6 @@ export const revisarAusencia = async (req, res) => {
         error: "La ausencia ya fue revisada",
       });
     }
-
-    /*
-    // validar estado permitido
-    if (
-      req.body.estado !== "Aprobada" &&
-      req.body.estado !== "Rechazada"
-    ) {
-      return res.status(400).json({
-        error: "Estado inválido",
-      });
-    }
-    */
 
     // actualizar datos revisión
     ausencia.estado = req.body.estado;

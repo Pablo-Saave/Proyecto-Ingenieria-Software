@@ -22,6 +22,6 @@ router.get("/trabajador/:id", obtenerAusenciasPorTrabajador);
 router.get("/pendientes", obtenerAusenciasPendientes);
 
 // PUT gestionar ausencia con su respectiva validacion
-router.put("/:id/revisar", validarRevisionAusencia, revisarAusencia);
+router.put("/:id/revisar", validarRevisionAusencia, revisarAusencia); //id de la ausencia
 
 export default router;

@@ -1,12 +1,4 @@
 import { EntitySchema } from "typeorm";
-
-// CAMBIOS RESPECTO A LA VERSIÓN ANTERIOR:
-// - Se eliminó la relación con Rol (id_rol / rol)
-// - Se agregó campo tipo_usuario: define los permisos del sistema
-//   Valores esperados: "trabajador" | "supervisor" | "administrador"
-// - Se agregó relación con Etiqueta (id_etiqueta): define la unidad organizacional
-//   Solo afecta qué información ve el usuario, no qué puede hacer
-
 export const TrabajadorSchema = new EntitySchema({
   name: "Trabajador",
   tableName: "trabajador",
@@ -18,7 +10,6 @@ export const TrabajadorSchema = new EntitySchema({
       generated: true,
     },
 
-    // Reemplaza id_rol. Define las capacidades del usuario en el sistema.
     // "trabajador" | "supervisor" | "administrador"
     tipo_usuario: {
       type: "varchar",
@@ -26,7 +17,6 @@ export const TrabajadorSchema = new EntitySchema({
       nullable: false,
     },
 
-    // FK hacia Etiqueta (unidad organizacional). Puede ser null si aún no asignada.
     id_etiqueta: {
       type: "int",
       nullable: true,
@@ -81,7 +71,7 @@ export const TrabajadorSchema = new EntitySchema({
   },
 
   relations: {
-    // Unidad organizacional. Solo restringe visibilidad, no permisos.
+    // Unidad organizacional. Solo restringe visibilidad de canales de avisos por ejemplo.
     etiqueta: {
       type: "many-to-one",
       target: "Etiqueta",

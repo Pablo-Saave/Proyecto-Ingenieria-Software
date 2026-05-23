@@ -37,53 +37,25 @@ export const validarRevisionAusencia = (req, res, next) => {
 };
 
 export const validarCrearAusencia = (req, res, next) => {
+  const { fecha_inicio, fecha_termino, motivo, id_trabajador } = req.body;
 
-  const {
-    fecha_inicio,
-    fecha_termino,
-    tipo_ausencia,
-    motivo,
-    id_trabajador,
-  } = req.body;
+  if (!fecha_inicio)
+    return res.status(400).json({ error: "La fecha de inicio es obligatoria" });
 
-  // fecha inicio obligatoria
-  if (!fecha_inicio) {
-    return res.status(400).json({
-      error: "La fecha de inicio es obligatoria",
-    });
-  }
+  if (!fecha_termino)
+    return res.status(400).json({ error: "La fecha de término es obligatoria" });
 
-  // fecha término obligatoria
-  if (!fecha_termino) {
-    return res.status(400).json({
-      error: "La fecha de término es obligatoria",
-    });
-  }
+  if (!motivo || !motivo.trim())
+    return res.status(400).json({ error: "El motivo es obligatorio" });
 
-  // motivo obligatorio
-  if (!motivo || !motivo.trim()) {
-    return res.status(400).json({
-      error: "El motivo es obligatorio",
-    });
-  }
+  if (!id_trabajador)
+    return res.status(400).json({ error: "Debe indicar trabajador" });
 
-  // trabajador obligatorio
-  if (!id_trabajador) {
-    return res.status(400).json({
-      error: "Debe indicar trabajador",
-    });
-  }
-
-  // validar fechas
   const inicio = new Date(fecha_inicio);
   const termino = new Date(fecha_termino);
 
-  if (termino < inicio) {
-    return res.status(400).json({
-      error:
-        "La fecha término no puede ser menor a la fecha inicio",
-    });
-  }
+  if (termino < inicio)
+    return res.status(400).json({ error: "La fecha término no puede ser menor a la fecha inicio" });
 
   next();
 };

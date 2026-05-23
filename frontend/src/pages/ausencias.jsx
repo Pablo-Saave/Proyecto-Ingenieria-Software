@@ -34,7 +34,6 @@ const EMPTY_FORM = {
 };
 
 // ── Tipos de ausencia disponibles ─────────────────────────────────────────
-const TIPOS = ['Licencia Médica', 'Vacaciones', 'Permiso', 'Inasistencia', 'Otro'];
 const ESTADOS_AUSENCIA = ['Pendiente', 'Aprobada', 'Rechazada'];
 const FILTROS = ['Todos', 'Pendiente', 'Aprobada', 'Rechazada'];
 
@@ -191,7 +190,7 @@ function Ausencias({ onLogout }) {
               <input
                 type="text"
                 className="tw-search-input"
-                placeholder="Buscar por trabajador, tipo, motivo..."
+                placeholder="Buscar por trabajador, motivo..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -238,7 +237,6 @@ function Ausencias({ onLogout }) {
                 <thead>
                   <tr>
                     <th>Trabajador</th>
-                    <th>Tipo</th>
                     <th>Fecha Inicio</th>
                     <th>Fecha Termino</th>
                     <th>Duración</th>
