@@ -57,13 +57,13 @@
 }
  
 .tw-filter-btn:hover {
-  border-color: #4F46E5;
-  color: #4F46E5;
+  border-color: #4466ff;
+  color: #4466ff;
 }
  
 .tw-filter-active {
-  background: #4F46E5;
-  border-color: #4F46E5;
+  background: #4466ff;
+  border-color: #4466ff;
   color: #fff !important;
 }
  
@@ -467,4 +467,24 @@
   font-size: 14px;
   color: #6b7280;
   line-height: 1.5;
+}
+
+/* ─── Botón Nuevo Trabajador ────────────────────────────────────────────── */
+.btn-nuevo-trabajador {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  background: #4466ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-nuevo-trabajador:hover {
+  background: #2244cc;
 }

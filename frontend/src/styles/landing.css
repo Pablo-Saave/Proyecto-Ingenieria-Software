@@ -24,9 +24,9 @@
 }
 
 .navbar-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 2rem 0 1rem;
 
   display: flex;
   justify-content: space-between;
@@ -514,10 +514,12 @@
   color: rgba(255, 255, 255, 0.75);
   text-decoration: none;
   transition: color 0.2s ease;
+  pointer-events: none;
+  cursor: default;
 }
 
 .social-link:hover {
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.75);
   background: transparent;
 }
 

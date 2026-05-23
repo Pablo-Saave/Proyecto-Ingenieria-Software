@@ -289,7 +289,7 @@
   padding: 0.8rem 1rem;
   border: none;
   border-radius: 0.6rem;
-  background: linear-gradient(135deg, #003d82 0%, #00154d 100%);
+  background: linear-gradient(135deg, #4466ff 0%, #3050dd 100%);
   color: #fff;
   font-size: 0.9rem;
   font-weight: 600;
@@ -299,7 +299,7 @@
   justify-content: center;
   gap: 0.5rem;
   transition: opacity 0.15s, transform 0.12s, box-shadow 0.15s;
-  box-shadow: 0 4px 18px rgba(0, 21, 77, 0.42);
+  box-shadow: 0 4px 18px rgba(68, 102, 255, 0.42);
   letter-spacing: 0.01em;
   font-family: inherit;
 }
@@ -312,7 +312,7 @@
 
 /* Disabled: mismo color vibrante pero con opacidad */
 .login-card-right .login-button-primary:disabled {
-  background: linear-gradient(135deg, #002d66 0%, #001a40 100%);
+  background: linear-gradient(135deg, #3050dd 0%, #1f36b5 100%);
   opacity: 0.82;
   cursor: not-allowed;
   box-shadow: none;

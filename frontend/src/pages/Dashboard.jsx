@@ -95,9 +95,6 @@ function Dashboard({ userRole, onLogout }) {
               <h1 className="vista-general-title">Vista General</h1>
               <p className="vista-general-subtitle">Resumen operativo para hoy, 24 de Octubre</p>
             </div>
-            <button className="btn-nuevo-trabajador">
-              <span>+</span> Nuevo Trabajador
-            </button>
           </div>
 
           {/* Métricas */}

@@ -116,72 +116,13 @@ function Contratos({ onLogout }) {
             {/* Header con título y botón */}
             <div className="contratos-header">
               <div>
-                <h1>Contratos</h1>
-                <p>Gestiona y consulta todos los contratos laborales.</p>
+                <h1 className="vista-general-title">Contratos</h1>
+                <p className="vista-general-subtitle">Gestiona y consulta todos los contratos laborales.</p>
               </div>
               <button className="btn-nuevo-contrato">
                 <Plus size={16} />
                 Nuevo Contrato
               </button>
-            </div>
-
-            {/* Stats */}
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-icon total">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                  </svg>
-                </div>
-                <div className="stat-content">
-                  <div className="stat-value">{stats.total}</div>
-                  <div className="stat-label">Total contratos</div>
-                  <div className="stat-sub">Todos los contratos</div>
-                </div>
-              </div>
-
-              <div className="stat-card">
-                <div className="stat-icon activo">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                </div>
-                <div className="stat-content">
-                  <div className="stat-value">{stats.activos}</div>
-                  <div className="stat-label">Activos</div>
-                  <div className="stat-sub">{Math.round((stats.activos / stats.total) * 100)}% del total</div>
-                </div>
-              </div>
-
-              <div className="stat-card">
-                <div className="stat-icon por-vencer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
-                </div>
-                <div className="stat-content">
-                  <div className="stat-value">{stats.porVencer}</div>
-                  <div className="stat-label">Por vencer</div>
-                  <div className="stat-sub">Próximos 30 días</div>
-                </div>
-              </div>
-
-              <div className="stat-card">
-                <div className="stat-icon vencido">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                </div>
-                <div className="stat-content">
-                  <div className="stat-value">{stats.vencidos}</div>
-                  <div className="stat-label">Vencidos</div>
-                  <div className="stat-sub">Requieren atención</div>
-                </div>
-              </div>
             </div>
 
             {/* Filtros */}

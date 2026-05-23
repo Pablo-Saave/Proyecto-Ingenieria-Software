@@ -12,16 +12,11 @@
   margin-bottom: 1rem;
 }
 
-.contratos-header h1 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #000;
-  margin: 0 0 0.15rem 0;
+.contratos-header .vista-general-title {
+  margin-bottom: 2px;
 }
 
-.contratos-header p {
-  color: #64748b;
-  font-size: 0.85rem;
+.contratos-header .vista-general-subtitle {
   margin: 0;
 }
 
@@ -29,12 +24,12 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.45rem 0.9rem;
+  padding: 0.45rem 1.2rem;
   background: #4466ff;
   color: #fff;
   border: none;
   border-radius: 0.4rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
@@ -59,11 +54,11 @@
 }
 
 .stat-card {
-  padding: 0.8rem 1rem;
+  padding: 0.5rem 0.7rem;
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   border-right: 1px solid #e2e8f0;
   background: #fff;
   box-shadow: none;
@@ -75,8 +70,8 @@
 
 /* Icono sin fondo, solo color */
 .stat-icon {
-  width: 36px;
-  height: 36px;
+  width: 24px;
+  height: 24px;
   border-radius: 0;
   background: transparent;
   display: flex;
@@ -86,8 +81,8 @@
 }
 
 .stat-icon svg {
-  width: 26px;
-  height: 26px;
+  width: 16px;
+  height: 16px;
 }
 
 .stat-icon.total svg   { stroke: #6266ff; }
@@ -100,7 +95,7 @@
 }
 
 .stat-value {
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #000;
   line-height: 1;
@@ -123,35 +118,35 @@
 .contratos-filters {
   background: #fff;
   border-radius: 0.5rem;
-  padding: 1rem;
+  padding: 0.35rem 0.5rem;
   margin-bottom: 1.25rem;
   border: 1px solid #e2e8f0;
 }
 
 .search-box {
   position: relative;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.3rem;
 }
 
 .search-icon {
   position: absolute;
-  left: 0.75rem;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: #9ca3af;
   pointer-events: none;
 }
 
 .search-box input {
   width: 100%;
-  padding: 0.65rem 1rem 0.65rem 2.5rem;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 0.6rem;
-  font-size: 0.875rem;
-  color: #1f2937;
-  background: #f9fafb;
+  padding: 9px 12px 9px 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
   box-sizing: border-box;
@@ -165,7 +160,7 @@
 
 .filter-controls {
   display: flex;
-  gap: 0.8rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
   align-items: flex-end;
 }
@@ -186,7 +181,7 @@
 }
 
 .filter-group select {
-  padding: 0.6rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   border: 1.5px solid #e2e8f0;
   border-radius: 0.6rem;
   font-size: 0.875rem;
@@ -204,7 +199,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.1rem;
+  padding: 0.4rem 1.1rem;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
   border-radius: 0.6rem;
@@ -246,7 +241,7 @@
 }
 
 .contratos-table th {
-  padding: 0.6rem 0.5rem;
+  padding: 0.4rem 0.4rem;
   text-align: left;
   font-size: 0.65rem;
   font-weight: 600;
@@ -263,7 +258,7 @@
 .contratos-table tbody tr:hover { background-color: #f9fafb; }
 
 .contratos-table td {
-  padding: 0.6rem 0.5rem;
+  padding: 0.4rem 0.4rem;
   font-size: 0.75rem;
   color: #1f2937;
 }

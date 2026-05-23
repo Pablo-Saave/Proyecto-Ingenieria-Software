@@ -15,6 +15,7 @@ function Sidebar() {
   const [activeItem, setActiveItem] = useState(() => {
     if (location.pathname === '/admin/contratos') return 'contratos';
     if (location.pathname === '/admin/trabajadores') return 'trabajadores';
+    if (location.pathname === '/admin/ausencias') return 'asistencia';
     return 'dashboard';
   });
 
@@ -61,10 +62,10 @@ function Sidebar() {
   return (
     <div className="sidebar">
       {/* Logo */}
-      <div className="sidebar-logo">
+      <button className="sidebar-logo" onClick={() => navigate('/admin')} style={{ background: 'none', cursor: 'pointer', padding: '0 12px' }}>
         <img src="/img/aseo-corp-logo.png" alt="AseoCorp" className="logo-icon-image" />
         <span className="logo-text">Aseo<span className="logo-text-corp">Corp</span></span>
-      </div>
+      </button>
 
       {/* Menu Items */}
       <nav className="sidebar-nav">
