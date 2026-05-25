@@ -10,6 +10,7 @@ import trabajadorRoutes from "./routes/trabajador.routes.js";
 import proyectoRoutes from "./routes/proyecto.routes.js";
 import remuneracionRoutes from "./routes/remuneracion.routes.js";
 import etiquetaRoutes from "./routes/etiqueta.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 export const app = express();
 
@@ -42,6 +43,7 @@ app.use("/api/trabajadores", trabajadorRoutes);
 app.use("/api/proyectos", proyectoRoutes);
 app.use("/api/remuneraciones", remuneracionRoutes);
 app.use("/api/etiquetas", etiquetaRoutes);
+app.use("/api/auth", authRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

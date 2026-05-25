@@ -10,6 +10,12 @@ export const TrabajadorSchema = new EntitySchema({
       generated: true,
     },
 
+    hashed_pass: {
+      type: "varchar",
+      generated: false,
+      nullable: false
+    },
+
     // "trabajador" | "supervisor" | "administrador"
     tipo_usuario: {
       type: "varchar",
