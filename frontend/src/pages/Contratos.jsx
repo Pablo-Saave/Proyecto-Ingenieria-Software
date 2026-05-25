@@ -27,8 +27,6 @@ function calcularDiasTotal(fechaInicio, fechaTermino) {
 
 function formatearFecha(fecha) {
   if (!fecha) return '—';
-  // Las fechas vienen como "YYYY-MM-DD" desde PostgreSQL
-  // Añadir T00:00:00 evita desfase de zona horaria
   return new Date(fecha + 'T00:00:00').toLocaleDateString('es-CL', {
     day: '2-digit',
     month: 'short',
@@ -40,8 +38,6 @@ function getIniciales(nombres = '', apellidos = '') {
   return ((nombres.trim()[0] || '') + (apellidos.trim()[0] || '')).toUpperCase();
 }
 
-// El estado se calcula por días restantes, ignorando estado_contrato
-// porque el backend no lo actualiza automáticamente
 function calcularEstado(fechaTermino) {
   const dias = calcularDiasRestantes(fechaTermino);
   if (dias === null) return 'Activo';
@@ -50,17 +46,12 @@ function calcularEstado(fechaTermino) {
   return 'Activo';
 }
 
-// Transforma un contrato del backend al shape que usa la tabla
-// El backend devuelve: { id_contrato, tipo_contrato, estado_contrato,
-//   fecha_inicio, fecha_termino, observaciones, id_trabajador,
-//   trabajador: { id_trabajador, nombres, apellidos, rut, ... } }
 function mapContrato(c) {
   const t = c.trabajador || {};
   const diasRestantes = calcularDiasRestantes(c.fecha_termino) ?? 0;
   const diasTotal     = calcularDiasTotal(c.fecha_inicio, c.fecha_termino);
 
   return {
-    // Campos originales del backend (necesarios para editar/eliminar)
     id_contrato:    c.id_contrato,
     tipo_contrato:  c.tipo_contrato  || '—',
     estado_contrato: c.estado_contrato,
@@ -69,7 +60,6 @@ function mapContrato(c) {
     observaciones:  c.observaciones  || '',
     id_trabajador:  t.id_trabajador,
 
-    // Campos derivados para la UI
     trabajador: {
       nombre:    `${t.nombres || ''} ${t.apellidos || ''}`.trim() || 'Sin nombre',
       rut:       t.rut || '—',
@@ -94,6 +84,26 @@ function getProgressClass(diasRestantes, diasTotal) {
   if (pct < 15)  return 'progress-rojo';
   if (pct < 30)  return 'progress-naranja';
   return 'progress-azul';
+}
+
+// ─── Ícono Embudo (Filtro) ────────────────────────────────────────────────────
+
+function IconoFiltro() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+    </svg>
+  );
 }
 
 // ─── Modal Crear / Editar ─────────────────────────────────────────────────────
@@ -343,19 +353,21 @@ function Contratos({ onLogout }) {
   const [error,        setError]        = useState('');
 
   // Filtros
-  const [searchTerm,   setSearchTerm]   = useState('');
-  const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [searchTerm,     setSearchTerm]     = useState('');
+  const [filtroEstado,   setFiltroEstado]   = useState('Todos');
+  const [filtroFecha,    setFiltroFecha]    = useState('Todos');
+  const [filtrosActivos, setFiltrosActivos] = useState(false);
 
   // Paginación
   const [pagina, setPagina] = useState(1);
 
   // Modales
-  const [modalNuevo,     setModalNuevo]     = useState(false);
-  const [contratoEdit,   setContratoEdit]   = useState(null);
+  const [modalNuevo,      setModalNuevo]      = useState(false);
+  const [contratoEdit,    setContratoEdit]    = useState(null);
   const [contratoDetalle, setContratoDetalle] = useState(null);
-  const [contratoDelete, setContratoDelete] = useState(null);
-  const [eliminando,     setEliminando]     = useState(false);
-  const [menuAbierto,    setMenuAbierto]    = useState(null);
+  const [contratoDelete,  setContratoDelete]  = useState(null);
+  const [eliminando,      setEliminando]      = useState(false);
+  const [menuAbierto,     setMenuAbierto]     = useState(null);
 
   // ── Carga inicial ───────────────────────────────────────────────────────────
 
@@ -363,7 +375,7 @@ function Contratos({ onLogout }) {
     try {
       setLoading(true);
       setError('');
-      const data = await getContratos();  // ya devuelve el array directo
+      const data = await getContratos();
       setContratos(data.map(mapContrato));
     } catch (e) {
       setError('No se pudo cargar los contratos. Verifica que el servidor esté activo.');
@@ -374,13 +386,28 @@ function Contratos({ onLogout }) {
 
   useEffect(() => {
     fetchContratos();
-    // Cargamos trabajadores una vez para el selector del modal
     getTrabajadores()
       .then(setTrabajadores)
-      .catch(() => {}); // no bloquea si falla
+      .catch(() => {});
   }, []);
 
   // ── Filtrado y paginación ───────────────────────────────────────────────────
+
+  const getFechaLimite = (rango) => {
+    const hoy = new Date();
+    switch (rango) {
+      case 'Último mes':
+        return new Date(hoy.getFullYear(), hoy.getMonth() - 1, hoy.getDate());
+      case '3 meses':
+        return new Date(hoy.getFullYear(), hoy.getMonth() - 3, hoy.getDate());
+      case '6 meses':
+        return new Date(hoy.getFullYear(), hoy.getMonth() - 6, hoy.getDate());
+      case '12 meses':
+        return new Date(hoy.getFullYear() - 1, hoy.getMonth(), hoy.getDate());
+      default:
+        return null;
+    }
+  };
 
   const filtrados = contratos.filter((c) => {
     const term = searchTerm.toLowerCase();
@@ -388,8 +415,18 @@ function Contratos({ onLogout }) {
       c.trabajador.nombre.toLowerCase().includes(term) ||
       c.trabajador.rut.toLowerCase().includes(term)    ||
       c.tipo_contrato.toLowerCase().includes(term);
-    const matchEstado = filtroEstado === 'Todos' || c.estado === filtroEstado;
-    return matchSearch && matchEstado;
+
+    // Los filtros de Estado y Fecha solo se aplican si el botón Filtros está activo
+    const matchEstado = !filtrosActivos || filtroEstado === 'Todos' || c.estado === filtroEstado;
+
+    let matchFecha = true;
+    if (filtrosActivos && filtroFecha !== 'Todos') {
+      const fechaLimite = getFechaLimite(filtroFecha);
+      const fechaInicio = new Date(c.fecha_inicio + 'T00:00:00');
+      matchFecha = fechaInicio >= fechaLimite;
+    }
+
+    return matchSearch && matchEstado && matchFecha;
   });
 
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
@@ -466,13 +503,42 @@ function Contratos({ onLogout }) {
                     value={filtroEstado}
                     onChange={(e) => { setFiltroEstado(e.target.value); setPagina(1); }}
                   >
-                    <option>Todos</option>
-                    <option>Activo</option>
-                    <option>Por vencer</option>
-                    <option>Vencido</option>
+                    <option value="Todos">Todos</option>
+                    <option value="Activo">Activo</option>
+                    <option value="Por vencer">Por vencer</option>
+                    <option value="Vencido">Vencido</option>
                   </select>
                 </div>
+                <div className="filter-group">
+                  <label>Fecha</label>
+                  <select
+                    value={filtroFecha}
+                    onChange={(e) => { setFiltroFecha(e.target.value); setPagina(1); }}
+                  >
+                    <option value="Todos">Todas</option>
+                    <option value="Último mes">Último mes</option>
+                    <option value="3 meses">3 meses</option>
+                    <option value="6 meses">6 meses</option>
+                    <option value="12 meses">12 meses</option>
+                  </select>
+                </div>
+
+                {/* ── Botón Filtros con toggle activo ── */}
+                <button
+                  className={`btn-filtros${filtrosActivos ? ' btn-filtros-activo' : ''}`}
+                  onClick={() => setFiltrosActivos((prev) => !prev)}
+                >
+                  <IconoFiltro />
+                  Filtros
+                </button>
               </div>
+            </div>
+
+            {/* Contador */}
+            <div className="contratos-count">
+              {filtrados.length} contrato{filtrados.length !== 1 ? 's' : ''}
+              {filtrosActivos && filtroEstado !== 'Todos' && ` · ${filtroEstado}`}
+              {filtrosActivos && filtroFecha !== 'Todos' && ` · ${filtroFecha}`}
             </div>
 
             {/* Tabla */}

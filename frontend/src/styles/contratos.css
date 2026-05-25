@@ -65,16 +65,30 @@
 
 .filter-controls {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
   align-items: flex-end;
+  justify-content: space-between;
 }
-.filter-group { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-width: 150px; }
-.filter-group label { font-size: 0.75rem; font-weight: 600; color: #374264; }
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 140px;
+}
+
+.filter-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
 .filter-group select {
-  padding: 0.4rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1.5px solid #e2e8f0;
-  border-radius: 0.6rem;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   color: #1f2937;
   background: #f9fafb;
@@ -83,7 +97,62 @@
   transition: border-color 0.2s;
   font-family: inherit;
 }
-.filter-group select:focus { border-color: #4466ff; }
+
+.filter-group select:focus {
+  border-color: #4466ff;
+}
+
+.filter-group select:hover {
+  border-color: #d1d5db;
+}
+
+/* Botón Filtros */
+.btn-filtros {
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: fit-content;
+}
+
+.btn-filtros:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  color: #4466ff;
+}
+
+/* Estado activo del botón Filtros */
+.btn-filtros-activo {
+  background: #eef1ff;
+  border-color: #4466ff;
+  color: #4466ff;
+}
+
+.btn-filtros-activo:hover {
+  background: #e0e5ff;
+  border-color: #2244cc;
+  color: #2244cc;
+}
+
+/* Contador */
+.contratos-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+}
 
 /* Table */
 .contratos-table-wrapper {
