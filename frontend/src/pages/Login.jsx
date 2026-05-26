@@ -34,19 +34,7 @@ function Login({ onLoginSuccess }) {
     return () => window.removeEventListener('popstate', handleBackButton);
   }, [navigate]);
 
-  const handleAdminDemo = () => {
-    setTimeout(() => {
-      onLoginSuccess('admin');
-      navigate('/admin');
-    }, 300);
-  };
 
-  const handleTrabajadorDemo = () => {
-    setTimeout(() => {
-      onLoginSuccess('trabajador');
-      navigate('/admin');
-    }, 300);
-  };
 
   return (
     <div className="login-page-container">
@@ -178,7 +166,7 @@ function Login({ onLoginSuccess }) {
                 type="button"
                 className="login-button-primary"
                 style={{
-                  background: 'linear-gradient(135deg, #4a2ee8 0%, #6040ff 100%)',
+                  background: 'linear-gradient(135deg, #2244cc 0%, #2244cc 100%)',
                   opacity: 1,
                   boxShadow: 'none',
                 }}
@@ -191,24 +179,6 @@ function Login({ onLoginSuccess }) {
                   <line x1="5" y1="12" x2="19" y2="12"/>
                   <polyline points="12 5 19 12 12 19"/>
                 </svg>
-              </button>
-
-              <div className="login-divider">o</div>
-
-              <button
-                type="button"
-                className="login-button-demo"
-                onClick={handleAdminDemo}
-              >
-                Iniciar Sesión como Admin Demo
-              </button>
-
-              <button
-                type="button"
-                className="login-button-demo login-button-demo--disabled"
-                disabled
-              >
-                Iniciar Sesión como Trabajador Demo
               </button>
             </div>
 

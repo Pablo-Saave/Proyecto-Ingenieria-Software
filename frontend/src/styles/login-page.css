@@ -41,7 +41,7 @@
     0 4px 16px rgba(80, 80, 255, 0.1);
   display: flex;
   overflow: hidden;
-  min-height: 440px; /* menos alto */
+  min-height: 560px;
   width: 100%;
 }
 
@@ -147,11 +147,7 @@
 }
 
 .login-left-divider {
-  width: 30px;
-  height: 3px;
-  background: linear-gradient(90deg, #6b7aff, #a78bfa);
-  border-radius: 999px;
-  margin-bottom: 0.8rem;
+  display: none;
 }
 
 .login-left-subtitle {
@@ -379,7 +375,7 @@
 .login-card-right .login-link {
   background: none;
   border: none;
-  color: #4f46e5;
+  color:#4466ff;
   font-weight: 600;
   cursor: pointer;
   padding: 0;
