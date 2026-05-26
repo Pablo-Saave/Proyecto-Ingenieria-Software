@@ -10,8 +10,18 @@ import trabajadorRoutes from "./routes/trabajador.routes.js";
 import proyectoRoutes from "./routes/proyecto.routes.js";
 import remuneracionRoutes from "./routes/remuneracion.routes.js";
 import etiquetaRoutes from "./routes/etiqueta.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
-export const app = express();
+import path from "path";
+import { fileURLToPath } from "url";
+
+export const app = express(); 
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Servir frontend React
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.use(express.json());
 app.use(cors());
@@ -26,14 +36,6 @@ export async function initializeApp() {
   }
 }
 
-app.get("/", (req, res) => {
-  res.json({
-    message: "API funcionando correctamente",
-    status: "online",
-    timestamp: new Date().toISOString(),
-  });
-});
-
 app.use("/api/clientes", clienteRoutes);
 app.use("/api/ausencias", ausenciaRoutes);
 app.use("/api/asignados", asignadoRoutes);
@@ -42,13 +44,13 @@ app.use("/api/trabajadores", trabajadorRoutes);
 app.use("/api/proyectos", proyectoRoutes);
 app.use("/api/remuneraciones", remuneracionRoutes);
 app.use("/api/etiquetas", etiquetaRoutes);
+app.use("/api/auth", authRoutes);
 
-app.use((req, res) => {
-  res.status(404).json({
-    error: "Ruta no encontrada",
-    path: req.path,
-    method: req.method,
-  });
+// React Router SPA Fallback
+// Express entrega index.html
+// React carga -> ve la URL -> renderiza la ruta que este en la URL
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
 export default app;

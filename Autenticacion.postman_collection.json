@@ -1,0 +1,110 @@
+{
+  "info": {
+    "_postman_id": "27d3d70a-e915-41e3-9876-decc6237d6fd",
+    "name": "Autenticacion",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52383443",
+    "_collection_link": "https://go.postman.co/collection/52383443-27d3d70a-e915-41e3-9876-decc6237d6fd?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"tipo_usuario\": \"administrador\",\r\n    \"id_etiqueta\": 2,\r\n    \"rut\": \"12345671-9\",\r\n    \"nombres\": \"Pedro\",\r\n    \"apellidos\": \"Diaz\",\r\n    \"sexo\": \"Masculino\",\r\n    \"telefono\": \"+56912345678\",\r\n    \"correo\": \"administrador@test.com\",\r\n    \"direccion\": \"Santiago, Chile\",\r\n    \"fecha_nacimiento\": \"2000-05-10\",\r\n    \"fecha_ingreso\": \"2026-05-25\",\r\n    \"estado_laboral\": \"Activo\",\r\n    \"experiencia_previa\": \"2 años en construcción\",\r\n    \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"correo\": \"administrador@test.com\",\r\n    \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Etiquetas",
+      "item": [
+        {
+          "name": "crear etiqueta",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"nombre_etiqueta\": \"Supervisor\",\r\n    \"descripcion\": \"Supervisor de obra\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/etiquetas",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "etiquetas"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

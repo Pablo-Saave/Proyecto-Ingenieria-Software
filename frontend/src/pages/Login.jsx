@@ -3,11 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/login.css';
 import '../styles/login-page.css';
 
+// Server Login Request
+import { loginRequest } from '../services/authService';
+
+
 function Login({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+    const handleLogin = async (email, password) => {
+    try {
+        const data = await loginRequest(email, password);
+        console.log(data);
+        localStorage.setItem("token", data.token); // Se guarda el token en localstorage
+        onLoginSuccess(data.data.tipo_usuario); // Se guarda el estado del tipo de usuario
+        navigate("/admin");
+    } catch (error) {
+        alert(error.message);
+    }
+  }
 
   useEffect(() => {
     const handleBackButton = () => {
@@ -161,13 +177,12 @@ function Login({ onLoginSuccess }) {
               <button
                 type="button"
                 className="login-button-primary"
-                disabled
                 style={{
                   background: 'linear-gradient(135deg, #4a2ee8 0%, #6040ff 100%)',
                   opacity: 1,
-                  cursor: 'not-allowed',
                   boxShadow: 'none',
                 }}
+                onClick={() => handleLogin(email, password)}
               >
                 Ingresar
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
