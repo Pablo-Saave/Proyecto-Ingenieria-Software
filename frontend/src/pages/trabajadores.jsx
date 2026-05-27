@@ -38,6 +38,12 @@ const EMPTY_FORM = {
   experiencia_previa: '',
 };
 
+function getIniciales(nombres = '', apellidos = '') {
+  const n = String(nombres || '').trim();
+  const a = String(apellidos || '').trim();
+  return ((n[0] || '') + (a[0] || '')).toUpperCase();
+}
+
 function Trabajadores({ onLogout }) {
   const [trabajadores, setTrabajadores] = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -250,7 +256,7 @@ function Trabajadores({ onLogout }) {
                       <td>
                         <div className="tw-name-cell">
                           <div className="tw-avatar">
-                            {(t.nombres?.[0] ?? '?').toUpperCase()}
+                            {getIniciales(t.nombres, t.apellidos) || '?'}
                           </div>
                           <div className="tw-fullname">
                             {t.nombres} {t.apellidos}

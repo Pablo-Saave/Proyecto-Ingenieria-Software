@@ -164,9 +164,9 @@
 .contratos-table { width: 100%; border-collapse: collapse; }
 .contratos-table thead { background: #f9fafb; border-bottom: 2px solid #e5e7eb; }
 .contratos-table th {
-  padding: 0.4rem 0.4rem;
+  padding: 0.6rem 0.6rem;
   text-align: left;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #6b7280;
   letter-spacing: 0.05em;
@@ -174,7 +174,7 @@
 }
 .contratos-table tbody tr { border-bottom: 1px solid #e5e7eb; transition: background-color 0.15s; }
 .contratos-table tbody tr:hover { background-color: #f9fafb; }
-.contratos-table td { padding: 0.4rem 0.4rem; font-size: 0.75rem; color: #1f2937; }
+.contratos-table td { padding: 0.6rem 0.65rem; font-size: 0.85rem; color: #1f2937; }
 
 .col-trabajador { font-weight: 600; }
 .trabajador-info { display: flex; align-items: center; gap: 0.75rem; }
@@ -183,7 +183,7 @@
   height: 32px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
-  border-radius: 0.4rem;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,7 +191,7 @@
   font-weight: 600;
   flex-shrink: 0;
 }
-.trabajador-info .nombre { font-weight: 500; color: #000; font-size: 0.8rem; }
+.trabajador-info .nombre { font-weight: 500; color: #000; font-size: 0.9rem; }
 .trabajador-info .rut { font-size: 0.75rem; color: #9ca3af; font-weight: 400; }
 
 .estado-badge {
@@ -410,25 +410,25 @@
 /* Menú contextual */
 .context-menu {
   position: absolute;
-  left: 35px;
-  top: 50%;
+  left: 0px;
+  top: 55%;
   transform: translateY(-50%);
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 0.3rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   z-index: 1000;
-  min-width: 85px;
+  min-width: 105px;
   overflow: hidden;
 }
 .context-menu button {
   display: block;
   width: 100%;
-  padding: 0.15rem 0.6rem;
+  padding: 0.35rem 0.7rem;
   text-align: left;
   background: none;
   border: none;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #374264;
   cursor: pointer;
   transition: background 0.15s;

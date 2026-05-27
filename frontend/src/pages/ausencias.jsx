@@ -37,6 +37,12 @@ const EMPTY_FORM = {
 const ESTADOS_AUSENCIA = ['Pendiente', 'Aprobada', 'Rechazada'];
 const FILTROS = ['Todos', 'Pendiente', 'Aprobada', 'Rechazada'];
 
+function getIniciales(nombres = '', apellidos = '') {
+  const n = String(nombres || '').trim();
+  const a = String(apellidos || '').trim();
+  return ((n[0] || '') + (a[0] || '')).toUpperCase();
+}
+
 function Ausencias({ onLogout }) {
   const [ausencias, setAusencias]       = useState([]);
   const [trabajadores, setTrabajadores] = useState([]);
@@ -251,7 +257,9 @@ function Ausencias({ onLogout }) {
                       <td>
                         <div className="tw-name-cell">
                           <div className="tw-avatar">
-                            {(a.trabajador?.nombres?.charAt(0) ?? '?').toUpperCase()}
+                            {a.trabajador 
+                              ? getIniciales(a.trabajador.nombres, a.trabajador.apellidos) || '?'
+                              : '?'}
                           </div>
                           <div className="tw-fullname">
                             {a.trabajador

@@ -34,6 +34,10 @@
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
+
+.tw-search-input::placeholder {
+  color: #bcc3d9;
+}
  
 .tw-search-input:focus {
   border-color: #4F46E5;
@@ -148,10 +152,10 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #EEF2FF;
-  color: #4F46E5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -391,7 +395,7 @@
 }
  
 .tw-field input::placeholder {
-  color: #d1d5db;
+  color: #bcc3d9;
 }
  
 /* ─── Modal footer ──────────────────────────────────────────────────────── */

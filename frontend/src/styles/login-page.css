@@ -29,7 +29,7 @@
   position: relative;
   z-index: 1;
   width: 90%;
-  max-width: 780px; /* más compacto como la imagen */
+  max-width: 680px; /* más compacto como la imagen */
 }
 
 /* ── CARD ── */
@@ -41,7 +41,7 @@
     0 4px 16px rgba(80, 80, 255, 0.1);
   display: flex;
   overflow: hidden;
-  min-height: 560px;
+  min-height: 490px;
   width: 100%;
 }
 
@@ -50,11 +50,11 @@
   flex: 1;
   background: linear-gradient(155deg, #0a1540 0%, #0f1f6e 50%, #1428a0 100%);
   color: #fff;
-  padding: 2rem;
+  padding: 1.8rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding-top: 2.5rem;
+  padding-top: 3rem;
   border-radius: 1.25rem 0 0 1.25rem;
   position: relative;
   overflow: hidden;
@@ -180,10 +180,11 @@
 .login-page-content .login-card-right {
   flex: 1.1;
   background: #ffffff;
-  padding: 2.2rem 2.4rem;
+  padding: 1.8rem 2rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: 2rem;
   border-radius: 0 1.25rem 1.25rem 0;
 }
 
@@ -201,12 +202,12 @@
   text-align: center;
   font-size: 0.85rem;
   color: #8693b5;
-  margin-bottom: 1.6rem;
+  margin-bottom: 1.1rem;
 }
 
 /* Inputs */
 .login-card-right .login-field {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .login-card-right .login-label {
@@ -234,7 +235,7 @@
 
 .login-card-right .login-input {
   width: 100%;
-  padding: 0.68rem 2.5rem 0.68rem 2.4rem;
+  padding: 0.68rem 2.4rem 0.68rem 2.4rem;
   border: 1.5px solid #e2e7f3;
   border-radius: 0.6rem;
   font-size: 0.875rem;
