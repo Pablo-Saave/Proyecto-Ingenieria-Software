@@ -3,25 +3,28 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/ausencias.css';
 import {
-  CalendarOff, Plus, Search, Edit2, Trash2, X, Save, AlertCircle, ClipboardList, CheckCircle,
+  CalendarOff, Plus, Search, Trash2, X, Save, AlertCircle, ClipboardList, CheckCircle,
 } from 'lucide-react';
+import {
+  getAusencias,
+  crearAusencia,
+  revisarAusencia,
+  eliminarAusencia,
+} from '../services/ausenciasService';
 
+// Trabajadores se sigue cargando directo (servicio separado si lo tienes)
 const API_BASE = 'http://localhost:3000';
-
-async function apiFetch(path, options = {}) {
+async function getTrabajadores() {
   const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_BASE}/api/trabajadores`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    ...options,
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || err.error || `Error ${res.status}`);
-  }
-  return res.json();
+  if (!res.ok) throw new Error(`Error ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : data.data ?? [];
 }
 
 const EMPTY_FORM = {
@@ -53,7 +56,7 @@ function Ausencias({ onLogout }) {
   const [formError, setFormError]           = useState(null);
   const [saving, setSaving]                 = useState(false);
 
-  // Modal revisar (aprobar/rechazar)
+  // Modal revisar
   const [showRevision, setShowRevision]     = useState(false);
   const [revisionData, setRevisionData]     = useState(EMPTY_REVISION);
   const [revisionId, setRevisionId]         = useState(null);
@@ -69,11 +72,11 @@ function Ausencias({ onLogout }) {
     setError(null);
     try {
       const [resA, resT] = await Promise.all([
-        apiFetch('/api/ausencias'),
-        apiFetch('/api/trabajadores'),
+        getAusencias(),
+        getTrabajadores(),
       ]);
       setAusencias(Array.isArray(resA) ? resA : resA.data ?? []);
-      setTrabajadores(Array.isArray(resT) ? resT : resT.data ?? []);
+      setTrabajadores(resT);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -131,9 +134,7 @@ function Ausencias({ onLogout }) {
     setSaving(true);
     try {
       const payload = { ...formData, id_trabajador: Number(formData.id_trabajador) };
-      const res  = await apiFetch('/api/ausencias', { method: 'POST', body: JSON.stringify(payload) });
-      const item = res.data ?? res;
-      setAusencias((prev) => [...prev, item]);
+      await crearAusencia(payload);
       closeModal();
       fetchData();
     } catch (e) {
@@ -143,7 +144,7 @@ function Ausencias({ onLogout }) {
     }
   };
 
-  // ── Modal Revisar (aprobar/rechazar) ─────────────────────────────────────
+  // ── Modal Revisar ────────────────────────────────────────────────────────
   const openRevision = (ausencia) => {
     setRevisionData(EMPTY_REVISION);
     setRevisionError(null);
@@ -162,14 +163,11 @@ function Ausencias({ onLogout }) {
     setSavingRevision(true);
     try {
       const payload = {
-        estado:               revisionData.estado,
-        comentario_revision:  revisionData.comentario_revision,
-        revisado_por:         Number(revisionData.revisado_por),
+        estado:              revisionData.estado,
+        comentario_revision: revisionData.comentario_revision,
+        revisado_por:        Number(revisionData.revisado_por),
       };
-      await apiFetch(`/api/ausencias/${revisionId}/revisar`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      });
+      await revisarAusencia(revisionId, payload);
       closeRevision();
       fetchData();
     } catch (e) {
@@ -182,7 +180,7 @@ function Ausencias({ onLogout }) {
   // ── Eliminar ─────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
-      await apiFetch(`/api/ausencias/${id}`, { method: 'DELETE' });
+      await eliminarAusencia(id);
       setAusencias((prev) => prev.filter((a) => a.id_ausencia !== id));
     } catch (e) {
       setError(e.message);
@@ -297,21 +295,12 @@ function Ausencias({ onLogout }) {
                         </td>
                         <td>
                           <div className="tw-actions">
-                            {/* Solo ausencias pendientes pueden revisarse */}
                             {esPendiente && (
-                              <button
-                                className="tw-btn-edit"
-                                title="Aprobar / Rechazar"
-                                onClick={() => openRevision(a)}
-                              >
+                              <button className="tw-btn-edit" title="Aprobar / Rechazar" onClick={() => openRevision(a)}>
                                 <CheckCircle size={14} />
                               </button>
                             )}
-                            <button
-                              className="tw-btn-delete"
-                              title="Eliminar"
-                              onClick={() => setConfirmDelete(a.id_ausencia)}
-                            >
+                            <button className="tw-btn-delete" title="Eliminar" onClick={() => setConfirmDelete(a.id_ausencia)}>
                               <Trash2 size={14} />
                             </button>
                           </div>
@@ -326,7 +315,7 @@ function Ausencias({ onLogout }) {
         </div>
       </div>
 
-      {/* ── Modal Nueva Ausencia ─────────────────────────────────────────── */}
+      {/* Modal Nueva Ausencia */}
       {showModal && (
         <div className="tw-modal-overlay" onClick={closeModal}>
           <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
@@ -334,9 +323,7 @@ function Ausencias({ onLogout }) {
               <h2>Nueva Ausencia</h2>
               <button className="tw-modal-close" onClick={closeModal}><X size={18} /></button>
             </div>
-            {formError && (
-              <div className="tw-form-error"><AlertCircle size={14} /> {formError}</div>
-            )}
+            {formError && <div className="tw-form-error"><AlertCircle size={14} /> {formError}</div>}
             <form className="tw-form" onSubmit={handleSubmit}>
               <div className="tw-form-grid">
                 <div className="tw-field tw-field-full">
@@ -366,8 +353,7 @@ function Ausencias({ onLogout }) {
               <div className="tw-modal-footer">
                 <button type="button" className="tw-btn-cancel" onClick={closeModal}>Cancelar</button>
                 <button type="submit" className="tw-btn-save" disabled={saving}>
-                  <Save size={14} />
-                  {saving ? 'Guardando...' : 'Registrar Ausencia'}
+                  <Save size={14} /> {saving ? 'Guardando...' : 'Registrar Ausencia'}
                 </button>
               </div>
             </form>
@@ -375,7 +361,7 @@ function Ausencias({ onLogout }) {
         </div>
       )}
 
-      {/* ── Modal Revisar Ausencia ───────────────────────────────────────── */}
+      {/* Modal Revisar Ausencia */}
       {showRevision && (
         <div className="tw-modal-overlay" onClick={closeRevision}>
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
@@ -383,9 +369,7 @@ function Ausencias({ onLogout }) {
               <h2>Revisar Ausencia</h2>
               <button className="tw-modal-close" onClick={closeRevision}><X size={18} /></button>
             </div>
-            {revisionError && (
-              <div className="tw-form-error"><AlertCircle size={14} /> {revisionError}</div>
-            )}
+            {revisionError && <div className="tw-form-error"><AlertCircle size={14} /> {revisionError}</div>}
             <form className="tw-form" onSubmit={handleRevisionSubmit}>
               <div className="tw-form-grid">
                 <div className="tw-field tw-field-full">
@@ -406,7 +390,7 @@ function Ausencias({ onLogout }) {
                   />
                 </div>
                 <div className="tw-field tw-field-full">
-                  <label>Revisado por (ID Trabajador) *</label>
+                  <label>Revisado por *</label>
                   <select name="revisado_por" value={revisionData.revisado_por} onChange={handleRevisionChange} required>
                     <option value="">— Seleccionar revisor —</option>
                     {trabajadores.map((t) => (
@@ -420,8 +404,7 @@ function Ausencias({ onLogout }) {
               <div className="tw-modal-footer">
                 <button type="button" className="tw-btn-cancel" onClick={closeRevision}>Cancelar</button>
                 <button type="submit" className="tw-btn-save" disabled={savingRevision}>
-                  <CheckCircle size={14} />
-                  {savingRevision ? 'Guardando...' : 'Confirmar Revisión'}
+                  <CheckCircle size={14} /> {savingRevision ? 'Guardando...' : 'Confirmar Revisión'}
                 </button>
               </div>
             </form>
@@ -429,7 +412,7 @@ function Ausencias({ onLogout }) {
         </div>
       )}
 
-      {/* ── Confirmar eliminación ────────────────────────────────────────── */}
+      {/* Confirmar eliminación */}
       {confirmDelete !== null && (
         <div className="tw-modal-overlay" onClick={() => setConfirmDelete(null)}>
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
