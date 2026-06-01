@@ -492,3 +492,114 @@
 .btn-nuevo-trabajador:hover {
   background: #2244cc;
 }
+/* ─── Modal grande (formulario trabajador) ──────────────────────────────── */
+.tw-modal-lg {
+  max-width: 720px;
+}
+
+/* ─── Grid de 3 columnas ────────────────────────────────────────────────── */
+.tw-form-grid-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px 14px;
+}
+
+.tw-field-full-3 {
+  grid-column: span 3;
+}
+
+/* Inputs y selects más compactos dentro del modal */
+.tw-form-grid-3 .tw-field input,
+.tw-form-grid-3 .tw-field select {
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+.tw-form-grid-3 .tw-field label {
+  font-size: 11px;
+}
+
+.tw-form-grid-3 .tw-field {
+  gap: 3px;
+}
+
+.tw-form.tw-form {
+  padding: 14px 20px;
+}
+/* ─── Botones header (etiqueta + trabajador) ────────────────────────────── */
+.tw-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-nueva-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  background: #fff;
+  color: #4466ff;
+  border: 1px solid #4466ff;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-nueva-etiqueta:hover {
+  background: #eef2ff;
+}
+
+/* ─── Badge etiqueta en tabla ───────────────────────────────────────────── */
+.tw-etiqueta-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+/* ─── Select etiqueta en formulario ─────────────────────────────────────── */
+.tw-etiqueta-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.tw-etiqueta-select {
+  flex: 1;
+}
+
+/* ─── Modal grande (formulario trabajador) ──────────────────────────────── */
+.tw-modal-lg {
+  max-width: 740px;
+}
+
+/* ─── Grid de 3 columnas ────────────────────────────────────────────────── */
+.tw-form-grid-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px 14px;
+}
+
+.tw-field-full-3 {
+  grid-column: span 3;
+}
+
+/* Compactar inputs del formulario de 3 col */
+.tw-form-grid-3 .tw-field input,
+.tw-form-grid-3 .tw-field select {
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+.tw-form-grid-3 .tw-field label {
+  font-size: 11px;
+}
+
+.tw-form-grid-3 .tw-field {
+  gap: 3px;
+}

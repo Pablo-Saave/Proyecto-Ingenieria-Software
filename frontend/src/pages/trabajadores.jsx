@@ -3,40 +3,35 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/trabajadores.css';
 import {
-  Users, Plus, Search, Edit2, Trash2, X, Save, UserCheck, AlertCircle,
+  Users, Plus, Search, Edit2, Trash2, X, Save, UserCheck, AlertCircle, Tag,
 } from 'lucide-react';
-
-const API_BASE = 'http://localhost:3000';
-
-async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...options,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `Error ${res.status}`);
-  }
-  return res.json();
-}
+import {
+  getTrabajadores,
+  createTrabajador,
+  updateTrabajador,
+  deleteTrabajador,
+  getEtiquetas,
+  createEtiqueta,
+} from '../services/trabajadoresService';
 
 const EMPTY_FORM = {
-  nombres: '',
-  apellidos: '',
-  rut: '',
-  correo: '',
-  telefono: '',
-  direccion: '',
-  fecha_nacimiento: '',
-  fecha_ingreso: '',
-  sexo: 'M',
-  estado_laboral: 'Activo',
+  nombres:            '',
+  apellidos:          '',
+  rut:                '',
+  correo:             '',
+  password:           '',
+  tipo_usuario:       'trabajador',
+  telefono:           '',
+  sexo:               'M',
+  direccion:          '',
+  fecha_nacimiento:   '',
+  fecha_ingreso:      '',
   experiencia_previa: '',
+  estado_laboral:     'Activo',
+  id_etiqueta:        '',
 };
+
+const EMPTY_ETIQUETA = { nombre_etiqueta: '', descripcion: '' };
 
 function getIniciales(nombres = '', apellidos = '') {
   const n = String(nombres || '').trim();
@@ -45,25 +40,38 @@ function getIniciales(nombres = '', apellidos = '') {
 }
 
 function Trabajadores({ onLogout }) {
-  const [trabajadores, setTrabajadores] = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState(null);
-  const [searchQuery, setSearchQuery]   = useState('');
-  const [filterEstado, setFilterEstado] = useState('Todos');
-  const [showModal, setShowModal]       = useState(false);
-  const [modalMode, setModalMode]       = useState('crear');
-  const [formData, setFormData]         = useState(EMPTY_FORM);
-  const [selectedId, setSelectedId]     = useState(null);
-  const [formError, setFormError]       = useState(null);
-  const [saving, setSaving]             = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [trabajadores, setTrabajadores]     = useState([]);
+  const [etiquetas, setEtiquetas]           = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [error, setError]                   = useState(null);
+  const [searchQuery, setSearchQuery]       = useState('');
+  const [filterEstado, setFilterEstado]     = useState('Todos');
 
-  const fetchTrabajadores = async () => {
+  // Modal trabajador
+  const [showModal, setShowModal]           = useState(false);
+  const [modalMode, setModalMode]           = useState('crear');
+  const [formData, setFormData]             = useState(EMPTY_FORM);
+  const [selectedId, setSelectedId]         = useState(null);
+  const [formError, setFormError]           = useState(null);
+  const [saving, setSaving]                 = useState(false);
+
+  // Modal etiqueta
+  const [showEtiquetaModal, setShowEtiquetaModal] = useState(false);
+  const [etiquetaForm, setEtiquetaForm]           = useState(EMPTY_ETIQUETA);
+  const [etiquetaError, setEtiquetaError]         = useState(null);
+  const [savingEtiqueta, setSavingEtiqueta]       = useState(false);
+
+  // Confirmar eliminación
+  const [confirmDelete, setConfirmDelete]   = useState(null);
+
+  /* ── Carga inicial ─────────────────────────────────────────── */
+  const fetchAll = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch('/api/trabajadores');
-      setTrabajadores(Array.isArray(res) ? res : res.data ?? []);
+      const [tw, et] = await Promise.all([getTrabajadores(), getEtiquetas()]);
+      setTrabajadores(tw);
+      setEtiquetas(et);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -71,8 +79,9 @@ function Trabajadores({ onLogout }) {
     }
   };
 
-  useEffect(() => { fetchTrabajadores(); }, []);
+  useEffect(() => { fetchAll(); }, []);
 
+  /* ── Filtrado ──────────────────────────────────────────────── */
   const ESTADOS = ['Todos', 'Activo', 'Inactivo', 'Licencia'];
 
   const filtered = trabajadores.filter((t) => {
@@ -89,6 +98,7 @@ function Trabajadores({ onLogout }) {
     return matchSearch && matchEstado;
   });
 
+  /* ── Modal trabajador ──────────────────────────────────────── */
   const openCrear = () => {
     setFormData(EMPTY_FORM);
     setSelectedId(null);
@@ -103,13 +113,16 @@ function Trabajadores({ onLogout }) {
       apellidos:          t.apellidos ?? '',
       rut:                t.rut ?? '',
       correo:             t.correo ?? '',
+      password:           '',
+      tipo_usuario:       t.tipo_usuario ?? 'trabajador',
       telefono:           t.telefono ?? '',
+      sexo:               t.sexo ?? 'M',
       direccion:          t.direccion ?? '',
       fecha_nacimiento:   t.fecha_nacimiento?.slice(0, 10) ?? '',
       fecha_ingreso:      t.fecha_ingreso?.slice(0, 10) ?? '',
-      sexo:               t.sexo ?? 'M',
-      estado_laboral:     t.estado_laboral ?? 'Activo',
       experiencia_previa: t.experiencia_previa ?? '',
+      estado_laboral:     t.estado_laboral ?? 'Activo',
+      id_etiqueta:        t.etiqueta?.id_etiqueta ?? '',
     });
     setSelectedId(t.id_trabajador);
     setFormError(null);
@@ -124,19 +137,15 @@ function Trabajadores({ onLogout }) {
     setFormError(null);
     setSaving(true);
     try {
+      const payload = {
+        ...formData,
+        id_etiqueta: formData.id_etiqueta ? parseInt(formData.id_etiqueta) : null,
+      };
       if (modalMode === 'crear') {
-        const nuevo = await apiFetch('/api/trabajadores', {
-          method: 'POST',
-          body: JSON.stringify(formData),
-        });
-        const item = nuevo.data ?? nuevo;
+        const item = await createTrabajador(payload);
         setTrabajadores((prev) => [...prev, item]);
       } else {
-        const actualizado = await apiFetch(`/api/trabajadores/${selectedId}`, {
-          method: 'PUT',
-          body: JSON.stringify(formData),
-        });
-        const item = actualizado.data ?? actualizado;
+        const item = await updateTrabajador(selectedId, payload);
         setTrabajadores((prev) =>
           prev.map((t) => (t.id_trabajador === selectedId ? item : t))
         );
@@ -149,9 +158,39 @@ function Trabajadores({ onLogout }) {
     }
   };
 
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  /* ── Modal etiqueta ────────────────────────────────────────── */
+  const openEtiquetaModal = () => {
+    setEtiquetaForm(EMPTY_ETIQUETA);
+    setEtiquetaError(null);
+    setShowEtiquetaModal(true);
+  };
+
+  const closeEtiquetaModal = () => { setShowEtiquetaModal(false); setEtiquetaError(null); };
+
+  const handleEtiquetaSubmit = async (e) => {
+    e.preventDefault();
+    setEtiquetaError(null);
+    setSavingEtiqueta(true);
+    try {
+      const nueva = await createEtiqueta(etiquetaForm);
+      setEtiquetas((prev) => [...prev, nueva]);
+      // Seleccionar automáticamente la etiqueta recién creada
+      setFormData((prev) => ({ ...prev, id_etiqueta: String(nueva.id_etiqueta) }));
+      closeEtiquetaModal();
+    } catch (e) {
+      setEtiquetaError(e.message);
+    } finally {
+      setSavingEtiqueta(false);
+    }
+  };
+
+  /* ── Eliminar trabajador ───────────────────────────────────── */
   const handleDelete = async (id) => {
     try {
-      await apiFetch(`/api/trabajadores/${id}`, { method: 'DELETE' });
+      await deleteTrabajador(id);
       setTrabajadores((prev) => prev.filter((t) => t.id_trabajador !== id));
     } catch (e) {
       setError(e.message);
@@ -160,9 +199,6 @@ function Trabajadores({ onLogout }) {
     }
   };
 
-  const handleChange = (e) =>
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-
   const estadoBadgeClass = (estado) => {
     const e = estado?.toLowerCase();
     if (e === 'activo')   return 'badge-activo';
@@ -170,6 +206,7 @@ function Trabajadores({ onLogout }) {
     return 'badge-licencia';
   };
 
+  /* ── Render ────────────────────────────────────────────────── */
   return (
     <div className="dashboard-wrapper">
       <Sidebar />
@@ -183,9 +220,14 @@ function Trabajadores({ onLogout }) {
               <h1 className="vista-general-title">Trabajadores</h1>
               <p className="vista-general-subtitle">Gestión de personal del servicio de aseo</p>
             </div>
-            <button className="btn-nuevo-trabajador" onClick={openCrear}>
-              <Plus size={16} /> Nuevo Trabajador
-            </button>
+            <div className="tw-header-actions">
+              <button className="btn-nueva-etiqueta" onClick={openEtiquetaModal}>
+                <Tag size={14} /> Nueva Etiqueta
+              </button>
+              <button className="btn-nuevo-trabajador" onClick={openCrear}>
+                <Plus size={14} /> Nuevo Trabajador
+              </button>
+            </div>
           </div>
 
           {/* Toolbar */}
@@ -264,7 +306,11 @@ function Trabajadores({ onLogout }) {
                         </div>
                       </td>
                       <td className="tw-rut">{t.rut ?? '—'}</td>
-                      <td>{t.etiqueta?.nombre_etiqueta ?? '—'}</td>
+                      <td>
+                        {t.etiqueta?.nombre_etiqueta
+                          ? <span className="tw-etiqueta-badge">{t.etiqueta.nombre_etiqueta}</span>
+                          : '—'}
+                      </td>
                       <td className="tw-email">{t.correo ?? '—'}</td>
                       <td>{t.telefono ?? '—'}</td>
                       <td>
@@ -291,19 +337,23 @@ function Trabajadores({ onLogout }) {
         </div>
       </div>
 
-      {/* Modal Crear / Editar */}
+      {/* ── Modal Crear / Editar Trabajador ── */}
       {showModal && (
         <div className="tw-modal-overlay" onClick={closeModal}>
-          <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="tw-modal tw-modal-lg" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>{modalMode === 'crear' ? 'Nuevo Trabajador' : 'Editar Trabajador'}</h2>
               <button className="tw-modal-close" onClick={closeModal}><X size={18} /></button>
             </div>
+
             {formError && (
               <div className="tw-form-error"><AlertCircle size={14} /> {formError}</div>
             )}
+
             <form className="tw-form" onSubmit={handleSubmit}>
-              <div className="tw-form-grid">
+              <div className="tw-form-grid tw-form-grid-3">
+
+                {/* Fila 1: Nombres · Apellidos · RUT */}
                 <div className="tw-field">
                   <label>Nombres *</label>
                   <input name="nombres" value={formData.nombres} onChange={handleChange} required placeholder="Ej: Juan Carlos" />
@@ -314,16 +364,42 @@ function Trabajadores({ onLogout }) {
                 </div>
                 <div className="tw-field">
                   <label>RUT *</label>
-                  <input name="rut" value={formData.rut} onChange={handleChange} required placeholder="Ej: 12.345.678-9" />
+                  <input name="rut" value={formData.rut} onChange={handleChange} required placeholder="Ej: 12345678-9" />
+                </div>
+
+                {/* Fila 2: Correo · Tipo Usuario · Contraseña(crear)/Etiqueta(editar) */}
+                <div className="tw-field">
+                  <label>Correo *</label>
+                  <input name="correo" type="email" value={formData.correo} onChange={handleChange} required placeholder="juan@empresa.cl" />
                 </div>
                 <div className="tw-field">
-                  <label>Correo</label>
-                  <input name="correo" type="email" value={formData.correo} onChange={handleChange} placeholder="Ej: juan@empresa.cl" />
+                  <label>Tipo de Usuario *</label>
+                  <select name="tipo_usuario" value={formData.tipo_usuario} onChange={handleChange} required>
+                    <option value="trabajador">Trabajador</option>
+                    <option value="supervisor">Supervisor</option>
+                    <option value="administrador">Administrador</option>
+                  </select>
                 </div>
-                <div className="tw-field">
-                  <label>Teléfono</label>
-                  <input name="telefono" value={formData.telefono} onChange={handleChange} placeholder="+56 9 1234 5678" />
-                </div>
+                {modalMode === 'crear' ? (
+                  <div className="tw-field">
+                    <label>Contraseña *</label>
+                    <input name="password" type="password" value={formData.password} onChange={handleChange} required placeholder="Contraseña inicial" />
+                  </div>
+                ) : (
+                  <div className="tw-field">
+                    <label>Etiqueta</label>
+                    <div className="tw-etiqueta-row">
+                      <select name="id_etiqueta" value={formData.id_etiqueta} onChange={handleChange} className="tw-etiqueta-select">
+                        <option value="">Sin etiqueta</option>
+                        {etiquetas.map((et) => (
+                          <option key={et.id_etiqueta} value={et.id_etiqueta}>{et.nombre_etiqueta}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Fila 3: Sexo · Teléfono · Experiencia */}
                 <div className="tw-field">
                   <label>Sexo</label>
                   <select name="sexo" value={formData.sexo} onChange={handleChange}>
@@ -332,10 +408,30 @@ function Trabajadores({ onLogout }) {
                     <option value="Otro">Otro</option>
                   </select>
                 </div>
-                <div className="tw-field tw-field-full">
-                  <label>Dirección</label>
-                  <input name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Ej: Calle Principal 123, Santiago" />
+                <div className="tw-field">
+                  <label>Teléfono</label>
+                  <input name="telefono" value={formData.telefono} onChange={handleChange} placeholder="+56 9 1234 5678" />
                 </div>
+                <div className="tw-field">
+                  <label>Experiencia Previa (años)</label>
+                  <input name="experiencia_previa" type="number" min="0" value={formData.experiencia_previa} onChange={handleChange} placeholder="Ej: 3" />
+                </div>
+
+                {/* Fila 4 (crear): Etiqueta · Fecha Nac · Fecha Ing */}
+                {/* Fila 4 (editar): F.Nacimiento · F.Ingreso · Estado */}
+                {modalMode === 'crear' && (
+                  <div className="tw-field">
+                    <label>Etiqueta</label>
+                    <div className="tw-etiqueta-row">
+                      <select name="id_etiqueta" value={formData.id_etiqueta} onChange={handleChange} className="tw-etiqueta-select">
+                        <option value="">Sin etiqueta</option>
+                        {etiquetas.map((et) => (
+                          <option key={et.id_etiqueta} value={et.id_etiqueta}>{et.nombre_etiqueta}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
                 <div className="tw-field">
                   <label>Fecha Nacimiento</label>
                   <input name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onChange={handleChange} />
@@ -344,19 +440,37 @@ function Trabajadores({ onLogout }) {
                   <label>Fecha Ingreso</label>
                   <input name="fecha_ingreso" type="date" value={formData.fecha_ingreso} onChange={handleChange} />
                 </div>
-                <div className="tw-field">
-                  <label>Experiencia Previa (años)</label>
-                  <input name="experiencia_previa" type="number" min="0" value={formData.experiencia_previa} onChange={handleChange} placeholder="Ej: 3" />
+                {modalMode === 'editar' && (
+                  <div className="tw-field">
+                    <label>Estado Laboral</label>
+                    <select name="estado_laboral" value={formData.estado_laboral} onChange={handleChange}>
+                      <option value="Activo">Activo</option>
+                      <option value="Inactivo">Inactivo</option>
+                      <option value="Licencia">Con Licencia</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Fila 5 (crear): Estado Laboral · — · — */}
+                {modalMode === 'crear' && (
+                  <div className="tw-field">
+                    <label>Estado Laboral</label>
+                    <select name="estado_laboral" value={formData.estado_laboral} onChange={handleChange}>
+                      <option value="Activo">Activo</option>
+                      <option value="Inactivo">Inactivo</option>
+                      <option value="Licencia">Con Licencia</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Dirección: full width siempre al final */}
+                <div className="tw-field tw-field-full-3">
+                  <label>Dirección</label>
+                  <input name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Ej: Calle Principal 123, Santiago" />
                 </div>
-                <div className="tw-field">
-                  <label>Estado Laboral</label>
-                  <select name="estado_laboral" value={formData.estado_laboral} onChange={handleChange}>
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                    <option value="Licencia">Con Licencia</option>
-                  </select>
-                </div>
+
               </div>
+
               <div className="tw-modal-footer">
                 <button type="button" className="tw-btn-cancel" onClick={closeModal}>Cancelar</button>
                 <button type="submit" className="tw-btn-save" disabled={saving}>
@@ -369,7 +483,50 @@ function Trabajadores({ onLogout }) {
         </div>
       )}
 
-      {/* Confirmar eliminación */}
+      {/* ── Modal Nueva Etiqueta ── */}
+      {showEtiquetaModal && (
+        <div className="tw-modal-overlay" onClick={closeEtiquetaModal}>
+          <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="tw-modal-header">
+              <h2>Nueva Etiqueta</h2>
+              <button className="tw-modal-close" onClick={closeEtiquetaModal}><X size={18} /></button>
+            </div>
+            {etiquetaError && (
+              <div className="tw-form-error"><AlertCircle size={14} /> {etiquetaError}</div>
+            )}
+            <form className="tw-form" onSubmit={handleEtiquetaSubmit}>
+              <div className="tw-form-grid" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="tw-field">
+                  <label>Nombre de la Etiqueta *</label>
+                  <input
+                    value={etiquetaForm.nombre_etiqueta}
+                    onChange={(e) => setEtiquetaForm((p) => ({ ...p, nombre_etiqueta: e.target.value }))}
+                    required
+                    placeholder="Ej: Cuadrilla Norte"
+                  />
+                </div>
+                <div className="tw-field">
+                  <label>Descripción</label>
+                  <input
+                    value={etiquetaForm.descripcion}
+                    onChange={(e) => setEtiquetaForm((p) => ({ ...p, descripcion: e.target.value }))}
+                    placeholder="Ej: Equipo zona norte de la ciudad"
+                  />
+                </div>
+              </div>
+              <div className="tw-modal-footer">
+                <button type="button" className="tw-btn-cancel" onClick={closeEtiquetaModal}>Cancelar</button>
+                <button type="submit" className="tw-btn-save" disabled={savingEtiqueta}>
+                  <Save size={14} />
+                  {savingEtiqueta ? 'Guardando...' : 'Crear Etiqueta'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Confirmar eliminación ── */}
       {confirmDelete !== null && (
         <div className="tw-modal-overlay" onClick={() => setConfirmDelete(null)}>
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
