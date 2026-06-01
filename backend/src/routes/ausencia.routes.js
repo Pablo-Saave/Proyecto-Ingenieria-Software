@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   crearAusencia,
+  eliminarAusencia,
   obtenerAusencias,
   obtenerAusenciasPendientes,
   obtenerAusenciasPorTrabajador,
@@ -20,6 +21,10 @@ router.post("/", validarCrearAusencia, crearAusencia);
 router.get("/", obtenerAusencias);
 router.get("/trabajador/:id", obtenerAusenciasPorTrabajador);
 router.get("/pendientes", obtenerAusenciasPendientes);
+
+// DELETE CONSULTA
+
+router.delete('/:id', eliminarAusencia);
 
 // PUT gestionar ausencia con su respectiva validacion
 router.put("/:id/revisar", validarRevisionAusencia, revisarAusencia); //id de la ausencia

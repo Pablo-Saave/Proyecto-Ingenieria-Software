@@ -46,6 +46,31 @@ export const obtenerAusencias = async (req, res) => {
     res.status(500).json({ error: "Error al obtener ausencias" });
   }
 };
+// ELIMINAR AUSENCIA
+
+export const eliminarAusencia = async (req, res) => {
+  try {
+    const ausencia = await repo.findOne({
+      where: { id_ausencia: Number(req.params.id) },
+    });
+
+    if (!ausencia) {
+      return res.status(404).json({ error: 'Ausencia no encontrada' });
+    }
+
+    // Solo se pueden eliminar ausencias pendientes
+    if (ausencia.estado !== 'Pendiente') {
+      return res.status(400).json({ error: 'Solo se pueden eliminar ausencias pendientes' });
+    }
+
+    await repo.remove(ausencia);
+    res.json({ message: 'Ausencia eliminada correctamente' });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Error al eliminar ausencia' });
+  }
+};
+
 
 // OBTENER AUSENCIAS POR TRABAJADOR
 export const obtenerAusenciasPorTrabajador = async (req, res) => {
