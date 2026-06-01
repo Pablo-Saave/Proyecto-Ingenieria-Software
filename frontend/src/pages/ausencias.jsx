@@ -3,71 +3,80 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/ausencias.css';
 import {
-  CalendarOff, Plus, Search, Edit2, Trash2, X, Save, AlertCircle, ClipboardList,
+  CalendarOff, Plus, Search, Trash2, X, Save, AlertCircle, ClipboardList, CheckCircle,
 } from 'lucide-react';
+import {
+  getAusencias,
+  crearAusencia,
+  revisarAusencia,
+  eliminarAusencia,
+} from '../services/ausenciasService';
 
+// Trabajadores se sigue cargando directo (servicio separado si lo tienes)
 const API_BASE = 'http://localhost:3000';
-
-async function apiFetch(path, options = {}) {
+async function getTrabajadores() {
   const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_BASE}/api/trabajadores`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    ...options,
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `Error ${res.status}`);
-  }
-  return res.json();
+  if (!res.ok) throw new Error(`Error ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : data.data ?? [];
 }
 
 const EMPTY_FORM = {
-  id_ausencia: '',
+  id_trabajador: '',
   fecha_inicio: '',
   fecha_termino: '',
   motivo: '',
-  estado: 'Pendiente',
-  id_trabajador: '',
 };
 
-// ── Tipos de ausencia disponibles ─────────────────────────────────────────
-const ESTADOS_AUSENCIA = ['Pendiente', 'Aprobada', 'Rechazada'];
+const EMPTY_REVISION = {
+  estado: 'Aprobada',
+  comentario_revision: '',
+  revisado_por: '',
+};
+
 const FILTROS = ['Todos', 'Pendiente', 'Aprobada', 'Rechazada'];
 
-function getIniciales(nombres = '', apellidos = '') {
-  const n = String(nombres || '').trim();
-  const a = String(apellidos || '').trim();
-  return ((n[0] || '') + (a[0] || '')).toUpperCase();
-}
-
 function Ausencias({ onLogout }) {
-  const [ausencias, setAusencias]       = useState([]);
-  const [trabajadores, setTrabajadores] = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState(null);
-  const [searchQuery, setSearchQuery]   = useState('');
-  const [filterEstado, setFilterEstado] = useState('Todos');
-  const [showModal, setShowModal]       = useState(false);
-  const [modalMode, setModalMode]       = useState('crear');
-  const [formData, setFormData]         = useState(EMPTY_FORM);
-  const [selectedId, setSelectedId]     = useState(null);
-  const [formError, setFormError]       = useState(null);
-  const [saving, setSaving]             = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [ausencias, setAusencias]           = useState([]);
+  const [trabajadores, setTrabajadores]     = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [error, setError]                   = useState(null);
+  const [searchQuery, setSearchQuery]       = useState('');
+  const [filterEstado, setFilterEstado]     = useState('Todos');
 
-  const fetchAusencias = async () => {
+  // Modal crear
+  const [showModal, setShowModal]           = useState(false);
+  const [formData, setFormData]             = useState(EMPTY_FORM);
+  const [formError, setFormError]           = useState(null);
+  const [saving, setSaving]                 = useState(false);
+
+  // Modal revisar
+  const [showRevision, setShowRevision]     = useState(false);
+  const [revisionData, setRevisionData]     = useState(EMPTY_REVISION);
+  const [revisionId, setRevisionId]         = useState(null);
+  const [revisionError, setRevisionError]   = useState(null);
+  const [savingRevision, setSavingRevision] = useState(false);
+
+  // Confirmar eliminar
+  const [confirmDelete, setConfirmDelete]   = useState(null);
+
+  // ── Carga inicial ────────────────────────────────────────────────────────
+  const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
       const [resA, resT] = await Promise.all([
-        apiFetch('/api/ausencias'),
-        apiFetch('/api/trabajadores'),
+        getAusencias(),
+        getTrabajadores(),
       ]);
       setAusencias(Array.isArray(resA) ? resA : resA.data ?? []);
-      setTrabajadores(Array.isArray(resT) ? resT : resT.data ?? []);
+      setTrabajadores(resT);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -75,9 +84,9 @@ function Ausencias({ onLogout }) {
     }
   };
 
-  useEffect(() => { fetchAusencias(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  // Mapa id → nombre completo para mostrar en tabla
+  // ── Helpers ──────────────────────────────────────────────────────────────
   const nombreTrabajador = (id) => {
     const t = trabajadores.find((w) => w.id_trabajador === id);
     return t ? `${t.nombres} ${t.apellidos}` : `ID ${id}`;
@@ -85,81 +94,17 @@ function Ausencias({ onLogout }) {
 
   const filtered = ausencias.filter((a) => {
     const q = searchQuery.toLowerCase();
-    const nombre = nombreTrabajador(a.id_trabajador).toLowerCase();
-    const matchSearch =
-      !q ||
-      nombre.includes(q) ||
-      a.motivo?.toLowerCase().includes(q);
-    const matchEstado =
-      filterEstado === 'Todos' || a.estado === filterEstado;
+    const idT = a.trabajador?.id_trabajador ?? a.id_trabajador;
+    const nombre = nombreTrabajador(idT).toLowerCase();
+    const matchSearch = !q || nombre.includes(q) || a.motivo?.toLowerCase().includes(q);
+    const matchEstado = filterEstado === 'Todos' || a.estado === filterEstado;
     return matchSearch && matchEstado;
   });
-
-  const openCrear = () => {
-    setFormData(EMPTY_FORM);
-    setSelectedId(null);
-    setFormError(null);
-    setModalMode('crear');
-    setShowModal(true);
-  };
-
-  const openEditar = (a) => {
-    setFormData({
-      id_trabajador: a.id_trabajador ?? '',
-      fecha_inicio:  a.fecha_inicio?.slice(0, 10) ?? '',
-      fecha_termino: a.fecha.termino?.slice(0, 10) ?? '',
-      motivo:        a.motivo ?? '',
-      estado:        a.estado ?? 'Pendiente',
-    });
-    setSelectedId(a.id_ausencia);
-    setFormError(null);
-    setModalMode('editar');
-    setShowModal(true);
-  };
-
-  const closeModal = () => { setShowModal(false); setFormError(null); };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormError(null);
-    setSaving(true);
-    try {
-      const payload = { ...formData, id_trabajador: Number(formData.id_trabajador) };
-      if (modalMode === 'crear') {
-        const res  = await apiFetch('/api/ausencias', { method: 'POST', body: JSON.stringify(payload) });
-        const item = res.data ?? res;
-        setAusencias((prev) => [...prev, item]);
-      } else {
-        const res  = await apiFetch(`/api/ausencias/${selectedId}`, { method: 'PUT', body: JSON.stringify(payload) });
-        const item = res.data ?? res;
-        setAusencias((prev) => prev.map((a) => (a.id_ausencia === selectedId ? item : a)));
-      }
-      closeModal();
-    } catch (e) {
-      setFormError(e.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await apiFetch(`/api/ausencias/${id}`, { method: 'DELETE' });
-      setAusencias((prev) => prev.filter((a) => a.id_ausencia !== id));
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setConfirmDelete(null);
-    }
-  };
-
-  const handleChange = (e) =>
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const estadoBadgeClass = (estado) => {
     if (estado === 'Aprobada')  return 'badge-activo';
     if (estado === 'Rechazada') return 'badge-inactivo';
-    return 'badge-licencia'; // Pendiente
+    return 'badge-licencia';
   };
 
   const diasAusencia = (inicio, fin) => {
@@ -171,6 +116,80 @@ function Ausencias({ onLogout }) {
   const formatFecha = (f) =>
     f ? new Date(f).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
+  // ── Modal Crear ──────────────────────────────────────────────────────────
+  const openCrear = () => {
+    setFormData(EMPTY_FORM);
+    setFormError(null);
+    setShowModal(true);
+  };
+
+  const closeModal = () => { setShowModal(false); setFormError(null); };
+
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError(null);
+    setSaving(true);
+    try {
+      const payload = { ...formData, id_trabajador: Number(formData.id_trabajador) };
+      await crearAusencia(payload);
+      closeModal();
+      fetchData();
+    } catch (e) {
+      setFormError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Modal Revisar ────────────────────────────────────────────────────────
+  const openRevision = (ausencia) => {
+    setRevisionData(EMPTY_REVISION);
+    setRevisionError(null);
+    setRevisionId(ausencia.id_ausencia);
+    setShowRevision(true);
+  };
+
+  const closeRevision = () => { setShowRevision(false); setRevisionError(null); };
+
+  const handleRevisionChange = (e) =>
+    setRevisionData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleRevisionSubmit = async (e) => {
+    e.preventDefault();
+    setRevisionError(null);
+    setSavingRevision(true);
+    try {
+      const payload = {
+        estado:              revisionData.estado,
+        comentario_revision: revisionData.comentario_revision,
+        revisado_por:        Number(revisionData.revisado_por),
+      };
+      await revisarAusencia(revisionId, payload);
+      closeRevision();
+      fetchData();
+    } catch (e) {
+      setRevisionError(e.message);
+    } finally {
+      setSavingRevision(false);
+    }
+  };
+
+  // ── Eliminar ─────────────────────────────────────────────────────────────
+  const handleDelete = async (id) => {
+    try {
+      await eliminarAusencia(id);
+      setAusencias((prev) => prev.filter((a) => a.id_ausencia !== id));
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setConfirmDelete(null);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="dashboard-wrapper">
       <Sidebar />
@@ -196,7 +215,7 @@ function Ausencias({ onLogout }) {
               <input
                 type="text"
                 className="tw-search-input"
-                placeholder="Buscar por trabajador, motivo..."
+                placeholder="Buscar por trabajador o motivo..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -244,7 +263,7 @@ function Ausencias({ onLogout }) {
                   <tr>
                     <th>Trabajador</th>
                     <th>Fecha Inicio</th>
-                    <th>Fecha Termino</th>
+                    <th>Fecha Término</th>
                     <th>Duración</th>
                     <th>Motivo</th>
                     <th>Estado</th>
@@ -252,46 +271,43 @@ function Ausencias({ onLogout }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((a) => (
-                    <tr key={a.id_ausencia}>
-                      <td>
-                        <div className="tw-name-cell">
-                          <div className="tw-avatar">
-                            {a.trabajador 
-                              ? getIniciales(a.trabajador.nombres, a.trabajador.apellidos) || '?'
-                              : '?'}
+                  {filtered.map((a) => {
+                    const idT = a.trabajador?.id_trabajador ?? a.id_trabajador;
+                    const esPendiente = a.estado === 'Pendiente';
+                    return (
+                      <tr key={a.id_ausencia}>
+                        <td>
+                          <div className="tw-name-cell">
+                            <div className="tw-avatar">
+                              {(nombreTrabajador(idT)[0] ?? '?').toUpperCase()}
+                            </div>
+                            <div className="tw-fullname">{nombreTrabajador(idT)}</div>
                           </div>
-                          <div className="tw-fullname">
-                            {a.trabajador
-                              ? `${a.trabajador.nombres} ${a.trabajador.apellidos}`
-                              : 'Sin trabajador'}
+                        </td>
+                        <td>{formatFecha(a.fecha_inicio)}</td>
+                        <td>{formatFecha(a.fecha_termino)}</td>
+                        <td className="aus-duracion">{diasAusencia(a.fecha_inicio, a.fecha_termino)}</td>
+                        <td className="aus-motivo">{a.motivo ?? '—'}</td>
+                        <td>
+                          <span className={`tw-badge ${estadoBadgeClass(a.estado)}`}>
+                            {a.estado ?? '—'}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="tw-actions">
+                            {esPendiente && (
+                              <button className="tw-btn-edit" title="Aprobar / Rechazar" onClick={() => openRevision(a)}>
+                                <CheckCircle size={14} />
+                              </button>
+                            )}
+                            <button className="tw-btn-delete" title="Eliminar" onClick={() => setConfirmDelete(a.id_ausencia)}>
+                              <Trash2 size={14} />
+                            </button>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="aus-tipo-badge">{a.motivo?.slice(0, 15) ?? '—'}</span>
-                      </td>
-                      <td>{formatFecha(a.fecha_inicio)}</td>
-                      <td>{formatFecha(a.fecha_termino)}</td>
-                      <td className="aus-duracion">{diasAusencia(a.fecha_inicio, a.fecha_termino)}</td>
-                      <td className="aus-motivo">{a.motivo ?? '—'}</td>
-                      <td>
-                        <span className={`tw-badge ${estadoBadgeClass(a.estado)}`}>
-                          {a.estado ?? '—'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="tw-actions">
-                          <button className="tw-btn-edit" title="Editar" onClick={() => openEditar(a)}>
-                            <Edit2 size={14} />
-                          </button>
-                          <button className="tw-btn-delete" title="Eliminar" onClick={() => setConfirmDelete(a.id_ausencia)}>
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -299,23 +315,21 @@ function Ausencias({ onLogout }) {
         </div>
       </div>
 
-      {/* Modal Crear / Editar */}
+      {/* Modal Nueva Ausencia */}
       {showModal && (
         <div className="tw-modal-overlay" onClick={closeModal}>
           <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
-              <h2>{modalMode === 'crear' ? 'Nueva Ausencia' : 'Editar Ausencia'}</h2>
+              <h2>Nueva Ausencia</h2>
               <button className="tw-modal-close" onClick={closeModal}><X size={18} /></button>
             </div>
-            {formError && (
-              <div className="tw-form-error"><AlertCircle size={14} /> {formError}</div>
-            )}
+            {formError && <div className="tw-form-error"><AlertCircle size={14} /> {formError}</div>}
             <form className="tw-form" onSubmit={handleSubmit}>
               <div className="tw-form-grid">
                 <div className="tw-field tw-field-full">
                   <label>Trabajador *</label>
                   <select name="id_trabajador" value={formData.id_trabajador} onChange={handleChange} required>
-                    <option value="">— Seleccionar —</option>
+                    <option value="">— Seleccionar trabajador —</option>
                     {trabajadores.map((t) => (
                       <option key={t.id_trabajador} value={t.id_trabajador}>
                         {t.nombres} {t.apellidos} — {t.rut}
@@ -324,36 +338,73 @@ function Ausencias({ onLogout }) {
                   </select>
                 </div>
                 <div className="tw-field">
-                  <label>Tipo de Ausencia *</label>
-                  <select name="tipo_ausencia" value={formData.tipo_ausencia} onChange={handleChange} required>
-                    <option value="">— Seleccionar —</option>
-                    {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div className="tw-field">
-                  <label>Estado</label>
-                  <select name="estado" value={formData.estado} onChange={handleChange}>
-                    {ESTADOS_AUSENCIA.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div className="tw-field">
                   <label>Fecha Inicio *</label>
                   <input name="fecha_inicio" type="date" value={formData.fecha_inicio} onChange={handleChange} required />
                 </div>
                 <div className="tw-field">
-                  <label>Fecha Fin</label>
-                  <input name="fecha_fin" type="date" value={formData.fecha_fin} onChange={handleChange} />
+                  <label>Fecha Término *</label>
+                  <input name="fecha_termino" type="date" value={formData.fecha_termino} onChange={handleChange} required />
                 </div>
                 <div className="tw-field tw-field-full">
-                  <label>Motivo</label>
-                  <input name="motivo" value={formData.motivo} onChange={handleChange} placeholder="Descripción breve del motivo" />
+                  <label>Motivo *</label>
+                  <input name="motivo" value={formData.motivo} onChange={handleChange} required placeholder="Ej: Licencia médica por gripe" />
                 </div>
               </div>
               <div className="tw-modal-footer">
                 <button type="button" className="tw-btn-cancel" onClick={closeModal}>Cancelar</button>
                 <button type="submit" className="tw-btn-save" disabled={saving}>
-                  <Save size={14} />
-                  {saving ? 'Guardando...' : modalMode === 'crear' ? 'Registrar Ausencia' : 'Guardar Cambios'}
+                  <Save size={14} /> {saving ? 'Guardando...' : 'Registrar Ausencia'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Revisar Ausencia */}
+      {showRevision && (
+        <div className="tw-modal-overlay" onClick={closeRevision}>
+          <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="tw-modal-header">
+              <h2>Revisar Ausencia</h2>
+              <button className="tw-modal-close" onClick={closeRevision}><X size={18} /></button>
+            </div>
+            {revisionError && <div className="tw-form-error"><AlertCircle size={14} /> {revisionError}</div>}
+            <form className="tw-form" onSubmit={handleRevisionSubmit}>
+              <div className="tw-form-grid">
+                <div className="tw-field tw-field-full">
+                  <label>Decisión *</label>
+                  <select name="estado" value={revisionData.estado} onChange={handleRevisionChange} required>
+                    <option value="Aprobada">✅ Aprobar</option>
+                    <option value="Rechazada">❌ Rechazar</option>
+                  </select>
+                </div>
+                <div className="tw-field tw-field-full">
+                  <label>Comentario *</label>
+                  <input
+                    name="comentario_revision"
+                    value={revisionData.comentario_revision}
+                    onChange={handleRevisionChange}
+                    required
+                    placeholder="Ej: Documentación recibida correctamente"
+                  />
+                </div>
+                <div className="tw-field tw-field-full">
+                  <label>Revisado por *</label>
+                  <select name="revisado_por" value={revisionData.revisado_por} onChange={handleRevisionChange} required>
+                    <option value="">— Seleccionar revisor —</option>
+                    {trabajadores.map((t) => (
+                      <option key={t.id_trabajador} value={t.id_trabajador}>
+                        {t.nombres} {t.apellidos} — {t.tipo_usuario}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="tw-modal-footer">
+                <button type="button" className="tw-btn-cancel" onClick={closeRevision}>Cancelar</button>
+                <button type="submit" className="tw-btn-save" disabled={savingRevision}>
+                  <CheckCircle size={14} /> {savingRevision ? 'Guardando...' : 'Confirmar Revisión'}
                 </button>
               </div>
             </form>
