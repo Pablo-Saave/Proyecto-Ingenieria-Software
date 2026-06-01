@@ -375,8 +375,8 @@ function Ausencias({ onLogout }) {
                 <div className="tw-field tw-field-full">
                   <label>Decisión *</label>
                   <select name="estado" value={revisionData.estado} onChange={handleRevisionChange} required>
-                    <option value="Aprobada">✅ Aprobar</option>
-                    <option value="Rechazada">❌ Rechazar</option>
+                    <option value="Aprobada"> Aprobar</option>
+                    <option value="Rechazada"> Rechazar</option>
                   </select>
                 </div>
                 <div className="tw-field tw-field-full">
