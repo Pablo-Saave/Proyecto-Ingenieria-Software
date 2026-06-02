@@ -42,6 +42,12 @@ const EMPTY_REVISION = {
 
 const FILTROS = ['Todos', 'Pendiente', 'Aprobada', 'Rechazada'];
 
+function getIniciales(nombres = '', apellidos = '') {
+  const n = String(nombres || '').trim();
+  const a = String(apellidos || '').trim();
+  return ((n[0] || '') + (a[0] || '')).toUpperCase();
+}
+
 function Ausencias({ onLogout }) {
   const [ausencias, setAusencias]           = useState([]);
   const [trabajadores, setTrabajadores]     = useState([]);
@@ -279,7 +285,10 @@ function Ausencias({ onLogout }) {
                         <td>
                           <div className="tw-name-cell">
                             <div className="tw-avatar">
-                              {(nombreTrabajador(idT)[0] ?? '?').toUpperCase()}
+                              {(() => {
+                                const t = trabajadores.find((w) => w.id_trabajador === idT);
+                                return getIniciales(t?.nombres || '', t?.apellidos || '') || '?';
+                              })()}
                             </div>
                             <div className="tw-fullname">{nombreTrabajador(idT)}</div>
                           </div>
