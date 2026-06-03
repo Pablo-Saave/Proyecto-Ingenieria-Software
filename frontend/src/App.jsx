@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Contratos from './pages/Contratos';
 import Trabajadores from './pages/Trabajadores';
 import Ausencias from './pages/ausencias';
+import { Pagos } from './pages/Pagos';
 import './styles/globals.css';
 
 function ProtectedRoute({ isLoggedIn, children }) {
@@ -29,6 +30,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Landing y Login */}
         <Route 
           path="/" 
           element={
@@ -41,6 +43,7 @@ function App() {
             isLoggedIn ? <Navigate to="/admin" replace /> : <Login onLoginSuccess={handleLoginSuccess} />
           } 
         />
+        {/* Admin */}
         <Route
           path="/admin"
           element={
@@ -67,6 +70,14 @@ function App() {
           element={
             <ProtectedRoute isLoggedIn={isLoggedIn}>
               <Contratos onLogout={handleLogout} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/pagos"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <Pagos onLogout={handleLogout} />
             </ProtectedRoute>
           }
         />

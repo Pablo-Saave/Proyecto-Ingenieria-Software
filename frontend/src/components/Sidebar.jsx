@@ -16,6 +16,7 @@ function Sidebar() {
     if (location.pathname === '/admin/contratos') return 'contratos';
     if (location.pathname === '/admin/trabajadores') return 'trabajadores';
     if (location.pathname === '/admin/ausencias') return 'asistencia';
+    if (location.pathname === '/admin/pagos') return 'pagos';
     return 'dashboard';
   });
 
@@ -48,6 +49,7 @@ function Sidebar() {
       id: 'pagos',
       label: 'Pagos',
       icon: DollarSign,
+      path: '/admin/pagos'
     },
   ];
 
