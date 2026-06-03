@@ -289,6 +289,7 @@
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
+  backdrop-filter: blur(2px);
 }
 .modal-box {
   background: #fff;
@@ -298,7 +299,7 @@
   box-shadow: 0 20px 60px rgba(0,0,0,0.18);
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+  max-height: 95vh;
   overflow: hidden;
 }
 .modal-confirm { max-width: 380px; }
@@ -328,6 +329,7 @@
   flex-direction: column;
   gap: 0.5rem;
   overflow-y: auto;
+  flex: 1;
 }
 .modal-body label { font-size: 0.78rem; font-weight: 600; color: #374264; margin-top: 0.25rem; }
 .modal-body input,
@@ -348,7 +350,7 @@
 .modal-body input:focus,
 .modal-body select:focus,
 .modal-body textarea:focus { border-color: #4466ff; background: #fff; }
-.modal-body textarea { resize: vertical; }
+.modal-body textarea { resize: vertical; min-height: 80px; }
 .modal-error {
   display: flex;
   align-items: center;
