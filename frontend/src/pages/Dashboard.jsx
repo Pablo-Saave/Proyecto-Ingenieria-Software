@@ -10,7 +10,7 @@ import {
   Users,
 } from 'lucide-react';
 
-function Dashboard({ userRole, onLogout }) {
+function Dashboard({ usuario, onLogout }) {
   const metrics = [
     {
       id: 1,
@@ -85,7 +85,7 @@ function Dashboard({ userRole, onLogout }) {
 
   return (
     <div className="dashboard-wrapper">
-      <Sidebar />
+      <Sidebar usuario={usuario} />
       <div className="dashboard-main">
         <Header onLogout={onLogout} />
         <div className="dashboard-content">

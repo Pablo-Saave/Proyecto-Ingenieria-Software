@@ -47,7 +47,7 @@ const badgeClass = (estado) => {
 };
 
 /* ─── Componente principal ───────────────────────────────────────────────── */
-export const Pagos = () => {
+export const Pagos = ({ usuario, onLogout }) => {
   /* ── Estado ─────────────────────────────────────────────────────────── */
   const [remuneraciones, setRemuneraciones] = useState([]);
   const [total, setTotal]                   = useState(0);
@@ -304,7 +304,7 @@ export const Pagos = () => {
 
   /* ─── JSX ───────────────────────────────────────────────────────────── */
   return (
-    <AdminLayout>
+    <AdminLayout usuario={usuario} onLogout={onLogout}>
       {/* Toolbar */}
       <div className="pag-toolbar">
         <div className="pag-search-wrapper">

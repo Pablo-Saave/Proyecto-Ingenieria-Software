@@ -48,7 +48,7 @@ function getIniciales(nombres = '', apellidos = '') {
   return ((n[0] || '') + (a[0] || '')).toUpperCase();
 }
 
-function Ausencias({ onLogout }) {
+function Ausencias({ usuario, onLogout }) {
   const [ausencias, setAusencias]           = useState([]);
   const [trabajadores, setTrabajadores]     = useState([]);
   const [loading, setLoading]               = useState(true);
@@ -198,7 +198,7 @@ function Ausencias({ onLogout }) {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="dashboard-wrapper">
-      <Sidebar />
+      <Sidebar usuario={usuario} />
       <div className="dashboard-main">
         <Header onLogout={onLogout} />
         <div className="dashboard-content">

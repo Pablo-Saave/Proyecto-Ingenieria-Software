@@ -14,16 +14,21 @@ function Login({ onLoginSuccess }) {
   const navigate = useNavigate();
 
     const handleLogin = async (email, password) => {
-    try {
+      try {
         const data = await loginRequest(email, password);
-        console.log(data);
-        localStorage.setItem("token", data.token); // Se guarda el token en localstorage
-        onLoginSuccess(data.data.tipo_usuario); // Se guarda el estado del tipo de usuario
-        navigate("/admin");
-    } catch (error) {
+        // authService ya guarda token y usuario en localStorage
+        onLoginSuccess(data.data); // pasar objeto completo
+ 
+    // Redirigir según tipo de usuario
+       if (data.data.tipo_usuario === 'administrador') {
+          navigate('/admin');
+       } else {
+          navigate('/app/dashboard');
+       }
+     } catch (error) {
         alert(error.message);
-    }
-  }
+      }
+    };
 
   useEffect(() => {
     const handleBackButton = () => {
