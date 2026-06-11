@@ -7,64 +7,74 @@ import {
   Clock,
   FileText,
   DollarSign,
+  CalendarOff,
+  Briefcase,
+  User,
 } from 'lucide-react';
 
-function Sidebar() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [activeItem, setActiveItem] = useState(() => {
-    if (location.pathname === '/admin/contratos') return 'contratos';
-    if (location.pathname === '/admin/trabajadores') return 'trabajadores';
-    if (location.pathname === '/admin/ausencias') return 'asistencia';
-    if (location.pathname === '/admin/pagos') return 'pagos';
-    return 'dashboard';
-  });
+// Menú por tipo de usuario
+const MENU_POR_ROL = {
+  administrador: [
+    { id: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, path: '/admin' },
+    { id: 'trabajadores', label: 'Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
+    { id: 'ausencias',    label: 'Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
+    { id: 'contratos',    label: 'Contratos',       icon: FileText,        path: '/admin/contratos' },
+    { id: 'pagos',        label: 'Pagos',           icon: DollarSign,      path: '/admin/pagos' },
+    { id: 'asignaciones', label: 'Asignaciones',    icon: Users,           path: '/admin/asignaciones' },
+  ],
+  supervisor: [
+    { id: 'dashboard',       label: 'Mi Dashboard',    icon: LayoutDashboard, path: '/app/dashboard' },
+    { id: 'mis-ausencias',   label: 'Mis Ausencias',   icon: CalendarOff,     path: '/app/mis-ausencias' },
+    { id: 'mis-asignaciones',label: 'Mis Asignaciones',icon: Briefcase,       path: '/app/mis-asignaciones' },
+    { id: 'ausencias',       label: 'Ausencias',       icon: Clock,           path: '/admin/ausencias' },
+  ],
+  trabajador: [
+    { id: 'dashboard',       label: 'Mi Dashboard',    icon: LayoutDashboard, path: '/app/dashboard' },
+    { id: 'mis-ausencias',   label: 'Mis Ausencias',   icon: CalendarOff,     path: '/app/mis-ausencias' },
+    { id: 'mis-asignaciones',label: 'Mis Asignaciones',icon: Briefcase,       path: '/app/mis-asignaciones' },
+  ],
+};
 
-  const menuItems = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-      path: '/admin',
-    },
-    {
-      id: 'trabajadores',
-      label: 'Trabajadores',
-      icon: Users,
-      path: '/admin/trabajadores',
-    },
-    {
-      id: 'asistencia',
-      label: 'Ausencias',
-      icon: Clock,
-      path: '/admin/ausencias',
-    },
-    {
-      id: 'contratos',
-      label: 'Contratos',
-      icon: FileText,
-      path: '/admin/contratos',
-    },
-    {
-      id: 'pagos',
-      label: 'Pagos',
-      icon: DollarSign,
-      path: '/admin/pagos'
-    },
-  ];
+// Detectar item activo según la ruta actual
+function getActiveItem(pathname, menuItems) {
+  const match = menuItems.find((item) => item.path === pathname);
+  return match?.id ?? menuItems[0]?.id;
+}
+
+function Sidebar({ usuario }) {
+  const navigate  = useNavigate();
+  const location  = useLocation();
+
+  const tipoUsuario = usuario?.tipo_usuario ?? 'trabajador';
+  const menuItems   = MENU_POR_ROL[tipoUsuario] ?? MENU_POR_ROL['trabajador'];
+
+  const [activeItem, setActiveItem] = useState(() =>
+    getActiveItem(location.pathname, menuItems)
+  );
 
   const handleMenuClick = (item) => {
-    if (!item.path) {
-      return;
-    }
     setActiveItem(item.id);
     navigate(item.path);
   };
 
+  const nombreMostrado = usuario
+    ? `${usuario.nombres?.split(' ')[0]} ${usuario.apellidos?.split(' ')[0]}`
+    : 'Usuario';
+
+  const rolLabel = {
+    administrador: 'Administrador',
+    supervisor:    'Supervisor',
+    trabajador:    'Trabajador',
+  }[tipoUsuario] ?? tipoUsuario;
+
   return (
     <div className="sidebar">
       {/* Logo */}
-      <button className="sidebar-logo" onClick={() => navigate('/admin')} style={{ background: 'none', cursor: 'pointer', padding: '0 12px' }}>
+      <button
+        className="sidebar-logo"
+        onClick={() => navigate(tipoUsuario === 'administrador' ? '/admin' : '/app/dashboard')}
+        style={{ background: 'none', cursor: 'pointer', padding: '0 12px' }}
+      >
         <img src="/img/aseo-corp-logo.png" alt="AseoCorp" className="logo-icon-image" />
         <span className="logo-text">Aseo<span className="logo-text-corp">Corp</span></span>
       </button>
@@ -88,9 +98,18 @@ function Sidebar() {
 
       {/* User Profile */}
       <div className="sidebar-user">
-        <img src="/img/usuario.png" alt="Usuario" className="user-avatar-img" />
+        <div style={{
+          width: '32px', height: '32px', borderRadius: '50%',
+          background: '#EEF2FF', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', flexShrink: 0,
+        }}>
+          <span style={{ fontSize: '13px', fontWeight: 700, color: '#4F46E5' }}>
+            {(usuario?.nombres?.[0] ?? 'U').toUpperCase()}
+          </span>
+        </div>
         <div className="user-info">
-          <p className="user-name">Admin</p>
+          <p className="user-name">{nombreMostrado}</p>
+          <p style={{ fontSize: '11px', color: '#9ca3af', margin: 0 }}>{rolLabel}</p>
         </div>
       </div>
     </div>

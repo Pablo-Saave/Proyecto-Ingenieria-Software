@@ -39,7 +39,7 @@ function getIniciales(nombres = '', apellidos = '') {
   return ((n[0] || '') + (a[0] || '')).toUpperCase();
 }
 
-function Trabajadores({ onLogout }) {
+function Trabajadores({ usuario, onLogout }) {
   const [trabajadores, setTrabajadores]     = useState([]);
   const [etiquetas, setEtiquetas]           = useState([]);
   const [loading, setLoading]               = useState(true);
@@ -209,7 +209,7 @@ function Trabajadores({ onLogout }) {
   /* ── Render ────────────────────────────────────────────────── */
   return (
     <div className="dashboard-wrapper">
-      <Sidebar />
+      <Sidebar usuario={usuario} />
       <div className="dashboard-main">
         <Header onLogout={onLogout} />
         <div className="dashboard-content">

@@ -346,7 +346,7 @@ function ContextMenu({ contrato, onEditar, onEliminar, onCerrar }) {
 
 const POR_PAGINA = 10;
 
-function Contratos({ onLogout }) {
+function Contratos({ usuario, onLogout }) {
   const [contratos,    setContratos]    = useState([]);
   const [trabajadores, setTrabajadores] = useState([]);
   const [loading,      setLoading]      = useState(true);
@@ -456,7 +456,7 @@ function Contratos({ onLogout }) {
 
   return (
     <div className="dashboard-wrapper">
-      <Sidebar />
+      <Sidebar usuario={usuario} />
       <div className="dashboard-main">
         <Header onLogout={onLogout} />
         <div className="dashboard-content">

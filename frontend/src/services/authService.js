@@ -1,10 +1,7 @@
-// src/services/authService.js
-
 const API_URL = 'http://localhost:3000/api/auth';
 
-// Solo administradores pueden iniciar sesión por ahora.
-// Las páginas de trabajador y supervisor aún no están implementadas.
-const TIPOS_CON_ACCESO = ['administrador'];
+// Ampliar cuando las páginas de trabajador y supervisor estén listas
+const TIPOS_CON_ACCESO = ['administrador', 'supervisor', 'trabajador'];
 
 export const loginRequest = async (correo, password) => {
   const response = await fetch(`${API_URL}/login`, {
@@ -19,13 +16,31 @@ export const loginRequest = async (correo, password) => {
     throw new Error(data.message || 'Error al iniciar sesión');
   }
 
-  // Bloquear acceso a tipos sin página aún implementada
   const tipo = data.data?.tipo_usuario;
   if (!TIPOS_CON_ACCESO.includes(tipo)) {
     throw new Error(
-      `El acceso para "${tipo}" aún no está disponible. Por favor contacta al administrador.`
+      `El acceso para "${tipo}" aún no está disponible.`
     );
   }
 
+  // Guardar token y usuario completo en localStorage
+  localStorage.setItem('token', data.token);
+  localStorage.setItem('usuario', JSON.stringify(data.data));
+
   return data;
+};
+
+export const logoutClean = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('usuario');
+};
+
+// Leer usuario guardado (usado por cualquier página)
+export const getUsuarioLocal = () => {
+  try {
+    const raw = localStorage.getItem('usuario');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 };
