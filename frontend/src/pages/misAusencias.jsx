@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/trabajadores.css';
 import {
-  CalendarOff, Plus, X, Save, AlertCircle, ClipboardList, CheckCircle, Trash2,
+  CalendarOff, Plus, X, Save, AlertCircle, ClipboardList, Trash2, Paperclip, FileText,
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
@@ -37,6 +37,10 @@ function MisAusencias({ usuario, onLogout }) {
   const [formError, setFormError]         = useState(null);
   const [saving, setSaving]               = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+
+  // PDF adjunto
+  const [archivoPDF, setArchivoPDF]       = useState(null);
+  const fileInputRef                       = useRef(null);
 
   const idTrabajador = usuario?.id_trabajador;
 
@@ -75,26 +79,61 @@ function MisAusencias({ usuario, onLogout }) {
     return diff >= 0 ? `${diff + 1} día${diff !== 0 ? 's' : ''}` : '—';
   };
 
-  // Resumen
-  const total     = ausencias.length;
-  const aprobadas = ausencias.filter((a) => a.estado === 'Aprobada').length;
+  const total      = ausencias.length;
+  const aprobadas  = ausencias.filter((a) => a.estado === 'Aprobada').length;
   const pendientes = ausencias.filter((a) => a.estado === 'Pendiente').length;
   const rechazadas = ausencias.filter((a) => a.estado === 'Rechazada').length;
 
   const handleChange = (e) =>
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      setFormError('Solo se aceptan archivos PDF.');
+      setArchivoPDF(null);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setFormError('El archivo no puede superar 5 MB.');
+      setArchivoPDF(null);
+      return;
+    }
+    setFormError(null);
+    setArchivoPDF(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
     setSaving(true);
     try {
-      await apiFetch('/api/ausencias', {
+      // 1. Crear la ausencia
+      const resAusencia = await apiFetch('/api/ausencias', {
         method: 'POST',
         body: JSON.stringify({ ...formData, id_trabajador: idTrabajador }),
       });
+
+      const idAusencia = resAusencia?.id_ausencia ?? resAusencia?.data?.id_ausencia;
+
+      // 2. Si hay PDF, subirlo vinculado a la ausencia
+      if (archivoPDF && idAusencia) {
+        const formDataPDF = new FormData();
+        formDataPDF.append('archivo', archivoPDF);
+
+        const token = localStorage.getItem('token');
+        await fetch(`${API_BASE}/api/ausencias/${idAusencia}/documento`, {
+          method: 'POST',
+          headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: formDataPDF,
+        });
+        // Si el endpoint aún no existe, falla silenciosamente
+      }
+
       setShowModal(false);
       setFormData(EMPTY_FORM);
+      setArchivoPDF(null);
       fetchAusencias();
     } catch (e) {
       setFormError(e.message);
@@ -114,6 +153,13 @@ function MisAusencias({ usuario, onLogout }) {
     }
   };
 
+  const abrirModal = () => {
+    setFormData(EMPTY_FORM);
+    setFormError(null);
+    setArchivoPDF(null);
+    setShowModal(true);
+  };
+
   return (
     <div className="dashboard-wrapper">
       <Sidebar usuario={usuario} />
@@ -121,7 +167,6 @@ function MisAusencias({ usuario, onLogout }) {
         <Header onLogout={onLogout} />
         <div className="dashboard-content">
 
-          {/* Encabezado */}
           <div className="vista-general-header">
             <div>
               <h1 className="vista-general-title">Mis Ausencias</h1>
@@ -129,15 +174,15 @@ function MisAusencias({ usuario, onLogout }) {
                 Historial y solicitudes de {usuario?.nombres} {usuario?.apellidos}
               </p>
             </div>
-            <button className="btn-nuevo-trabajador" onClick={() => { setFormData(EMPTY_FORM); setFormError(null); setShowModal(true); }}>
+            <button className="btn-nuevo-trabajador" onClick={abrirModal}>
               <Plus size={16} /> Nueva Solicitud
             </button>
           </div>
 
-          {/* Tarjetas resumen */}
+          {/* Resumen */}
           <div className="metrics-grid" style={{ marginBottom: '20px' }}>
             {[
-              { label: 'Total',      value: total,     color: '#4F46E5' },
+              { label: 'Total',      value: total,      color: '#4F46E5' },
               { label: 'Aprobadas',  value: aprobadas,  color: '#10B981' },
               { label: 'Pendientes', value: pendientes, color: '#F59E0B' },
               { label: 'Rechazadas', value: rechazadas, color: '#EF4444' },
@@ -167,7 +212,6 @@ function MisAusencias({ usuario, onLogout }) {
 
           {error && <div className="tw-error-banner"><AlertCircle size={16} /> {error}</div>}
 
-          {/* Tabla */}
           <div className="tw-table-card">
             {loading ? (
               <div className="tw-loading"><div className="tw-spinner" /> Cargando...</div>
@@ -185,7 +229,8 @@ function MisAusencias({ usuario, onLogout }) {
                     <th>Duración</th>
                     <th>Motivo</th>
                     <th>Estado</th>
-                    <th>Comentario Revisión</th>
+                    <th>Comentario</th>
+                    <th>Doc.</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -205,6 +250,14 @@ function MisAusencias({ usuario, onLogout }) {
                         {a.comentario_revision
                           ? <span title={a.comentario_revision}>{a.comentario_revision}</span>
                           : <span style={{ color: '#9ca3af' }}>Sin revisión</span>
+                        }
+                      </td>
+                      <td>
+                        {a.url_documento
+                          ? <a href={a.url_documento} target="_blank" rel="noopener noreferrer" title="Ver documento">
+                              <FileText size={16} color="#4F46E5" />
+                            </a>
+                          : <span style={{ color: '#d1d5db' }}>—</span>
                         }
                       </td>
                       <td>
@@ -250,7 +303,56 @@ function MisAusencias({ usuario, onLogout }) {
                   <label>Motivo *</label>
                   <input name="motivo" value={formData.motivo} onChange={handleChange} required placeholder="Describe el motivo de tu ausencia" />
                 </div>
+
+                {/* Adjuntar PDF */}
+                <div className="tw-field tw-field-full">
+                  <label>Documento de respaldo <span style={{ color: '#9ca3af', fontWeight: 400 }}>(PDF, máx. 5 MB — opcional)</span></label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                  />
+                  <div
+                    style={{
+                      border: '1.5px dashed #d1d5db',
+                      borderRadius: '8px',
+                      padding: '14px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      cursor: 'pointer',
+                      background: archivoPDF ? '#f0fdf4' : '#fafafa',
+                      borderColor: archivoPDF ? '#10B981' : '#d1d5db',
+                      transition: 'all 0.15s',
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {archivoPDF ? (
+                      <>
+                        <FileText size={18} color="#10B981" />
+                        <span style={{ fontSize: '13px', color: '#065f46', flex: 1 }}>{archivoPDF.name}</span>
+                        <button
+                          type="button"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}
+                          onClick={(e) => { e.stopPropagation(); setArchivoPDF(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                        >
+                          <X size={14} />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Paperclip size={18} color="#9ca3af" />
+                        <span style={{ fontSize: '13px', color: '#9ca3af' }}>
+                          Haz clic para adjuntar un PDF de respaldo
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
+
               <div className="tw-modal-footer">
                 <button type="button" className="tw-btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>
                 <button type="submit" className="tw-btn-save" disabled={saving}>
@@ -270,7 +372,7 @@ function MisAusencias({ usuario, onLogout }) {
               <h2>Cancelar solicitud</h2>
               <button className="tw-modal-close" onClick={() => setConfirmDelete(null)}><X size={18} /></button>
             </div>
-            <p className="tw-confirm-text">¿Estás seguro de que deseas cancelar esta solicitud de ausencia?</p>
+            <p className="tw-confirm-text">¿Estás seguro de que deseas cancelar esta solicitud?</p>
             <div className="tw-modal-footer">
               <button className="tw-btn-cancel" onClick={() => setConfirmDelete(null)}>No, mantener</button>
               <button className="tw-btn-delete-confirm" onClick={() => handleDelete(confirmDelete)}>

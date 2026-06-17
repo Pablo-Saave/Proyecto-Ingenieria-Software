@@ -5,7 +5,7 @@ import {
   createContrato,
   updateContrato,
   deleteContrato,
-} from "../controllers/contratro.controller.js";
+} from "../controllers/contrato.controller.js";
 
 const router = express.Router();
 
