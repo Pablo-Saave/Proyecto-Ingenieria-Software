@@ -11,6 +11,9 @@ import {
   revisarAusencia,
 } from '../controllers/ausencia.controller.js';
 
+import { subirDocumento } from '../controllers/documento.controller.js';
+import { uploadPDF }      from '../middlewares/upload.middleware.js';
+
 import {
   validarCrearAusencia,
   validarRevisionAusencia,
@@ -54,6 +57,11 @@ router.put('/:id/revisar',
 router.delete('/:id',
   autorizar('ausencias:eliminar'),
   eliminarAusencia
+);
+
+router.post('/:id/documento',
+  autorizar('ausencias:crear'),
+  uploadPDF, subirDocumento
 );
 
 export default router;

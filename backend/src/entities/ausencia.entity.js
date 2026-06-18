@@ -36,6 +36,11 @@ export const AusenciaSchema = new EntitySchema({
       type: "date",
       nullable: true,
     },
+
+    url_documento: {
+      type: 'varchar',
+      nullable: true,
+    },
   },
 
   relations: {

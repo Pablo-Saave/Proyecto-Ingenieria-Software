@@ -20,13 +20,14 @@ const MENU_POR_ROL = {
     { id: 'ausencias',    label: 'Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
     { id: 'contratos',    label: 'Contratos',       icon: FileText,        path: '/admin/contratos' },
     { id: 'pagos',        label: 'Pagos',           icon: DollarSign,      path: '/admin/pagos' },
-    { id: 'asignaciones', label: 'Asignaciones',    icon: Users,           path: '/admin/asignaciones' },
+      { id: 'asignaciones', label: 'Asignaciones',    icon: Users,           path: '/admin/asignaciones' },
   ],
   supervisor: [
     { id: 'dashboard',       label: 'Mi Dashboard',    icon: LayoutDashboard, path: '/app/dashboard' },
     { id: 'mis-ausencias',   label: 'Mis Ausencias',   icon: CalendarOff,     path: '/app/mis-ausencias' },
     { id: 'mis-asignaciones',label: 'Mis Asignaciones',icon: Briefcase,       path: '/app/mis-asignaciones' },
     { id: 'ausencias',       label: 'Ausencias',       icon: Clock,           path: '/admin/ausencias' },
+    { id: 'trabajadores',    label: 'Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
   ],
   trabajador: [
     { id: 'dashboard',       label: 'Mi Dashboard',    icon: LayoutDashboard, path: '/app/dashboard' },
