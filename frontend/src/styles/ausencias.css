@@ -19,6 +19,11 @@
   white-space: nowrap;
 }
 
+.badge-por-justificar {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
 .aus-motivo {
   color: #6b7280;
   font-size: 13px;
