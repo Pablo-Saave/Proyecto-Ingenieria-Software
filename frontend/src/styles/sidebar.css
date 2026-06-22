@@ -94,7 +94,7 @@
   border-right: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  gap: -4px;
+  gap: 12px;
 }
 
 .user-avatar-img {
@@ -108,7 +108,7 @@
 .user-info {
   flex: 1;
   min-width: 0;
-  margin-left: -2px;
+  margin-left: 0;
 }
 
 .user-name {

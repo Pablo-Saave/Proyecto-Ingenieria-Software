@@ -30,6 +30,11 @@ function Login({ onLoginSuccess }) {
       }
     };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleLogin(email, password);
+  };
+
   useEffect(() => {
     const handleBackButton = () => {
       navigate('/', { replace: false });
@@ -88,7 +93,7 @@ function Login({ onLoginSuccess }) {
           </div>
 
           {/* ── PANEL DERECHO ── */}
-          <div className="login-card-right">
+          <form className="login-card-right" onSubmit={handleSubmit}>
             <h1 className="login-title">Iniciar sesión</h1>
             <p className="login-subtitle">Accede a tu cuenta</p>
 
@@ -168,14 +173,13 @@ function Login({ onLoginSuccess }) {
             {/* Botones */}
             <div className="login-buttons">
               <button
-                type="button"
+                type="submit"
                 className="login-button-primary"
                 style={{
                   background: 'linear-gradient(135deg, #2244cc 0%, #2244cc 100%)',
                   opacity: 1,
                   boxShadow: 'none',
                 }}
-                onClick={() => handleLogin(email, password)}
               >
                 Ingresar
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
@@ -191,7 +195,7 @@ function Login({ onLoginSuccess }) {
               ¿No tienes cuenta?{' '}
               <button type="button" className="login-link">Solicita acceso</button>
             </p>
-          </div>
+          </form>
 
         </div>
       </div>

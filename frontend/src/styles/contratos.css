@@ -447,10 +447,271 @@
 .detalle-full { grid-column: 1 / -1; }
 .detalle-label { font-size: 0.72rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.04em; }
 
+/* Trabajador: filtros y tarjetas compactas */
+.contratos-worker-filters {
+  background: #fff;
+  border: 1px solid #e5eaf3;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.worker-filter-group select:focus {
+  border-color: #4466ff;
+  box-shadow: 0 0 0 3px rgba(68, 102, 255, 0.1);
+}
+
+.worker-filter-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.worker-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.worker-filter-group label {
+  color: #4b5563;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.worker-filter-group select {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #dce3ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  font-family: inherit;
+  font-size: 0.84rem;
+  outline: none;
+}
+
+.worker-filter-button {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 16px;
+  border: 1px solid #dce3ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #526079;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.worker-filter-button:hover {
+  background: #f7f9ff;
+  border-color: #cdd7e6;
+  color: #4466ff;
+}
+
+.worker-filter-button.is-active {
+  background: #eef1ff;
+  border-color: #4466ff;
+  color: #4466ff;
+}
+
+.worker-filter-button.is-active:hover {
+  background: #e0e5ff;
+  border-color: #2244cc;
+  color: #2244cc;
+}
+
+.contratos-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.contratos-section-title h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.contratos-section-title span {
+  min-width: 22px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4466ff;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.contratos-section-title.is-muted { margin-top: 18px; }
+.contratos-section-title.is-muted h2 { color: #6b7280; }
+.contratos-section-title.is-muted span { background: #f3f4f6; color: #6b7280; }
+
+.contrato-card-compact {
+  background: #fff;
+  border: 1px solid #e6ebf2;
+  border-left: 3px solid #4466ff;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.contrato-card-compact.is-warning { border-left-color: #f59e0b; }
+
+.contrato-card-header {
+  padding: 13px 18px 10px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.contrato-card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.contrato-card-icon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4466ff;
+}
+
+.contrato-card-heading {
+  min-width: 0;
+}
+
+.contrato-card-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.contrato-card-name-row h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.contrato-card-heading p {
+  margin: 3px 0 0;
+  color: #526079;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.contrato-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.contrato-card-info {
+  min-width: 0;
+  padding: 10px 16px;
+  border-right: 1px solid #edf1f6;
+}
+
+.contrato-card-info:last-child { border-right: 0; }
+
+.contrato-info-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #6b7280;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.contrato-info-value {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: #1f2937;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.contrato-info-value svg {
+  flex: 0 0 auto;
+  color: #64748b;
+}
+
+.contrato-info-value span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contrato-detail-button {
+  width: calc(100% - 32px);
+  min-height: 34px;
+  margin: 0 16px 13px;
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #f3f6ff;
+  color: #4466ff;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: background 0.18s, color 0.18s;
+}
+
+.contrato-detail-button span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.contrato-detail-button:hover {
+  background: #e9eeff;
+  color: #2444cc;
+}
+
+.contratos-worker-empty {
+  padding: 46px 20px;
+  margin-top: 8px;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .filter-controls { flex-direction: column; align-items: stretch; }
   .filter-group { min-width: unset; }
+  .worker-filter-row { grid-template-columns: 1fr 1fr; }
+  .worker-filter-button { grid-column: 1 / -1; }
 }
 @media (max-width: 768px) {
   .contratos-header { flex-direction: column; gap: 1rem; }
@@ -458,4 +719,24 @@
   .contratos-table-wrapper { overflow-x: auto; }
   .contratos-table { min-width: 700px; }
   .pagination { flex-direction: column; gap: 1rem; }
+  .contrato-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .contrato-card-info:nth-child(2n) { border-right: 0; }
+}
+
+@media (max-width: 560px) {
+  .contratos-worker-filters { padding: 10px; }
+  .worker-filter-row { grid-template-columns: 1fr; gap: 10px; }
+  .worker-filter-button { grid-column: auto; width: 100%; }
+  .contrato-card-header { padding: 12px 14px 9px; }
+  .contrato-card-grid { grid-template-columns: 1fr; }
+  .contrato-card-info {
+    padding: 9px 14px;
+    border-right: 0;
+    border-bottom: 1px solid #edf1f6;
+  }
+  .contrato-card-info:last-child { border-bottom: 0; }
+  .contrato-detail-button {
+    width: calc(100% - 28px);
+    margin: 0 14px 12px;
+  }
 }

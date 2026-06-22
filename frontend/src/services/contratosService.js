@@ -2,7 +2,9 @@
 
 const API_BASE = 'http://localhost:3000';
 
-// Función base idéntica al patrón del resto del proyecto
+export const TIPOS_CONTRATO   = ['Indefinido', 'Plazo Fijo'];
+export const ESTADOS_CONTRATO = ['Activo', 'Inactivo', 'Por vencer'];
+
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
   const res = await fetch(`${API_BASE}${path}`, {
@@ -19,21 +21,74 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
-// GET /api/contratos  → { status: "success", data: [...] }
+export function hoyLocal() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+export function validarFormContrato(form, esEdicion = false) {
+  const errores = [];
+  const { tipo_contrato, estado_contrato, fecha_inicio, fecha_termino, id_trabajador } = form;
+
+  if (!esEdicion && !id_trabajador)   errores.push('Debes seleccionar un trabajador.');
+  if (!tipo_contrato)                 errores.push('El tipo de contrato es obligatorio.');
+  if (!estado_contrato)               errores.push('El estado del contrato es obligatorio.');
+  if (!fecha_inicio)                  errores.push('La fecha de inicio es obligatoria.');
+
+  if (tipo_contrato && !TIPOS_CONTRATO.includes(tipo_contrato))
+    errores.push(`Tipo inválido. Opciones: ${TIPOS_CONTRATO.join(', ')}.`);
+
+  if (estado_contrato && !ESTADOS_CONTRATO.includes(estado_contrato))
+    errores.push(`Estado inválido. Opciones: ${ESTADOS_CONTRATO.join(', ')}.`);
+
+  if (fecha_inicio && !esEdicion && fecha_inicio < hoyLocal())
+    errores.push('La fecha de inicio no puede ser anterior a hoy.');
+
+  if (tipo_contrato === 'Indefinido' && fecha_termino)
+    errores.push('Un contrato Indefinido no puede tener fecha de término.');
+
+  if (tipo_contrato === 'Plazo Fijo') {
+    if (!fecha_termino)
+      errores.push('Un contrato de Plazo Fijo debe tener fecha de término.');
+    else if (fecha_inicio && fecha_termino <= fecha_inicio)
+      errores.push('La fecha de término debe ser posterior a la fecha de inicio.');
+  }
+
+  return errores;
+}
+
+// ─── Estado calculado a partir de la fecha ────────────────────────────────────
+// Si la fecha_termino ya pasó → Inactivo (automático)
+// Si vence en ≤ 30 días       → Por vencer
+// Si no tiene fecha (Indefinido) o queda tiempo → Activo
+export function calcularEstadoVisual(fechaTermino) {
+  if (!fechaTermino) return 'Activo';
+  const dias = Math.ceil((new Date(fechaTermino) - new Date()) / (1000 * 60 * 60 * 24));
+  if (dias <= 0)  return 'Inactivo';
+  if (dias <= 30) return 'Por vencer';
+  return 'Activo';
+}
+
+// ─── CRUD ──────────────────────────────────────────────────────────────────────
+
 export async function getContratos() {
   const res = await apiFetch('/api/contratos');
   return Array.isArray(res.data) ? res.data : [];
 }
 
-// GET /api/contratos/:id  → { status: "success", data: {...} }
 export async function getContratoById(id) {
   const res = await apiFetch(`/api/contratos/${id}`);
   return res.data;
 }
 
-// POST /api/contratos
-// Body obligatorio: { tipo_contrato, estado_contrato, fecha_inicio, id_trabajador }
-// Body opcional:   { fecha_termino, observaciones }
+export async function getMisContratos(id_trabajador) {
+  const res = await apiFetch(`/api/contratos/mis-contratos/${id_trabajador}`);
+  return Array.isArray(res.data) ? res.data : [];
+}
+
 export async function createContrato(data) {
   const res = await apiFetch('/api/contratos', {
     method: 'POST',
@@ -42,7 +97,6 @@ export async function createContrato(data) {
   return res.data;
 }
 
-// PUT /api/contratos/:id
 export async function updateContrato(id, data) {
   const res = await apiFetch(`/api/contratos/${id}`, {
     method: 'PUT',
@@ -51,14 +105,11 @@ export async function updateContrato(id, data) {
   return res.data;
 }
 
-// DELETE /api/contratos/:id
 export async function deleteContrato(id) {
   await apiFetch(`/api/contratos/${id}`, { method: 'DELETE' });
   return true;
 }
 
-// GET /api/trabajadores → para el selector del modal
-// Responde { status: "success", data: [...] }
 export async function getTrabajadores() {
   const res = await apiFetch('/api/trabajadores');
   return Array.isArray(res.data) ? res.data : [];

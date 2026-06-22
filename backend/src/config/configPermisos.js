@@ -1,6 +1,4 @@
-// config/permisos.js
-// Fuente de verdad de permisos por rol.
-// Si un rol necesita un permiso nuevo, se agrega aquí y se propaga automáticamente.
+// config/configPermisos.js
 
 export const PERMISOS = {
 
@@ -9,6 +7,7 @@ export const PERMISOS = {
     'ausencias:ver_propias',
     'asignaciones:ver_propias',
     'pagos:ver_propios',
+    'contratos:ver_propios',
     'canales:ver',
     'dashboard:personal',
   ],
@@ -22,6 +21,8 @@ export const PERMISOS = {
     'asignaciones:gestionar',
     'trabajadores:ver',
     'pagos:ver_propios',
+    'contratos:ver_todos',
+    'contratos:ver_propios',
     'canales:ver',
     'canales:publicar',
     'dashboard:personal',
@@ -43,6 +44,11 @@ export const PERMISOS = {
     'pagos:ver_propios',
     'pagos:ver_todos',
     'pagos:gestionar',
+    'contratos:ver_todos',
+    'contratos:ver_propios',
+    'contratos:crear',
+    'contratos:editar',
+    'contratos:eliminar',
     'canales:ver',
     'canales:publicar',
     'etiquetas:gestionar',
@@ -53,7 +59,6 @@ export const PERMISOS = {
 
 };
 
-// Retorna los permisos de un rol dado
 export const getPermisosPorRol = (tipo_usuario) => {
   return PERMISOS[tipo_usuario] ?? [];
 };
