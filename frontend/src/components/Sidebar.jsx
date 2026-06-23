@@ -9,34 +9,33 @@ import {
   DollarSign,
   CalendarOff,
   Briefcase,
-  User,
 } from 'lucide-react';
 
-// Menú por tipo de usuario
 const MENU_POR_ROL = {
   administrador: [
-    { id: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, path: '/admin' },
-    { id: 'trabajadores', label: 'Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
-    { id: 'ausencias',    label: 'Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
-    { id: 'contratos',    label: 'Contratos',       icon: FileText,        path: '/admin/contratos' },
-    { id: 'pagos',        label: 'Pagos',           icon: DollarSign,      path: '/admin/pagos' },
-      { id: 'asignaciones', label: 'Asignaciones',    icon: Users,           path: '/admin/asignaciones' },
+    { id: 'dashboard',    label: 'Dashboard',     icon: LayoutDashboard, path: '/admin' },
+    { id: 'trabajadores', label: 'Trabajadores',  icon: Users,           path: '/admin/trabajadores' },
+    { id: 'ausencias',    label: 'Ausencias',     icon: CalendarOff,     path: '/admin/ausencias' },
+    { id: 'contratos',    label: 'Contratos',     icon: FileText,        path: '/admin/contratos' },
+    { id: 'pagos',        label: 'Pagos',         icon: DollarSign,      path: '/admin/pagos' },
+    { id: 'asignaciones', label: 'Asignaciones',  icon: Users,           path: '/admin/asignaciones' },
   ],
   supervisor: [
-    { id: 'dashboard',       label: 'Mi Dashboard',    icon: LayoutDashboard, path: '/app/dashboard' },
-    { id: 'mis-ausencias',   label: 'Mis Ausencias',   icon: CalendarOff,     path: '/app/mis-ausencias' },
-    { id: 'mis-asignaciones',label: 'Mis Asignaciones',icon: Briefcase,       path: '/app/mis-asignaciones' },
-    { id: 'ausencias',       label: 'Ausencias',       icon: Clock,           path: '/admin/ausencias' },
-    { id: 'trabajadores',    label: 'Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
+    { id: 'dashboard',        label: 'Mi Dashboard',     icon: LayoutDashboard, path: '/app/dashboard' },
+    { id: 'mis-ausencias',    label: 'Mis Ausencias',    icon: CalendarOff,     path: '/app/mis-ausencias' },
+    { id: 'mis-asignaciones', label: 'Mis Asignaciones', icon: Briefcase,       path: '/app/mis-asignaciones' },
+    { id: 'ausencias',        label: 'Ausencias',        icon: Clock,           path: '/admin/ausencias' },
+    { id: 'trabajadores',     label: 'Trabajadores',     icon: Users,           path: '/admin/trabajadores' },
+    { id: 'contratos',        label: 'Contratos',        icon: FileText,        path: '/supervisor/contratos' },
   ],
   trabajador: [
-    { id: 'dashboard',       label: 'Mi Dashboard',    icon: LayoutDashboard, path: '/app/dashboard' },
-    { id: 'mis-ausencias',   label: 'Mis Ausencias',   icon: CalendarOff,     path: '/app/mis-ausencias' },
-    { id: 'mis-asignaciones',label: 'Mis Asignaciones',icon: Briefcase,       path: '/app/mis-asignaciones' },
+    { id: 'dashboard',        label: 'Mi Dashboard',     icon: LayoutDashboard, path: '/app/dashboard' },
+    { id: 'mis-ausencias',    label: 'Mis Ausencias',    icon: CalendarOff,     path: '/app/mis-ausencias' },
+    { id: 'mis-asignaciones', label: 'Mis Asignaciones', icon: Briefcase,       path: '/app/mis-asignaciones' },
+    { id: 'mis-contratos',    label: 'Mis Contratos',    icon: FileText,        path: '/app/mis-contratos' },
   ],
 };
 
-// Detectar item activo según la ruta actual
 function getActiveItem(pathname, menuItems) {
   const match = menuItems.find((item) => item.path === pathname);
   return match?.id ?? menuItems[0]?.id;
@@ -70,7 +69,6 @@ function Sidebar({ usuario }) {
 
   return (
     <div className="sidebar">
-      {/* Logo */}
       <button
         className="sidebar-logo"
         onClick={() => navigate(tipoUsuario === 'administrador' ? '/admin' : '/app/dashboard')}
@@ -80,7 +78,6 @@ function Sidebar({ usuario }) {
         <span className="logo-text">Aseo<span className="logo-text-corp">Corp</span></span>
       </button>
 
-      {/* Menu Items */}
       <nav className="sidebar-nav">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -97,7 +94,6 @@ function Sidebar({ usuario }) {
         })}
       </nav>
 
-      {/* User Profile */}
       <div className="sidebar-user">
         <div style={{
           width: '32px', height: '32px', borderRadius: '50%',

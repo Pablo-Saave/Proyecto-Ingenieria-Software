@@ -326,7 +326,7 @@ function Ausencias({ usuario, onLogout }) {
 
       {/* Modal Nueva Ausencia */}
       {showModal && (
-        <div className="tw-modal-overlay" onClick={closeModal}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Nueva Ausencia</h2>
@@ -372,7 +372,7 @@ function Ausencias({ usuario, onLogout }) {
 
       {/* Modal Revisar Ausencia */}
       {showRevision && (
-        <div className="tw-modal-overlay" onClick={closeRevision}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Revisar Ausencia</h2>
@@ -423,7 +423,7 @@ function Ausencias({ usuario, onLogout }) {
 
       {/* Confirmar eliminación */}
       {confirmDelete !== null && (
-        <div className="tw-modal-overlay" onClick={() => setConfirmDelete(null)}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Confirmar eliminación</h2>

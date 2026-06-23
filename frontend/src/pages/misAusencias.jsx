@@ -282,7 +282,7 @@ function MisAusencias({ usuario, onLogout }) {
 
       {/* Modal Nueva Solicitud */}
       {showModal && (
-        <div className="tw-modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Nueva Solicitud de Ausencia</h2>
@@ -366,7 +366,7 @@ function MisAusencias({ usuario, onLogout }) {
 
       {/* Confirmar cancelación */}
       {confirmDelete !== null && (
-        <div className="tw-modal-overlay" onClick={() => setConfirmDelete(null)}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Cancelar solicitud</h2>
