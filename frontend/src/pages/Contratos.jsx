@@ -170,7 +170,7 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{contratoEdit ? 'Editar Contrato' : 'Nuevo Contrato'}</h2>
@@ -265,7 +265,7 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
 
 function DetalleModal({ contrato, onClose }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Detalle del Contrato</h2>
@@ -309,7 +309,7 @@ function ConfirmModal({ contrato, onClose, onConfirmar, eliminando }) {
   const puedeEliminar = contrato.estado_contrato === 'Inactivo';
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal-box modal-confirm" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Eliminar contrato</h2>

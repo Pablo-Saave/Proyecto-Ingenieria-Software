@@ -337,10 +337,10 @@ function Trabajadores({ usuario, onLogout }) {
 
       {/* ── Modal Crear / Editar Trabajador ── */}
       {showModal && (
-        <div className="tw-modal-overlay" onClick={closeModal}>
-          <div className="tw-modal tw-modal-md" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560, width: '95vw' }}>
-            <div className="tw-modal-header" style={{ padding: '12px 18px' }}>
-              <h2 style={{ fontSize: 15, margin: 0 }}>{modalMode === 'crear' ? 'Nuevo Trabajador' : 'Editar Trabajador'}</h2>
+        <div className="tw-modal-overlay">
+          <div className="tw-modal tw-modal-md" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640, width: '95vw' }}>
+            <div className="tw-modal-header" style={{ padding: '14px 22px' }}>
+              <h2 style={{ fontSize: 16, margin: 0 }}>{modalMode === 'crear' ? 'Nuevo Trabajador' : 'Editar Trabajador'}</h2>
               <button className="tw-modal-close" onClick={closeModal}><X size={16} /></button>
             </div>
 
@@ -348,8 +348,8 @@ function Trabajadores({ usuario, onLogout }) {
               <div className="tw-form-error"><AlertCircle size={13} /> {formError}</div>
             )}
 
-            <form className="tw-form" onSubmit={handleSubmit} style={{ padding: '10px 16px 14px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+            <form className="tw-form" onSubmit={handleSubmit} style={{ padding: '14px 22px 18px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px 12px' }}>
 
                 {/* Fila 1: Nombres · Apellidos · RUT */}
                 {[
@@ -360,26 +360,26 @@ function Trabajadores({ usuario, onLogout }) {
                   { label: 'Teléfono',    name: 'telefono',  type: 'text',     required: false, placeholder: '+56 9 1234 5678' },
                 ].map(({ label, name, type, required, placeholder }) => (
                   <div key={name} className="tw-field" style={{ marginBottom: 0 }}>
-                    <label style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 3, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>{label}</label>
+                    <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>{label}</label>
                     <input name={name} type={type} value={formData[name] ?? ''} onChange={handleChange} required={required} placeholder={placeholder}
-                      style={{ height: 32, fontSize: 12.5, padding: '0 9px', width: '100%', boxSizing: 'border-box' }} />
+                      style={{ height: 36, fontSize: 13, padding: '0 11px', width: '100%', boxSizing: 'border-box' }} />
                   </div>
                 ))}
 
                 {/* Contraseña (solo crear) */}
                 {modalMode === 'crear' && (
                   <div className="tw-field" style={{ marginBottom: 0 }}>
-                    <label style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 3, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Contraseña *</label>
+                    <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Contraseña *</label>
                     <input name="password" type="password" value={formData.password} onChange={handleChange} required placeholder="Contraseña inicial"
-                      style={{ height: 32, fontSize: 12.5, padding: '0 9px', width: '100%', boxSizing: 'border-box' }} />
+                      style={{ height: 36, fontSize: 13, padding: '0 11px', width: '100%', boxSizing: 'border-box' }} />
                   </div>
                 )}
 
                 {/* Tipo Usuario */}
                 <div className="tw-field" style={{ marginBottom: 0 }}>
-                  <label style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 3, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Tipo Usuario *</label>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Tipo Usuario *</label>
                   <select name="tipo_usuario" value={formData.tipo_usuario} onChange={handleChange} required
-                    style={{ height: 32, fontSize: 12.5, padding: '0 6px', width: '100%', boxSizing: 'border-box' }}>
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }}>
                     <option value="trabajador">Trabajador</option>
                     <option value="supervisor">Supervisor</option>
                     <option value="administrador">Administrador</option>
@@ -388,9 +388,9 @@ function Trabajadores({ usuario, onLogout }) {
 
                 {/* Sexo */}
                 <div className="tw-field" style={{ marginBottom: 0 }}>
-                  <label style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 3, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Sexo</label>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Sexo</label>
                   <select name="sexo" value={formData.sexo} onChange={handleChange}
-                    style={{ height: 32, fontSize: 12.5, padding: '0 6px', width: '100%', boxSizing: 'border-box' }}>
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }}>
                     <option value="M">Masculino</option>
                     <option value="F">Femenino</option>
                     <option value="Otro">Otro</option>
@@ -399,9 +399,9 @@ function Trabajadores({ usuario, onLogout }) {
 
                 {/* Etiqueta */}
                 <div className="tw-field" style={{ marginBottom: 0 }}>
-                  <label style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 3, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Etiqueta</label>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Etiqueta</label>
                   <select name="id_etiqueta" value={formData.id_etiqueta} onChange={handleChange} className="tw-etiqueta-select"
-                    style={{ height: 32, fontSize: 12.5, padding: '0 6px', width: '100%', boxSizing: 'border-box' }}>
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }}>
                     <option value="">Sin etiqueta</option>
                     {etiquetas.map((et) => (
                       <option key={et.id_etiqueta} value={et.id_etiqueta}>{et.nombre_etiqueta}</option>
@@ -411,23 +411,23 @@ function Trabajadores({ usuario, onLogout }) {
 
                 {/* Fecha Nacimiento */}
                 <div className="tw-field" style={{ marginBottom: 0 }}>
-                  <label style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 3, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>F. Nacimiento</label>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>F. Nacimiento</label>
                   <input name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onChange={handleChange}
-                    style={{ height: 32, fontSize: 12.5, padding: '0 6px', width: '100%', boxSizing: 'border-box' }} />
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }} />
                 </div>
 
                 {/* Fecha Ingreso */}
                 <div className="tw-field" style={{ marginBottom: 0 }}>
-                  <label style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 3, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>F. Ingreso *</label>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>F. Ingreso *</label>
                   <input name="fecha_ingreso" type="date" value={formData.fecha_ingreso} onChange={handleChange} required
-                    style={{ height: 32, fontSize: 12.5, padding: '0 6px', width: '100%', boxSizing: 'border-box' }} />
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }} />
                 </div>
 
                 {/* Estado Laboral */}
                 <div className="tw-field" style={{ marginBottom: 0 }}>
-                  <label style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 3, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Estado Laboral</label>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Estado Laboral</label>
                   <select name="estado_laboral" value={formData.estado_laboral} onChange={handleChange}
-                    style={{ height: 32, fontSize: 12.5, padding: '0 6px', width: '100%', boxSizing: 'border-box' }}>
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }}>
                     <option value="Activo">Activo</option>
                     <option value="Inactivo">Inactivo</option>
                     <option value="Licencia">Con Licencia</option>
@@ -436,16 +436,16 @@ function Trabajadores({ usuario, onLogout }) {
 
                 {/* Dirección: full width */}
                 <div className="tw-field" style={{ gridColumn: 'span 3', marginBottom: 0 }}>
-                  <label style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 3, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Dirección</label>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Dirección</label>
                   <input name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Ej: Calle Principal 123, Santiago"
-                    style={{ height: 32, fontSize: 12.5, padding: '0 9px', width: '100%', boxSizing: 'border-box' }} />
+                    style={{ height: 36, fontSize: 13, padding: '0 11px', width: '100%', boxSizing: 'border-box' }} />
                 </div>
 
               </div>
 
-              <div className="tw-modal-footer" style={{ padding: '10px 0 0', marginTop: 12 }}>
-                <button type="button" className="tw-btn-cancel" onClick={closeModal} style={{ fontSize: 12.5, padding: '6px 14px' }}>Cancelar</button>
-                <button type="submit" className="tw-btn-save" disabled={saving} style={{ fontSize: 12.5, padding: '6px 14px' }}>
+              <div className="tw-modal-footer" style={{ padding: '12px 0 0', marginTop: 12 }}>
+                <button type="button" className="tw-btn-cancel" onClick={closeModal} style={{ fontSize: 13, padding: '8px 18px' }}>Cancelar</button>
+                <button type="submit" className="tw-btn-save" disabled={saving} style={{ fontSize: 13, padding: '8px 18px' }}>
                   <Save size={12} />
                   {saving ? 'Guardando...' : modalMode === 'crear' ? 'Crear Trabajador' : 'Guardar Cambios'}
                 </button>
@@ -457,7 +457,7 @@ function Trabajadores({ usuario, onLogout }) {
 
       {/* ── Modal Nueva Etiqueta ── */}
       {showEtiquetaModal && (
-        <div className="tw-modal-overlay" onClick={closeEtiquetaModal}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Nueva Etiqueta</h2>
@@ -500,7 +500,7 @@ function Trabajadores({ usuario, onLogout }) {
 
       {/* ── Confirmar eliminación ── */}
       {confirmDelete !== null && (
-        <div className="tw-modal-overlay" onClick={() => setConfirmDelete(null)}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Confirmar eliminación</h2>

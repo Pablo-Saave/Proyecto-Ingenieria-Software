@@ -437,7 +437,7 @@ export const Pagos = ({ usuario, onLogout }) => {
 
       {/* ── Modal Crear ──────────────────────────────────────────────────── */}
       {modalCrear && (
-        <div className="pag-modal-overlay" onClick={() => setModalCrear(false)}>
+        <div className="pag-modal-overlay">
           <div className="pag-modal" onClick={(e) => e.stopPropagation()}>
             <div className="pag-modal-header">
               <h2>Nueva Remuneración</h2>
@@ -525,7 +525,7 @@ export const Pagos = ({ usuario, onLogout }) => {
 
       {/* ── Modal Editar ─────────────────────────────────────────────────── */}
       {modalEditar && remuneracionActual && (
-        <div className="pag-modal-overlay" onClick={() => setModalEditar(false)}>
+        <div className="pag-modal-overlay">
           <div className="pag-modal" onClick={(e) => e.stopPropagation()}>
             <div className="pag-modal-header">
               <h2>Editar Remuneración</h2>
@@ -600,7 +600,7 @@ export const Pagos = ({ usuario, onLogout }) => {
 
       {/* ── Modal Eliminar ───────────────────────────────────────────────── */}
       {modalEliminar && remuneracionActual && (
-        <div className="pag-modal-overlay" onClick={() => setModalEliminar(false)}>
+        <div className="pag-modal-overlay">
           <div className="pag-modal pag-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="pag-modal-header">
               <h2>Eliminar Remuneración</h2>

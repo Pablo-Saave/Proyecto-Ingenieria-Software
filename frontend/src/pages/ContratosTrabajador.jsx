@@ -87,7 +87,7 @@ function cumpleFiltroFecha(fechaInicio, fechaFiltro) {
 function DetalleModal({ contrato, onClose }) {
   const esIndefinido = contrato.tipo_contrato === 'Indefinido';
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Detalle del Contrato</h2>
