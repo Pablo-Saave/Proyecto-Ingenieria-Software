@@ -192,8 +192,8 @@ function Login({ onLoginSuccess }) {
             </div>
 
             <p className="login-footer">
-              ¿No tienes cuenta?{' '}
-              <button type="button" className="login-link">Solicita acceso</button>
+              ¿Olvidaste tu contraseña?{' '}
+              <button type="button" className="login-link">Cambia tu contraseña</button>
             </p>
           </form>
 
