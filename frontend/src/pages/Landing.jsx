@@ -258,10 +258,8 @@ function Landing({ onLoginSuccess }) {
           <div className="footer-section">
             <h3 className="footer-section-title">Empresa</h3>
             <ul className="footer-links">
-              <li>Nosotros</li>
               <li>Nuestros servicios</li>
               <li>Clientes</li>
-              <li>Contacto</li>
             </ul>
           </div>
         </div>
