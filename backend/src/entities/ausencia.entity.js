@@ -11,6 +11,16 @@ export const AusenciaSchema = new EntitySchema({
       generated: true,
     },
 
+    id_trabajador: {
+      type: "int",
+      nullable: false,
+    },
+
+    id_cuadrilla: {
+      type: "int",
+      nullable: false,
+    },
+
     fecha_inicio: {
       type: "date",
     },
@@ -50,16 +60,24 @@ export const AusenciaSchema = new EntitySchema({
       joinColumn: {
         name: "id_trabajador",
       },
+      inverseSide: "ausencias",
       nullable: false,
     },
 
-    revisor: {
+    cuadrilla: {
       type: "many-to-one",
-      target: "Trabajador",
+      target: "Cuadrilla",
       joinColumn: {
-        name: "revisado_por",
+        name: "id_cuadrilla",
       },
-      nullable: true,
+      inverseSide: "ausencias",
+      nullable: false,
+    },
+
+    justificacion: {
+      type: "one-to-one",
+      target: "JustificacionAusencia",
+      inverseSide: "ausencia",
     },
   },
 });

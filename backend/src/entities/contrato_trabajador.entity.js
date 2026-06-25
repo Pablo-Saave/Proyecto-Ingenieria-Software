@@ -5,10 +5,15 @@ export const ContratoTrabajadorSchema = new EntitySchema({
   tableName: "contratos_trabajadores",
 
   columns: {
-    id_contrato: {
+    id_contrato_trabajador: {
       primary: true,
       type: "int",
       generated: true,
+    },
+
+    id_trabajador: {
+      type: "int",
+      nullable: false,
     },
 
     tipo_contrato: {
@@ -32,18 +37,21 @@ export const ContratoTrabajadorSchema = new EntitySchema({
       type: "text",
       nullable: true,
     },
-
-    id_trabajador: {
-      type: "int",
-    },
   },
 
   relations: {
     trabajador: {
       type: "many-to-one",
-      target: "Trabajador",
-      joinColumn: { name: "id_trabajador" },
-      inverseSide: "contratos",
+      target: "Trabajador", // Referencia "name" en la entidad trabajador.entity.js
+      joinColumn: { name: "id_trabajador" }, // FK
+      inverseSide: "contratos", 
+      nullable: false,
+    },
+    
+    remuneraciones: {
+      type: "one-to-many",
+      target: "Remuneracion",
+      inverseSide: "contratoTrabajador",
     },
   },
 });

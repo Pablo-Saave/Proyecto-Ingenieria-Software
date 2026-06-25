@@ -1,0 +1,59 @@
+import { EntitySchema } from "typeorm";
+
+export const ContratoProyectoSchema = new EntitySchema({
+  name: "ContratoProyecto",
+  tableName: "contrato_proyecto",
+
+  columns: {
+    id_contrato_proyecto: {
+      primary: true,
+      type: "int",
+      generated: true,
+    },
+
+    id_proyecto: {
+      type: "int",
+      nullable: false,
+      unique: true,
+    },
+
+    descripcion: {
+        type: "varchar"
+    },
+
+    fecha_inicio: {
+        type: "date",
+        nullable: false
+    },
+
+    fecha_termino: {
+        type: "date",
+        nullable: false
+    },
+
+    fecha_extension: {
+        type: "date",
+        nullable: false
+    },
+
+    anexos: {
+        type: "varchar"
+    },
+
+    estado_contrato: {
+        type: "varchar",
+        nullable: false
+    }
+
+  },
+
+  relations: {
+    proyecto: {
+      type: "one-to-one",
+      target: "Proyecto",
+      joinColumn: { name: "id_proyecto" },
+      inverseSide: "contratoProyecto",
+      nullable: false,
+    },
+  },
+});
