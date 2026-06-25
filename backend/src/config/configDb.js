@@ -30,6 +30,7 @@ export const AppDataSource = new DataSource({
     AvisoSchema,
   ],
   synchronize: true,
+  dropSchema: true, // Elimina las tablas anteriores
   logging: true,
 });
 

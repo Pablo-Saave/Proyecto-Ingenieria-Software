@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/sidebar.css';
 import { LayoutDashboard, Users, Clock, FileText, DollarSign, CalendarOff, Briefcase, Bell } from 'lucide-react';
 
+// Menu por tipo de usuario
 const MENU_POR_ROL = {
   administrador: [
     { id: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, path: '/admin' },
@@ -31,6 +32,7 @@ const MENU_POR_ROL = {
   ],
 };
 
+// Detectar item activo según la ruta actual
 function getActiveItem(pathname, menuItems) {
   const match = menuItems.find((item) => item.path === pathname);
   return match?.id ?? menuItems[0]?.id;
