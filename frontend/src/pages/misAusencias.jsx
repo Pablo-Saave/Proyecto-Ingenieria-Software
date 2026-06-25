@@ -180,22 +180,7 @@ function MisAusencias({ usuario, onLogout }) {
           </div>
 
           {/* Resumen */}
-          <div className="metrics-grid" style={{ marginBottom: '20px' }}>
-            {[
-              { label: 'Total',      value: total,      color: '#4F46E5' },
-              { label: 'Aprobadas',  value: aprobadas,  color: '#10B981' },
-              { label: 'Pendientes', value: pendientes, color: '#F59E0B' },
-              { label: 'Rechazadas', value: rechazadas, color: '#EF4444' },
-            ].map((m) => (
-              <div key={m.label} className="metric-card">
-                <div className="metric-header">
-                  <h3 className="metric-title">{m.label}</h3>
-                  <CalendarOff size={18} color={m.color} />
-                </div>
-                <div className="metric-value" style={{ color: m.color }}>{m.value}</div>
-              </div>
-            ))}
-          </div>
+          
 
           {/* Filtros */}
           <div className="tw-toolbar" style={{ marginBottom: '12px' }}>
