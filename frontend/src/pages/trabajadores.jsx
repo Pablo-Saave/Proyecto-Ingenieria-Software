@@ -26,7 +26,6 @@ const EMPTY_FORM = {
   direccion:          '',
   fecha_nacimiento:   '',
   fecha_ingreso:      '',
-  experiencia_previa: '',
   estado_laboral:     'Activo',
   id_etiqueta:        '',
 };
@@ -120,7 +119,6 @@ function Trabajadores({ usuario, onLogout }) {
       direccion:          t.direccion ?? '',
       fecha_nacimiento:   t.fecha_nacimiento?.slice(0, 10) ?? '',
       fecha_ingreso:      t.fecha_ingreso?.slice(0, 10) ?? '',
-      experiencia_previa: t.experiencia_previa ?? '',
       estado_laboral:     t.estado_laboral ?? 'Activo',
       id_etiqueta:        t.etiqueta?.id_etiqueta ?? '',
     });
@@ -339,142 +337,116 @@ function Trabajadores({ usuario, onLogout }) {
 
       {/* ── Modal Crear / Editar Trabajador ── */}
       {showModal && (
-        <div className="tw-modal-overlay" onClick={closeModal}>
-          <div className="tw-modal tw-modal-lg" onClick={(e) => e.stopPropagation()}>
-            <div className="tw-modal-header">
-              <h2>{modalMode === 'crear' ? 'Nuevo Trabajador' : 'Editar Trabajador'}</h2>
-              <button className="tw-modal-close" onClick={closeModal}><X size={18} /></button>
+        <div className="tw-modal-overlay">
+          <div className="tw-modal tw-modal-md" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640, width: '95vw' }}>
+            <div className="tw-modal-header" style={{ padding: '14px 22px' }}>
+              <h2 style={{ fontSize: 16, margin: 0 }}>{modalMode === 'crear' ? 'Nuevo Trabajador' : 'Editar Trabajador'}</h2>
+              <button className="tw-modal-close" onClick={closeModal}><X size={16} /></button>
             </div>
 
             {formError && (
-              <div className="tw-form-error"><AlertCircle size={14} /> {formError}</div>
+              <div className="tw-form-error"><AlertCircle size={13} /> {formError}</div>
             )}
 
-            <form className="tw-form" onSubmit={handleSubmit}>
-              <div className="tw-form-grid tw-form-grid-3">
+            <form className="tw-form" onSubmit={handleSubmit} style={{ padding: '14px 22px 18px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px 12px' }}>
 
                 {/* Fila 1: Nombres · Apellidos · RUT */}
-                <div className="tw-field">
-                  <label>Nombres *</label>
-                  <input name="nombres" value={formData.nombres} onChange={handleChange} required placeholder="Ej: Juan Carlos" />
-                </div>
-                <div className="tw-field">
-                  <label>Apellidos *</label>
-                  <input name="apellidos" value={formData.apellidos} onChange={handleChange} required placeholder="Ej: García López" />
-                </div>
-                <div className="tw-field">
-                  <label>RUT *</label>
-                  <input name="rut" value={formData.rut} onChange={handleChange} required placeholder="Ej: 12345678-9" />
-                </div>
+                {[
+                  { label: 'Nombres *',   name: 'nombres',   type: 'text',     required: true,  placeholder: 'Juan Carlos' },
+                  { label: 'Apellidos *', name: 'apellidos', type: 'text',     required: true,  placeholder: 'García López' },
+                  { label: 'RUT *',       name: 'rut',       type: 'text',     required: true,  placeholder: '12345678-9' },
+                  { label: 'Correo *',    name: 'correo',    type: 'email',    required: true,  placeholder: 'juan@empresa.cl' },
+                  { label: 'Teléfono',    name: 'telefono',  type: 'text',     required: false, placeholder: '+56 9 1234 5678' },
+                ].map(({ label, name, type, required, placeholder }) => (
+                  <div key={name} className="tw-field" style={{ marginBottom: 0 }}>
+                    <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>{label}</label>
+                    <input name={name} type={type} value={formData[name] ?? ''} onChange={handleChange} required={required} placeholder={placeholder}
+                      style={{ height: 36, fontSize: 13, padding: '0 11px', width: '100%', boxSizing: 'border-box' }} />
+                  </div>
+                ))}
 
-                {/* Fila 2: Correo · Tipo Usuario · Contraseña(crear)/Etiqueta(editar) */}
-                <div className="tw-field">
-                  <label>Correo *</label>
-                  <input name="correo" type="email" value={formData.correo} onChange={handleChange} required placeholder="juan@empresa.cl" />
-                </div>
-                <div className="tw-field">
-                  <label>Tipo de Usuario *</label>
-                  <select name="tipo_usuario" value={formData.tipo_usuario} onChange={handleChange} required>
+                {/* Contraseña (solo crear) */}
+                {modalMode === 'crear' && (
+                  <div className="tw-field" style={{ marginBottom: 0 }}>
+                    <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Contraseña *</label>
+                    <input name="password" type="password" value={formData.password} onChange={handleChange} required placeholder="Contraseña inicial"
+                      style={{ height: 36, fontSize: 13, padding: '0 11px', width: '100%', boxSizing: 'border-box' }} />
+                  </div>
+                )}
+
+                {/* Tipo Usuario */}
+                <div className="tw-field" style={{ marginBottom: 0 }}>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Tipo Usuario *</label>
+                  <select name="tipo_usuario" value={formData.tipo_usuario} onChange={handleChange} required
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }}>
                     <option value="trabajador">Trabajador</option>
                     <option value="supervisor">Supervisor</option>
                     <option value="administrador">Administrador</option>
                   </select>
                 </div>
-                {modalMode === 'crear' ? (
-                  <div className="tw-field">
-                    <label>Contraseña *</label>
-                    <input name="password" type="password" value={formData.password} onChange={handleChange} required placeholder="Contraseña inicial" />
-                  </div>
-                ) : (
-                  <div className="tw-field">
-                    <label>Etiqueta</label>
-                    <div className="tw-etiqueta-row">
-                      <select name="id_etiqueta" value={formData.id_etiqueta} onChange={handleChange} className="tw-etiqueta-select">
-                        <option value="">Sin etiqueta</option>
-                        {etiquetas.map((et) => (
-                          <option key={et.id_etiqueta} value={et.id_etiqueta}>{et.nombre_etiqueta}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
 
-                {/* Fila 3: Sexo · Teléfono · Experiencia */}
-                <div className="tw-field">
-                  <label>Sexo</label>
-                  <select name="sexo" value={formData.sexo} onChange={handleChange}>
+                {/* Sexo */}
+                <div className="tw-field" style={{ marginBottom: 0 }}>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Sexo</label>
+                  <select name="sexo" value={formData.sexo} onChange={handleChange}
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }}>
                     <option value="M">Masculino</option>
                     <option value="F">Femenino</option>
                     <option value="Otro">Otro</option>
                   </select>
                 </div>
-                <div className="tw-field">
-                  <label>Teléfono</label>
-                  <input name="telefono" value={formData.telefono} onChange={handleChange} placeholder="+56 9 1234 5678" />
-                </div>
-                <div className="tw-field">
-                  <label>Experiencia Previa (años)</label>
-                  <input name="experiencia_previa" type="number" min="0" value={formData.experiencia_previa} onChange={handleChange} placeholder="Ej: 3" />
+
+                {/* Etiqueta */}
+                <div className="tw-field" style={{ marginBottom: 0 }}>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Etiqueta</label>
+                  <select name="id_etiqueta" value={formData.id_etiqueta} onChange={handleChange} className="tw-etiqueta-select"
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }}>
+                    <option value="">Sin etiqueta</option>
+                    {etiquetas.map((et) => (
+                      <option key={et.id_etiqueta} value={et.id_etiqueta}>{et.nombre_etiqueta}</option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Fila 4 (crear): Etiqueta · Fecha Nac · Fecha Ing */}
-                {/* Fila 4 (editar): F.Nacimiento · F.Ingreso · Estado */}
-                {modalMode === 'crear' && (
-                  <div className="tw-field">
-                    <label>Etiqueta</label>
-                    <div className="tw-etiqueta-row">
-                      <select name="id_etiqueta" value={formData.id_etiqueta} onChange={handleChange} className="tw-etiqueta-select">
-                        <option value="">Sin etiqueta</option>
-                        {etiquetas.map((et) => (
-                          <option key={et.id_etiqueta} value={et.id_etiqueta}>{et.nombre_etiqueta}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
-                <div className="tw-field">
-                  <label>Fecha Nacimiento</label>
-                  <input name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onChange={handleChange} />
+                {/* Fecha Nacimiento */}
+                <div className="tw-field" style={{ marginBottom: 0 }}>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>F. Nacimiento</label>
+                  <input name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onChange={handleChange}
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }} />
                 </div>
-                <div className="tw-field">
-                  <label>Fecha Ingreso</label>
-                  <input name="fecha_ingreso" type="date" value={formData.fecha_ingreso} onChange={handleChange} />
+
+                {/* Fecha Ingreso */}
+                <div className="tw-field" style={{ marginBottom: 0 }}>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>F. Ingreso *</label>
+                  <input name="fecha_ingreso" type="date" value={formData.fecha_ingreso} onChange={handleChange} required
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }} />
                 </div>
-                {modalMode === 'editar' && (
-                  <div className="tw-field">
-                    <label>Estado Laboral</label>
-                    <select name="estado_laboral" value={formData.estado_laboral} onChange={handleChange}>
-                      <option value="Activo">Activo</option>
-                      <option value="Inactivo">Inactivo</option>
-                      <option value="Licencia">Con Licencia</option>
-                    </select>
-                  </div>
-                )}
 
-                {/* Fila 5 (crear): Estado Laboral · — · — */}
-                {modalMode === 'crear' && (
-                  <div className="tw-field">
-                    <label>Estado Laboral</label>
-                    <select name="estado_laboral" value={formData.estado_laboral} onChange={handleChange}>
-                      <option value="Activo">Activo</option>
-                      <option value="Inactivo">Inactivo</option>
-                      <option value="Licencia">Con Licencia</option>
-                    </select>
-                  </div>
-                )}
+                {/* Estado Laboral */}
+                <div className="tw-field" style={{ marginBottom: 0 }}>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Estado Laboral</label>
+                  <select name="estado_laboral" value={formData.estado_laboral} onChange={handleChange}
+                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }}>
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                    <option value="Licencia">Con Licencia</option>
+                  </select>
+                </div>
 
-                {/* Dirección: full width siempre al final */}
-                <div className="tw-field tw-field-full-3">
-                  <label>Dirección</label>
-                  <input name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Ej: Calle Principal 123, Santiago" />
+                {/* Dirección: full width */}
+                <div className="tw-field" style={{ gridColumn: 'span 3', marginBottom: 0 }}>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Dirección</label>
+                  <input name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Ej: Calle Principal 123, Santiago"
+                    style={{ height: 36, fontSize: 13, padding: '0 11px', width: '100%', boxSizing: 'border-box' }} />
                 </div>
 
               </div>
 
-              <div className="tw-modal-footer">
-                <button type="button" className="tw-btn-cancel" onClick={closeModal}>Cancelar</button>
-                <button type="submit" className="tw-btn-save" disabled={saving}>
-                  <Save size={14} />
+              <div className="tw-modal-footer" style={{ padding: '12px 0 0', marginTop: 12 }}>
+                <button type="button" className="tw-btn-cancel" onClick={closeModal} style={{ fontSize: 13, padding: '8px 18px' }}>Cancelar</button>
+                <button type="submit" className="tw-btn-save" disabled={saving} style={{ fontSize: 13, padding: '8px 18px' }}>
+                  <Save size={12} />
                   {saving ? 'Guardando...' : modalMode === 'crear' ? 'Crear Trabajador' : 'Guardar Cambios'}
                 </button>
               </div>
@@ -485,7 +457,7 @@ function Trabajadores({ usuario, onLogout }) {
 
       {/* ── Modal Nueva Etiqueta ── */}
       {showEtiquetaModal && (
-        <div className="tw-modal-overlay" onClick={closeEtiquetaModal}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Nueva Etiqueta</h2>
@@ -528,7 +500,7 @@ function Trabajadores({ usuario, onLogout }) {
 
       {/* ── Confirmar eliminación ── */}
       {confirmDelete !== null && (
-        <div className="tw-modal-overlay" onClick={() => setConfirmDelete(null)}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Confirmar eliminación</h2>

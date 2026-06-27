@@ -95,23 +95,7 @@ function MisAsignaciones({ usuario, onLogout }) {
             </div>
           </div>
 
-          {/* Métricas rápidas */}
-          <div className="metrics-grid" style={{ marginBottom: '24px' }}>
-            <div className="metric-card">
-              <div className="metric-header">
-                <h3 className="metric-title">Asignaciones Activas</h3>
-                <Briefcase size={20} color="#4F46E5" />
-              </div>
-              <div className="metric-value" style={{ color: '#4F46E5' }}>{activas.length}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-header">
-                <h3 className="metric-title">Historial</h3>
-                <CalendarDays size={20} color="#6b7280" />
-              </div>
-              <div className="metric-value" style={{ color: '#6b7280' }}>{historicas.length}</div>
-            </div>
-          </div>
+          
 
           {error && <div className="tw-error-banner"><AlertCircle size={16} /> {error}</div>}
 

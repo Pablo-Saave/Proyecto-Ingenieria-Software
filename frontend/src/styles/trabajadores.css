@@ -603,3 +603,18 @@
 .tw-form-grid-3 .tw-field {
   gap: 3px;
 }
+
+.tw-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.tw-field-full-2 {
+  grid-column: span 2;
+}
+
+.tw-modal-md {
+  width: 580px; /* ajusta según tu diseño */
+  max-width: 95vw;
+}

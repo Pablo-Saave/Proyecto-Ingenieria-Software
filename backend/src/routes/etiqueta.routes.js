@@ -7,18 +7,22 @@ import {
   eliminarEtiqueta,
   asignarEtiqueta,
 } from "../controllers/etiqueta.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { autorizar } from "../middlewares/autorizar.middleware.js";
 
 const router = Router();
+
+router.use(authMiddleware);
 
 // cualquier usuario autenticado
 router.get("/", getEtiquetas);
 router.get("/:id", getEtiquetaById);
 
 // solo administradores
-router.post("/", crearEtiqueta);
-router.put("/:id", actualizarEtiqueta);
-router.delete("/:id", eliminarEtiqueta);
+router.post("/", autorizar("etiquetas:gestionar"), crearEtiqueta);
+router.put("/:id", autorizar("etiquetas:gestionar"), actualizarEtiqueta);
+router.delete("/:id", autorizar("etiquetas:gestionar"), eliminarEtiqueta);
 
-router.patch("/asignar", /* authenticateToken, requireAdmin, */ asignarEtiqueta);
+router.patch("/asignar", autorizar("etiquetas:gestionar"), asignarEtiqueta);
 
 export default router;

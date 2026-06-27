@@ -367,7 +367,7 @@ function Asignaciones({ usuario, onLogout }) {
 
       {/* Modal Nueva Cuadrilla (supervisor) */}
       {showModalSup && (
-        <div className="tw-modal-overlay" onClick={() => setShowModalSup(false)}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Nueva Cuadrilla</h2>
@@ -422,7 +422,7 @@ function Asignaciones({ usuario, onLogout }) {
 
       {/* Modal Agregar Operario */}
       {showModalOp && (
-        <div className="tw-modal-overlay" onClick={() => setShowModalOp(false)}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Agregar Operario a Cuadrilla</h2>
@@ -474,7 +474,7 @@ function Asignaciones({ usuario, onLogout }) {
 
       {/* Confirmar eliminación */}
       {confirmDelete !== null && (
-        <div className="tw-modal-overlay" onClick={() => setConfirmDelete(null)}>
+        <div className="tw-modal-overlay">
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
               <h2>Confirmar eliminación</h2>
