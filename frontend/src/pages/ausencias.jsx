@@ -39,7 +39,6 @@ async function getTrabajadores() {
 }
 
 const EMPTY_INASISTENCIA = { id_trabajador: '', fecha_inicio: '', fecha_termino: '' };
-const EMPTY_REVISION = { estado: 'Aprobada', comentario_revision: '', revisado_por: '' };
 const FILTROS = ['Todos', 'Por Justificar', 'Pendiente', 'Aprobada', 'Rechazada'];
 
 function Ausencias({ usuario, onLogout }) {
@@ -50,24 +49,24 @@ function Ausencias({ usuario, onLogout }) {
   const [searchQuery, setSearchQuery]   = useState('');
   const [filterEstado, setFilterEstado] = useState('Todos');
 
-  // Modal registrar inasistencia (único flujo de creación para supervisor/admin)
+  // Modal registrar inasistencia
   const [showModalInasist, setShowModalInasist] = useState(false);
   const [inasistForm, setInasistForm]   = useState(EMPTY_INASISTENCIA);
   const [inasistError, setInasistError] = useState(null);
   const [savingInasist, setSavingInasist] = useState(false);
 
-  // Modal revisar
+  // Modal revisar — comentario es lo único editable; el revisor es el usuario logueado
   const [showRevision, setShowRevision]     = useState(false);
-  const [revisionData, setRevisionData]     = useState(EMPTY_REVISION);
+  const [revisionEstado, setRevisionEstado] = useState('Aprobada');
+  const [revisionComentario, setRevisionComentario] = useState('');
   const [revisionId, setRevisionId]         = useState(null);
   const [revisionError, setRevisionError]   = useState(null);
   const [savingRevision, setSavingRevision] = useState(false);
 
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  // Solo el administrador puede eliminar -> solo él necesita la columna Acciones
   const mostrarColumnaAcciones = usuario?.tipo_usuario === 'administrador'
-    || usuario?.tipo_usuario === 'supervisor'; // supervisor sigue viendo "revisar"
+    || usuario?.tipo_usuario === 'supervisor';
 
   const fetchData = async () => {
     setLoading(true);
@@ -148,15 +147,15 @@ function Ausencias({ usuario, onLogout }) {
     }
   };
 
-  // ── Revisar ───────────────────────────────────────────────────────────────
+  // ── Revisar (el revisor es siempre el usuario logueado) ──────────────────
   const openRevision = (ausencia) => {
-    setRevisionData(EMPTY_REVISION);
+    setRevisionEstado('Aprobada');
+    setRevisionComentario('');
     setRevisionError(null);
     setRevisionId(ausencia.id_ausencia);
     setShowRevision(true);
   };
   const closeRevision = () => { setShowRevision(false); setRevisionError(null); };
-  const handleRevisionChange = (e) => setRevisionData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleRevisionSubmit = async (e) => {
     e.preventDefault();
@@ -166,8 +165,9 @@ function Ausencias({ usuario, onLogout }) {
       await apiFetch(`/api/ausencias/${revisionId}/revisar`, {
         method: 'PUT',
         body: JSON.stringify({
-          ...revisionData,
-          revisado_por: Number(revisionData.revisado_por),
+          estado: revisionEstado,
+          comentario_revision: revisionComentario,
+          revisado_por: usuario?.id_trabajador, // siempre el usuario logueado
         }),
       });
       closeRevision();
@@ -265,6 +265,8 @@ function Ausencias({ usuario, onLogout }) {
                     const idT = a.trabajador?.id_trabajador ?? a.id_trabajador;
                     const esPendiente     = a.estado === 'Pendiente';
                     const esPorJustificar = a.estado === 'Por Justificar';
+                    // No se puede revisar la propia ausencia
+                    const esPropia = idT === usuario?.id_trabajador;
                     return (
                       <tr key={a.id_ausencia}>
                         <td>
@@ -292,10 +294,15 @@ function Ausencias({ usuario, onLogout }) {
                         {mostrarColumnaAcciones && (
                           <td>
                             <div className="tw-actions">
-                              {esPendiente && (
+                              {esPendiente && !esPropia && (
                                 <button className="tw-btn-edit" title="Aprobar / Rechazar" onClick={() => openRevision(a)}>
                                   <CheckCircle size={14} />
                                 </button>
+                              )}
+                              {esPendiente && esPropia && (
+                                <span style={{ fontSize: '11px', color: '#9ca3af', fontStyle: 'italic' }}>
+                                  No puedes revisar tu propia solicitud
+                                </span>
                               )}
                               {usuario?.tipo_usuario === 'administrador' && esPendiente && (
                                 <button className="tw-btn-delete" title="Eliminar" onClick={() => setConfirmDelete(a.id_ausencia)}>
@@ -333,9 +340,11 @@ function Ausencias({ usuario, onLogout }) {
                   <label>Trabajador *</label>
                   <select name="id_trabajador" value={inasistForm.id_trabajador} onChange={handleInasistChange} required>
                     <option value="">— Seleccionar trabajador —</option>
-                    {trabajadores.map((t) => (
-                      <option key={t.id_trabajador} value={t.id_trabajador}>{t.nombres} {t.apellidos} — {t.rut}</option>
-                    ))}
+                    {trabajadores
+                      .filter((t) => t.tipo_usuario === 'trabajador')
+                      .map((t) => (
+                        <option key={t.id_trabajador} value={t.id_trabajador}>{t.nombres} {t.apellidos} — {t.rut}</option>
+                      ))}
                   </select>
                 </div>
                 <div className="tw-field">
@@ -371,24 +380,28 @@ function Ausencias({ usuario, onLogout }) {
               <div className="tw-form-grid">
                 <div className="tw-field tw-field-full">
                   <label>Decisión *</label>
-                  <select name="estado" value={revisionData.estado} onChange={handleRevisionChange} required>
-                    <option value="Aprobada">✅ Aprobar</option>
-                    <option value="Rechazada">❌ Rechazar</option>
+                  <select value={revisionEstado} onChange={(e) => setRevisionEstado(e.target.value)} required>
+                    <option value="Aprobada"> Aprobar</option>
+                    <option value="Rechazada"> Rechazar</option>
                   </select>
                 </div>
                 <div className="tw-field tw-field-full">
                   <label>Comentario *</label>
-                  <input name="comentario_revision" value={revisionData.comentario_revision} onChange={handleRevisionChange} required
-                    placeholder="Ej: Documentación recibida correctamente" />
+                  <input
+                    value={revisionComentario}
+                    onChange={(e) => setRevisionComentario(e.target.value)}
+                    required
+                    placeholder="Ej: Documentación recibida correctamente"
+                  />
                 </div>
+                {/* Revisor autocompletado y bloqueado */}
                 <div className="tw-field tw-field-full">
-                  <label>Revisado por *</label>
-                  <select name="revisado_por" value={revisionData.revisado_por} onChange={handleRevisionChange} required>
-                    <option value="">— Seleccionar revisor —</option>
-                    {trabajadores.map((t) => (
-                      <option key={t.id_trabajador} value={t.id_trabajador}>{t.nombres} {t.apellidos} — {t.tipo_usuario}</option>
-                    ))}
-                  </select>
+                  <label>Revisado por</label>
+                  <input
+                    value={`${usuario?.nombres ?? ''} ${usuario?.apellidos ?? ''}`}
+                    disabled
+                    style={{ background: '#f3f4f6', color: '#6b7280', cursor: 'not-allowed' }}
+                  />
                 </div>
               </div>
               <div className="tw-modal-footer">

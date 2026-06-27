@@ -46,6 +46,9 @@ app.use("/api/remuneraciones", remuneracionRoutes);
 app.use("/api/etiquetas", etiquetaRoutes);
 app.use("/api/auth", authRoutes);
 
+// Expone la carpeta uploads para servir archivos estáticos (imágenes, documentos, etc.) desde el backend 
+app.use('/uploads', express.static('uploads'));
+
 // React Router SPA Fallback
 // Express entrega index.html
 // React carga -> ve la URL -> renderiza la ruta que este en la URL

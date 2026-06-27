@@ -3,7 +3,7 @@ import { AusenciaSchema } from "../entities/ausencia.entity.js";
 
 const repo = AppDataSource.getRepository(AusenciaSchema);
 
-// ── CREAR AUSENCIA (flujo normal — trabajador la solicita con anticipación) ──
+// ── CREAR AUSENCIA (flujo normal) ────────────────────────────────────────────
 export const crearAusencia = async (req, res) => {
   try {
     const nueva = repo.create({
@@ -24,9 +24,7 @@ export const crearAusencia = async (req, res) => {
   }
 };
 
-// ── CREAR AUSENCIA POR SUPERVISOR (flujo espontáneo — inasistencia detectada) ──
-// El supervisor registra la falta de otro trabajador.
-// Queda en "Por Justificar" hasta que el afectado complete su motivo.
+// ── CREAR AUSENCIA POR SUPERVISOR (flujo espontáneo) ─────────────────────────
 export const crearAusenciaPorSupervisor = async (req, res) => {
   try {
     const { fecha_inicio, fecha_termino, motivo, id_trabajador } = req.body;
@@ -49,8 +47,7 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
   }
 };
 
-// ── JUSTIFICAR AUSENCIA (el trabajador completa su motivo) ──────────────────
-// Solo permitido si la ausencia es del propio trabajador y está "Por Justificar".
+// ── JUSTIFICAR AUSENCIA ───────────────────────────────────────────────────────
 export const justificarAusencia = async (req, res) => {
   try {
     const ausencia = await repo.findOne({
@@ -66,14 +63,13 @@ export const justificarAusencia = async (req, res) => {
       return res.status(400).json({ error: "Esta ausencia no requiere justificación" });
     }
 
-    // Verificar que quien justifica es el dueño de la ausencia
     const idTrabajadorAusencia = ausencia.trabajador?.id_trabajador;
     if (req.user?.id_trabajador !== idTrabajadorAusencia) {
       return res.status(403).json({ error: "Solo puedes justificar tus propias ausencias" });
     }
 
     ausencia.motivo = req.body.motivo;
-    ausencia.estado = "Pendiente"; // pasa a revisión del supervisor
+    ausencia.estado = "Pendiente";
 
     const resultado = await repo.save(ausencia);
     res.json(resultado);
@@ -156,10 +152,17 @@ export const revisarAusencia = async (req, res) => {
       return res.status(400).json({ error: "La ausencia ya fue revisada o aún no ha sido justificada" });
     }
 
+    // No se puede revisar la propia ausencia
+    const idTrabajadorAusencia = ausencia.trabajador?.id_trabajador;
+    if (req.user?.id_trabajador === idTrabajadorAusencia) {
+      return res.status(403).json({ error: "No puedes revisar tu propia solicitud de ausencia" });
+    }
+
+    // El revisor siempre es quien hace la petición, nunca un valor arbitrario del body
     ausencia.estado = req.body.estado;
     ausencia.comentario_revision = req.body.comentario_revision;
     ausencia.fecha_revision = new Date();
-    ausencia.revisor = { id_trabajador: req.body.revisado_por };
+    ausencia.revisor = { id_trabajador: req.user.id_trabajador };
 
     const resultado = await repo.save(ausencia);
     res.json(resultado);
