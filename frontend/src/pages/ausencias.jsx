@@ -3,17 +3,28 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/ausencias.css';
 import {
-  CalendarOff, Plus, Search, Trash2, X, Save, AlertCircle, ClipboardList, CheckCircle,
+  CalendarOff, Search, Trash2, X, Save, AlertCircle,
+  ClipboardList, CheckCircle, UserX,
 } from 'lucide-react';
-import {
-  getAusencias,
-  crearAusencia,
-  revisarAusencia,
-  eliminarAusencia,
-} from '../services/ausenciasService';
 
-// Trabajadores se sigue cargando directo (servicio separado si lo tienes)
-const API_BASE = 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+
+async function apiFetch(path, options = {}) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...options,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || err.error || `Error ${res.status}`);
+  }
+  return res.json();
+}
+
 async function getTrabajadores() {
   const token = localStorage.getItem('token');
   const res = await fetch(`${API_BASE}/api/trabajadores`, {
@@ -27,58 +38,42 @@ async function getTrabajadores() {
   return Array.isArray(data) ? data : data.data ?? [];
 }
 
-const EMPTY_FORM = {
-  id_trabajador: '',
-  fecha_inicio: '',
-  fecha_termino: '',
-  motivo: '',
-};
-
-const EMPTY_REVISION = {
-  estado: 'Aprobada',
-  comentario_revision: '',
-  revisado_por: '',
-};
-
-const FILTROS = ['Todos', 'Pendiente', 'Aprobada', 'Rechazada'];
-
-function getIniciales(nombres = '', apellidos = '') {
-  const n = String(nombres || '').trim();
-  const a = String(apellidos || '').trim();
-  return ((n[0] || '') + (a[0] || '')).toUpperCase();
-}
+const EMPTY_INASISTENCIA = { id_trabajador: '', fecha_inicio: '', fecha_termino: '' };
+const FILTROS = ['Todos', 'Por Justificar', 'Pendiente', 'Aprobada', 'Rechazada'];
 
 function Ausencias({ usuario, onLogout }) {
-  const [ausencias, setAusencias]           = useState([]);
-  const [trabajadores, setTrabajadores]     = useState([]);
-  const [loading, setLoading]               = useState(true);
-  const [error, setError]                   = useState(null);
-  const [searchQuery, setSearchQuery]       = useState('');
-  const [filterEstado, setFilterEstado]     = useState('Todos');
+  const [ausencias, setAusencias]       = useState([]);
+  const [trabajadores, setTrabajadores] = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+  const [searchQuery, setSearchQuery]   = useState('');
+  const [filterEstado, setFilterEstado] = useState('Todos');
 
-  // Modal crear
-  const [showModal, setShowModal]           = useState(false);
-  const [formData, setFormData]             = useState(EMPTY_FORM);
-  const [formError, setFormError]           = useState(null);
-  const [saving, setSaving]                 = useState(false);
+  // Modal registrar inasistencia
+  const [showModalInasist, setShowModalInasist] = useState(false);
+  const [inasistForm, setInasistForm]   = useState(EMPTY_INASISTENCIA);
+  const [inasistError, setInasistError] = useState(null);
+  const [savingInasist, setSavingInasist] = useState(false);
 
-  // Modal revisar
+  // Modal revisar — comentario es lo único editable; el revisor es el usuario logueado
   const [showRevision, setShowRevision]     = useState(false);
-  const [revisionData, setRevisionData]     = useState(EMPTY_REVISION);
+  const [revisionEstado, setRevisionEstado] = useState('Aprobada');
+  const [revisionComentario, setRevisionComentario] = useState('');
   const [revisionId, setRevisionId]         = useState(null);
   const [revisionError, setRevisionError]   = useState(null);
   const [savingRevision, setSavingRevision] = useState(false);
 
-  // Confirmar eliminar
-  const [confirmDelete, setConfirmDelete]   = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
-  // ── Carga inicial ────────────────────────────────────────────────────────
+  const mostrarColumnaAcciones = usuario?.tipo_usuario === 'administrador'
+    || usuario?.tipo_usuario === 'supervisor';
+
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
       const [resA, resT] = await Promise.all([
-        getAusencias(),
+        apiFetch('/api/ausencias'),
         getTrabajadores(),
       ]);
       setAusencias(Array.isArray(resA) ? resA : resA.data ?? []);
@@ -92,7 +87,6 @@ function Ausencias({ usuario, onLogout }) {
 
   useEffect(() => { fetchData(); }, []);
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
   const nombreTrabajador = (id) => {
     const t = trabajadores.find((w) => w.id_trabajador === id);
     return t ? `${t.nombres} ${t.apellidos}` : `ID ${id}`;
@@ -108,8 +102,9 @@ function Ausencias({ usuario, onLogout }) {
   });
 
   const estadoBadgeClass = (estado) => {
-    if (estado === 'Aprobada')  return 'badge-activo';
-    if (estado === 'Rechazada') return 'badge-inactivo';
+    if (estado === 'Aprobada')       return 'badge-activo';
+    if (estado === 'Rechazada')      return 'badge-inactivo';
+    if (estado === 'Por Justificar') return 'badge-por-justificar';
     return 'badge-licencia';
   };
 
@@ -122,58 +117,59 @@ function Ausencias({ usuario, onLogout }) {
   const formatFecha = (f) =>
     f ? new Date(f).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
-  // ── Modal Crear ──────────────────────────────────────────────────────────
-  const openCrear = () => {
-    setFormData(EMPTY_FORM);
-    setFormError(null);
-    setShowModal(true);
+  // ── Registrar inasistencia ────────────────────────────────────────────────
+  const openInasistencia = () => {
+    setInasistForm(EMPTY_INASISTENCIA);
+    setInasistError(null);
+    setShowModalInasist(true);
   };
+  const closeInasistencia = () => { setShowModalInasist(false); setInasistError(null); };
+  const handleInasistChange = (e) => setInasistForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const closeModal = () => { setShowModal(false); setFormError(null); };
-
-  const handleChange = (e) =>
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-
-  const handleSubmit = async (e) => {
+  const handleSubmitInasist = async (e) => {
     e.preventDefault();
-    setFormError(null);
-    setSaving(true);
+    setInasistError(null);
+    setSavingInasist(true);
     try {
-      const payload = { ...formData, id_trabajador: Number(formData.id_trabajador) };
-      await crearAusencia(payload);
-      closeModal();
+      await apiFetch('/api/ausencias/supervisor', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...inasistForm,
+          id_trabajador: Number(inasistForm.id_trabajador),
+        }),
+      });
+      closeInasistencia();
       fetchData();
     } catch (e) {
-      setFormError(e.message);
+      setInasistError(e.message);
     } finally {
-      setSaving(false);
+      setSavingInasist(false);
     }
   };
 
-  // ── Modal Revisar ────────────────────────────────────────────────────────
+  // ── Revisar (el revisor es siempre el usuario logueado) ──────────────────
   const openRevision = (ausencia) => {
-    setRevisionData(EMPTY_REVISION);
+    setRevisionEstado('Aprobada');
+    setRevisionComentario('');
     setRevisionError(null);
     setRevisionId(ausencia.id_ausencia);
     setShowRevision(true);
   };
-
   const closeRevision = () => { setShowRevision(false); setRevisionError(null); };
-
-  const handleRevisionChange = (e) =>
-    setRevisionData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleRevisionSubmit = async (e) => {
     e.preventDefault();
     setRevisionError(null);
     setSavingRevision(true);
     try {
-      const payload = {
-        estado:              revisionData.estado,
-        comentario_revision: revisionData.comentario_revision,
-        revisado_por:        Number(revisionData.revisado_por),
-      };
-      await revisarAusencia(revisionId, payload);
+      await apiFetch(`/api/ausencias/${revisionId}/revisar`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          estado: revisionEstado,
+          comentario_revision: revisionComentario,
+          revisado_por: usuario?.id_trabajador, // siempre el usuario logueado
+        }),
+      });
       closeRevision();
       fetchData();
     } catch (e) {
@@ -183,10 +179,10 @@ function Ausencias({ usuario, onLogout }) {
     }
   };
 
-  // ── Eliminar ─────────────────────────────────────────────────────────────
+  // ── Eliminar ──────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
-      await eliminarAusencia(id);
+      await apiFetch(`/api/ausencias/${id}`, { method: 'DELETE' });
       setAusencias((prev) => prev.filter((a) => a.id_ausencia !== id));
     } catch (e) {
       setError(e.message);
@@ -195,7 +191,6 @@ function Ausencias({ usuario, onLogout }) {
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="dashboard-wrapper">
       <Sidebar usuario={usuario} />
@@ -209,8 +204,8 @@ function Ausencias({ usuario, onLogout }) {
               <h1 className="vista-general-title">Ausencias</h1>
               <p className="vista-general-subtitle">Registro de licencias, permisos e inasistencias</p>
             </div>
-            <button className="btn-nuevo-trabajador" onClick={openCrear}>
-              <Plus size={16} /> Nueva Ausencia
+            <button className="btn-nuevo-trabajador" onClick={openInasistencia}>
+              <UserX size={16} /> Registrar Inasistencia
             </button>
           </div>
 
@@ -232,37 +227,25 @@ function Ausencias({ usuario, onLogout }) {
                   key={f}
                   className={`tw-filter-btn ${filterEstado === f ? 'tw-filter-active' : ''}`}
                   onClick={() => setFilterEstado(f)}
-                >
-                  {f}
-                </button>
+                >{f}</button>
               ))}
             </div>
           </div>
 
-          {/* Contador */}
           <div className="tw-count">
             <CalendarOff size={14} />
             {filtered.length} ausencia{filtered.length !== 1 ? 's' : ''}
             {filterEstado !== 'Todos' && ` · ${filterEstado}`}
           </div>
 
-          {error && (
-            <div className="tw-error-banner">
-              <AlertCircle size={16} /> {error}
-            </div>
-          )}
+          {error && <div className="tw-error-banner"><AlertCircle size={16} /> {error}</div>}
 
           {/* Tabla */}
           <div className="tw-table-card">
             {loading ? (
-              <div className="tw-loading">
-                <div className="tw-spinner" /> Cargando ausencias...
-              </div>
+              <div className="tw-loading"><div className="tw-spinner" /> Cargando ausencias...</div>
             ) : filtered.length === 0 ? (
-              <div className="tw-empty">
-                <ClipboardList size={40} />
-                <p>No se encontraron ausencias</p>
-              </div>
+              <div className="tw-empty"><ClipboardList size={40} /><p>No se encontraron ausencias</p></div>
             ) : (
               <table className="tw-table">
                 <thead>
@@ -271,49 +254,64 @@ function Ausencias({ usuario, onLogout }) {
                     <th>Fecha Inicio</th>
                     <th>Fecha Término</th>
                     <th>Duración</th>
-                    <th>Motivo</th>
+                    <th>Motivo / Justificación</th>
+                    <th>Doc.</th>
                     <th>Estado</th>
-                    <th>Acciones</th>
+                    {mostrarColumnaAcciones && <th>Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((a) => {
                     const idT = a.trabajador?.id_trabajador ?? a.id_trabajador;
-                    const esPendiente = a.estado === 'Pendiente';
+                    const esPendiente     = a.estado === 'Pendiente';
+                    const esPorJustificar = a.estado === 'Por Justificar';
+                    // No se puede revisar la propia ausencia
+                    const esPropia = idT === usuario?.id_trabajador;
                     return (
                       <tr key={a.id_ausencia}>
                         <td>
                           <div className="tw-name-cell">
-                            <div className="tw-avatar">
-                              {(() => {
-                                const t = trabajadores.find((w) => w.id_trabajador === idT);
-                                return getIniciales(t?.nombres || '', t?.apellidos || '') || '?';
-                              })()}
-                            </div>
+                            <div className="tw-avatar">{(nombreTrabajador(idT)[0] ?? '?').toUpperCase()}</div>
                             <div className="tw-fullname">{nombreTrabajador(idT)}</div>
                           </div>
                         </td>
                         <td>{formatFecha(a.fecha_inicio)}</td>
                         <td>{formatFecha(a.fecha_termino)}</td>
                         <td className="aus-duracion">{diasAusencia(a.fecha_inicio, a.fecha_termino)}</td>
-                        <td className="aus-motivo">{a.motivo ?? '—'}</td>
-                        <td>
-                          <span className={`tw-badge ${estadoBadgeClass(a.estado)}`}>
-                            {a.estado ?? '—'}
-                          </span>
+                        <td className="aus-motivo">
+                          {esPorJustificar
+                            ? <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Esperando justificación del trabajador...</span>
+                            : (a.motivo ?? '—')}
                         </td>
                         <td>
-                          <div className="tw-actions">
-                            {esPendiente && (
-                              <button className="tw-btn-edit" title="Aprobar / Rechazar" onClick={() => openRevision(a)}>
-                                <CheckCircle size={14} />
-                              </button>
-                            )}
-                            <button className="tw-btn-delete" title="Eliminar" onClick={() => setConfirmDelete(a.id_ausencia)}>
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
+                          {a.url_documento
+                            ? <a href={`${API_BASE}${a.url_documento}`} target="_blank" rel="noopener noreferrer">📄</a>
+                            : <span style={{ color: '#d1d5db' }}>—</span>}
                         </td>
+                        <td>
+                          <span className={`tw-badge ${estadoBadgeClass(a.estado)}`}>{a.estado ?? '—'}</span>
+                        </td>
+                        {mostrarColumnaAcciones && (
+                          <td>
+                            <div className="tw-actions">
+                              {esPendiente && !esPropia && (
+                                <button className="tw-btn-edit" title="Aprobar / Rechazar" onClick={() => openRevision(a)}>
+                                  <CheckCircle size={14} />
+                                </button>
+                              )}
+                              {esPendiente && esPropia && (
+                                <span style={{ fontSize: '11px', color: '#9ca3af', fontStyle: 'italic' }}>
+                                  No puedes revisar tu propia solicitud
+                                </span>
+                              )}
+                              {usuario?.tipo_usuario === 'administrador' && esPendiente && (
+                                <button className="tw-btn-delete" title="Eliminar" onClick={() => setConfirmDelete(a.id_ausencia)}>
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -324,45 +322,44 @@ function Ausencias({ usuario, onLogout }) {
         </div>
       </div>
 
-      {/* Modal Nueva Ausencia */}
-      {showModal && (
-        <div className="tw-modal-overlay">
+      {/* Modal Registrar Inasistencia */}
+      {showModalInasist && (
+        <div className="tw-modal-overlay" onClick={closeInasistencia}>
           <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tw-modal-header">
-              <h2>Nueva Ausencia</h2>
-              <button className="tw-modal-close" onClick={closeModal}><X size={18} /></button>
+              <h2>Registrar Inasistencia</h2>
+              <button className="tw-modal-close" onClick={closeInasistencia}><X size={18} /></button>
             </div>
-            {formError && <div className="tw-form-error"><AlertCircle size={14} /> {formError}</div>}
-            <form className="tw-form" onSubmit={handleSubmit}>
+            <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 24px 14px' }}>
+              Usa esta opción cuando detectes una falta no avisada. El trabajador tendrá 24h para justificarla.
+            </p>
+            {inasistError && <div className="tw-form-error"><AlertCircle size={14} /> {inasistError}</div>}
+            <form className="tw-form" onSubmit={handleSubmitInasist}>
               <div className="tw-form-grid">
                 <div className="tw-field tw-field-full">
                   <label>Trabajador *</label>
-                  <select name="id_trabajador" value={formData.id_trabajador} onChange={handleChange} required>
+                  <select name="id_trabajador" value={inasistForm.id_trabajador} onChange={handleInasistChange} required>
                     <option value="">— Seleccionar trabajador —</option>
-                    {trabajadores.map((t) => (
-                      <option key={t.id_trabajador} value={t.id_trabajador}>
-                        {t.nombres} {t.apellidos} — {t.rut}
-                      </option>
-                    ))}
+                    {trabajadores
+                      .filter((t) => t.tipo_usuario === 'trabajador')
+                      .map((t) => (
+                        <option key={t.id_trabajador} value={t.id_trabajador}>{t.nombres} {t.apellidos} — {t.rut}</option>
+                      ))}
                   </select>
                 </div>
                 <div className="tw-field">
                   <label>Fecha Inicio *</label>
-                  <input name="fecha_inicio" type="date" value={formData.fecha_inicio} onChange={handleChange} required />
+                  <input name="fecha_inicio" type="date" value={inasistForm.fecha_inicio} onChange={handleInasistChange} required />
                 </div>
                 <div className="tw-field">
                   <label>Fecha Término *</label>
-                  <input name="fecha_termino" type="date" value={formData.fecha_termino} onChange={handleChange} required />
-                </div>
-                <div className="tw-field tw-field-full">
-                  <label>Motivo *</label>
-                  <input name="motivo" value={formData.motivo} onChange={handleChange} required placeholder="Ej: Licencia médica por gripe" />
+                  <input name="fecha_termino" type="date" value={inasistForm.fecha_termino} onChange={handleInasistChange} required />
                 </div>
               </div>
               <div className="tw-modal-footer">
-                <button type="button" className="tw-btn-cancel" onClick={closeModal}>Cancelar</button>
-                <button type="submit" className="tw-btn-save" disabled={saving}>
-                  <Save size={14} /> {saving ? 'Guardando...' : 'Registrar Ausencia'}
+                <button type="button" className="tw-btn-cancel" onClick={closeInasistencia}>Cancelar</button>
+                <button type="submit" className="tw-btn-save" style={{ background: '#374151' }} disabled={savingInasist}>
+                  <UserX size={14} /> {savingInasist ? 'Registrando...' : 'Registrar Inasistencia'}
                 </button>
               </div>
             </form>
@@ -370,7 +367,7 @@ function Ausencias({ usuario, onLogout }) {
         </div>
       )}
 
-      {/* Modal Revisar Ausencia */}
+      {/* Modal Revisar */}
       {showRevision && (
         <div className="tw-modal-overlay">
           <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
@@ -383,7 +380,7 @@ function Ausencias({ usuario, onLogout }) {
               <div className="tw-form-grid">
                 <div className="tw-field tw-field-full">
                   <label>Decisión *</label>
-                  <select name="estado" value={revisionData.estado} onChange={handleRevisionChange} required>
+                  <select value={revisionEstado} onChange={(e) => setRevisionEstado(e.target.value)} required>
                     <option value="Aprobada"> Aprobar</option>
                     <option value="Rechazada"> Rechazar</option>
                   </select>
@@ -391,23 +388,20 @@ function Ausencias({ usuario, onLogout }) {
                 <div className="tw-field tw-field-full">
                   <label>Comentario *</label>
                   <input
-                    name="comentario_revision"
-                    value={revisionData.comentario_revision}
-                    onChange={handleRevisionChange}
+                    value={revisionComentario}
+                    onChange={(e) => setRevisionComentario(e.target.value)}
                     required
                     placeholder="Ej: Documentación recibida correctamente"
                   />
                 </div>
+                {/* Revisor autocompletado y bloqueado */}
                 <div className="tw-field tw-field-full">
-                  <label>Revisado por *</label>
-                  <select name="revisado_por" value={revisionData.revisado_por} onChange={handleRevisionChange} required>
-                    <option value="">— Seleccionar revisor —</option>
-                    {trabajadores.map((t) => (
-                      <option key={t.id_trabajador} value={t.id_trabajador}>
-                        {t.nombres} {t.apellidos} — {t.tipo_usuario}
-                      </option>
-                    ))}
-                  </select>
+                  <label>Revisado por</label>
+                  <input
+                    value={`${usuario?.nombres ?? ''} ${usuario?.apellidos ?? ''}`}
+                    disabled
+                    style={{ background: '#f3f4f6', color: '#6b7280', cursor: 'not-allowed' }}
+                  />
                 </div>
               </div>
               <div className="tw-modal-footer">
@@ -429,9 +423,7 @@ function Ausencias({ usuario, onLogout }) {
               <h2>Confirmar eliminación</h2>
               <button className="tw-modal-close" onClick={() => setConfirmDelete(null)}><X size={18} /></button>
             </div>
-            <p className="tw-confirm-text">
-              ¿Estás seguro de que deseas eliminar esta ausencia? Esta acción no se puede deshacer.
-            </p>
+            <p className="tw-confirm-text">¿Estás seguro de que deseas eliminar esta ausencia?</p>
             <div className="tw-modal-footer">
               <button className="tw-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancelar</button>
               <button className="tw-btn-delete-confirm" onClick={() => handleDelete(confirmDelete)}>
