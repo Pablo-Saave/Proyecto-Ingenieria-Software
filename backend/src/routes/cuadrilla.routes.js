@@ -14,7 +14,9 @@ import {
     getIntegrantesOfCuadrilla,
     reactivarCuadrilla,
     editarNombreCuadrilla,
-    getCuadrillaData
+    getCuadrillaData,
+    asignarBodeguero,
+    despojarBodeguero
 } from "../controllers/cuadrilla.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
@@ -37,6 +39,8 @@ router.use(authMiddleware); // Esto valida el tipo de usuario //
 // Supervisor (o administrador)
 /* LISTO - VALIDACION ESTADO PROYECTO Y CUADRILLA */ router.post("/trabajador", agregarTrabajadorCuadrilla); // Agregar trabajador a cuadrilla (recibe id_trabajador, id_cuadrilla) (Validacion 1: el que realiza la peticion post debe tener tipo_usuario = administrador, o tipo_usuario = supervisor y si es supervisor debe pertenecer a la cuadrilla a la cual se agregara el trabajador) (Validacion 2: El id_trabajador a agregar no puede tener tipo_usuario = supervisor o tipo_usuario = administrador) (Validacion 3: El trabajador a agregar no puede existir ya en la cuadrilla) (Validacion 4: El proyecto debe tener estado activo) (Validacion 5: La cuadrilla debe tener estado activa) (Validacion 6: Todos los campos deben venir completos)
 /* LISTO - VALIDACION ESTADO PROYECTO Y CUADRILLA */ router.delete("/trabajador", eliminarTrabajadorCuadrilla); // Eliminar trabajador de cuadrilla (recibe id_trabajador, id_cuadrilla) (Validacion 1: El que realiza la peticion debe tener tipo_usuario = administrador o tipo_usuario = supervisor y si es supervisor debe pertenecer a la cuadrilla de la cual se eliminara el trabajador) (Validacion 2: El trabajador a eliminar no puede tener tipo_usuario = supervisor) (Validacion 3: El trabajador a eliminar debe pertenecer a la cuadrilla de la cual se esta eliminando) (Validacion 4: La cuadrilla de la cual se eliminara el trabajador debe existir) (Validacion 5: El proyecto de la cuadrilla debe tener estado "activo") (Validacion 6: La cuadrilla debe tener estado "activa")
+/* LISTO - VALIDACION ESTADO PROYECTO Y CUADRILLA */router.post("/bodeguero/", asignarBodeguero); // Asigna un bodeguero a la cuadrilla (Recibe id_trabajador, id_cuadrilla) (Validacion 1: El que realiza la peticion debe tener tipo_usuario = administrador o tipo_usuario = supervisor, si es supervisor debe pertenecer a la cuadrilla) (Validacion 2: El trabajador a asignar como bodeguero debe pertenecer a la cuadrilla) (Validacion 3: El trabajador debe existir) (Validacion 4: El proyecto debe tener estado "activo") (Validacion 5: La cuadrilla debe tener estado "activa") (Validacion 5: El trabajador no debe ser bodeguero)
+/* LISTO - VALIDACION ESTADO PROYECTO Y CUADRILLA */ router.delete("/bodeguero/", despojarBodeguero); // Elimina un bodeguero de una cuadrilla (Recibe id_trabajador, id_cuadrilla) (Validacion 1: El que realiza la peticion debe tener tipo_usuario = administrador o tipo_usuario = supervisor, si es supervisor debe pertenecer a la cuadrilla) (Validacion 2: El trabajador a despojar como bodeguero debe pertenecer a la cuadrilla) (Validacion 3: El trabajador debe existir) (Validacion 4: El proyecto debe tener estado "activo") (Validacion 5: La cuadrilla debe tener estado "activa") (Validacion 5: El trabajador debe ser bodeguero)
 
 // Trabajador & Supervisor
 /* LISTO - VALIDACION ESTADO PROYECTO Y CUADRILLA */ router.get("/misCuadrillas/:id_proyecto" , getMyCuadrillasAndWorkersFromIdProyecto); // Token // - Dado un id_proyecto, ver cuadrillas a las que pertenece un id_trabajador. (dar id_proyecto desde url y id_trabajador mediante token, recibir lista con cuadrillas a las que pertenece)

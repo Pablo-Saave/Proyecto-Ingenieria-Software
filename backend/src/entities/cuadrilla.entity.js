@@ -17,20 +17,20 @@ export const CuadrillaSchema = new EntitySchema({
     },
 
     nombre_cuadrilla: {
-        type: "varchar",
-        nullable: false
+      type: "varchar",
+      nullable: false,
     },
 
     fecha_creacion: {
-        type: "date",
-        nullable: false
+      type: "date",
+      nullable: false,
     },
 
     estado: {
-        type: "varchar",
-        nullable: false,
-        default: "activa"
-    }
+      type: "varchar",
+      nullable: false,
+      default: "activa",
+    },
   },
 
   relations: {
@@ -63,6 +63,12 @@ export const CuadrillaSchema = new EntitySchema({
     accidentes: {
       type: "one-to-many",
       target: "AccidenteLaboral",
+      inverseSide: "cuadrilla",
+    },
+
+    inventarios: {
+      type: "one-to-many",
+      target: "Inventario",
       inverseSide: "cuadrilla",
     },
   },

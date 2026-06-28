@@ -1237,3 +1237,253 @@ export const getCuadrillaData = async (req, res) => {
     return res.status(500).json({ message: "Error interno del servidor", error: error.message });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/***
+ * Asigna a un trabajador como bodeguero dentro de una cuadrilla
+ * Recibe: id_trabajador, id_cuadrilla (body)
+ * Validaciones:
+ * - El que realiza la peticion debe tener tipo_usuario = administrador o tipo_usuario = supervisor, si es supervisor debe pertenecer a la cuadrilla
+ * - El trabajador a asignar como bodeguero debe pertenecer a la cuadrilla
+ * - El trabajador debe existir
+ * - El proyecto debe tener estado "activo"
+ * - La cuadrilla debe tener estado "activa"
+ * - El trabajador no debe ser ya bodeguero
+ */
+export const asignarBodeguero = async (req, res) => {
+  try {
+    const { id_trabajador, id_cuadrilla } = req.body;
+    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
+
+    if (!id_trabajador || !id_cuadrilla) {
+      return res.status(400).json({
+        message: "Los campos id_trabajador e id_cuadrilla son obligatorios",
+      });
+    }
+
+    if (isNaN(Number(id_trabajador)) || isNaN(Number(id_cuadrilla))) {
+      return res.status(400).json({
+        message: "id_trabajador e id_cuadrilla deben ser numéricos",
+      });
+    }
+
+    // Validar que la cuadrilla exista (con su proyecto, para validar estados)
+    const cuadrilla = await cuadrillaRepository.findOne({
+      where: { id_cuadrilla: Number(id_cuadrilla) },
+      relations: ["proyecto"],
+    });
+    if (!cuadrilla) {
+      return res.status(404).json({ message: "Cuadrilla no encontrada" });
+    }
+
+    // Validar que el proyecto esté activo
+    if (cuadrilla.proyecto.estado !== "activo") {
+      return res.status(409).json({
+        message: "No se puede asignar bodeguero porque el proyecto no está activo",
+      });
+    }
+
+    // Validar que la cuadrilla esté activa
+    if (cuadrilla.estado !== "activa") {
+      return res.status(409).json({
+        message: "No se puede asignar bodeguero porque la cuadrilla no está activa",
+      });
+    }
+
+    // Validar quién realiza la petición: administrador (libre) o supervisor (debe pertenecer a la cuadrilla)
+    if (tipo_solicitante !== "administrador") {
+      if (tipo_solicitante !== "supervisor") {
+        return res.status(403).json({
+          message: "No tiene permisos para realizar esta acción",
+        });
+      }
+
+      const supervisorPertenece = await asignadoRepository.findOne({
+        where: {
+          id_trabajador: id_solicitante,
+          id_cuadrilla: Number(id_cuadrilla),
+        },
+      });
+
+      if (!supervisorPertenece) {
+        return res.status(403).json({
+          message: "El supervisor no pertenece a la cuadrilla indicada",
+        });
+      }
+    }
+
+    // Validar que el trabajador exista
+    const trabajador = await trabajadorRepository.findOne({
+      where: { id_trabajador: Number(id_trabajador) },
+    });
+    if (!trabajador) {
+      return res.status(404).json({ message: "Trabajador no encontrado" });
+    }
+
+    // Validar que el trabajador pertenezca a la cuadrilla
+    const asignado = await asignadoRepository.findOne({
+      where: {
+        id_trabajador: Number(id_trabajador),
+        id_cuadrilla: Number(id_cuadrilla),
+      },
+    });
+    if (!asignado) {
+      return res.status(404).json({
+        message: "El trabajador no pertenece a la cuadrilla indicada",
+      });
+    }
+
+    // Validar que el trabajador no sea ya bodeguero
+    if (asignado.es_bodeguero) {
+      return res.status(409).json({
+        message: "El trabajador ya es bodeguero de esta cuadrilla",
+      });
+    }
+
+    // Asignar como bodeguero
+    asignado.es_bodeguero = true;
+    await asignadoRepository.save(asignado);
+
+    return res.status(200).json({
+      message: "Trabajador asignado como bodeguero correctamente",
+      data: asignado,
+    });
+  } catch (error) {
+    console.error("Error en asignarBodeguero:", error);
+    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+  }
+};
+
+
+
+
+
+
+/***
+ * Despoja a un trabajador del rol de bodeguero dentro de una cuadrilla
+ * Recibe: id_trabajador, id_cuadrilla (body)
+ * Validaciones:
+ * - El que realiza la peticion debe tener tipo_usuario = administrador o tipo_usuario = supervisor, si es supervisor debe pertenecer a la cuadrilla
+ * - El trabajador a despojar como bodeguero debe pertenecer a la cuadrilla
+ * - El trabajador debe existir
+ * - El proyecto debe tener estado "activo"
+ * - La cuadrilla debe tener estado "activa"
+ * - El trabajador debe ser bodeguero
+ */
+export const despojarBodeguero = async (req, res) => {
+  try {
+    const { id_trabajador, id_cuadrilla } = req.body;
+    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
+
+    if (!id_trabajador || !id_cuadrilla) {
+      return res.status(400).json({
+        message: "Los campos id_trabajador e id_cuadrilla son obligatorios",
+      });
+    }
+
+    if (isNaN(Number(id_trabajador)) || isNaN(Number(id_cuadrilla))) {
+      return res.status(400).json({
+        message: "id_trabajador e id_cuadrilla deben ser numéricos",
+      });
+    }
+
+    // Validar que la cuadrilla exista (con su proyecto, para validar estados)
+    const cuadrilla = await cuadrillaRepository.findOne({
+      where: { id_cuadrilla: Number(id_cuadrilla) },
+      relations: ["proyecto"],
+    });
+    if (!cuadrilla) {
+      return res.status(404).json({ message: "Cuadrilla no encontrada" });
+    }
+
+    // Validar que el proyecto esté activo
+    if (cuadrilla.proyecto.estado !== "activo") {
+      return res.status(409).json({
+        message: "No se puede despojar al bodeguero porque el proyecto no está activo",
+      });
+    }
+
+    // Validar que la cuadrilla esté activa
+    if (cuadrilla.estado !== "activa") {
+      return res.status(409).json({
+        message: "No se puede despojar al bodeguero porque la cuadrilla no está activa",
+      });
+    }
+
+    // Validar quién realiza la petición: administrador (libre) o supervisor (debe pertenecer a la cuadrilla)
+    if (tipo_solicitante !== "administrador") {
+      if (tipo_solicitante !== "supervisor") {
+        return res.status(403).json({
+          message: "No tiene permisos para realizar esta acción",
+        });
+      }
+
+      const supervisorPertenece = await asignadoRepository.findOne({
+        where: {
+          id_trabajador: id_solicitante,
+          id_cuadrilla: Number(id_cuadrilla),
+        },
+      });
+
+      if (!supervisorPertenece) {
+        return res.status(403).json({
+          message: "El supervisor no pertenece a la cuadrilla indicada",
+        });
+      }
+    }
+
+    // Validar que el trabajador exista
+    const trabajador = await trabajadorRepository.findOne({
+      where: { id_trabajador: Number(id_trabajador) },
+    });
+    if (!trabajador) {
+      return res.status(404).json({ message: "Trabajador no encontrado" });
+    }
+
+    // Validar que el trabajador pertenezca a la cuadrilla
+    const asignado = await asignadoRepository.findOne({
+      where: {
+        id_trabajador: Number(id_trabajador),
+        id_cuadrilla: Number(id_cuadrilla),
+      },
+    });
+    if (!asignado) {
+      return res.status(404).json({
+        message: "El trabajador no pertenece a la cuadrilla indicada",
+      });
+    }
+
+    // Validar que el trabajador sea bodeguero
+    if (!asignado.es_bodeguero) {
+      return res.status(409).json({
+        message: "El trabajador no es bodeguero de esta cuadrilla",
+      });
+    }
+
+    // Despojar el rol de bodeguero
+    asignado.es_bodeguero = false;
+    await asignadoRepository.save(asignado);
+
+    return res.status(200).json({
+      message: "Bodeguero despojado correctamente",
+      data: asignado,
+    });
+  } catch (error) {
+    console.error("Error en despojarBodeguero:", error);
+    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+  }
+};
