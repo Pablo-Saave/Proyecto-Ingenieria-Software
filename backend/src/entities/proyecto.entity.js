@@ -17,36 +17,35 @@ export const ProyectoSchema = new EntitySchema({
     },
 
     nombre_proyecto: {
-      type: "varchar"
+      type: "varchar",
     },
 
     tipo_instalacion: {
-      type: "varchar"
+      type: "varchar",
     },
 
     direccion: {
-      type: "varchar"
+      type: "varchar",
     },
 
     nivel_exigencia: {
-      type: "varchar"
+      type: "varchar",
     },
 
     cantidad_personal_requerido: {
-      type: "int"
+      type: "int",
     },
 
     fecha_creacion: {
       type: "date",
-      nullable: false
+      nullable: false,
     },
 
     estado: {
       type: "varchar",
       nullable: false,
       default: "activo",
-    }
-
+    },
   },
 
   relations: {
@@ -67,12 +66,6 @@ export const ProyectoSchema = new EntitySchema({
     contratoProyecto: {
       type: "one-to-one",
       target: "ContratoProyecto",
-      inverseSide: "proyecto",
-    },
-
-    inventarios: {
-      type: "one-to-many",
-      target: "Inventario",
       inverseSide: "proyecto",
     },
   },
