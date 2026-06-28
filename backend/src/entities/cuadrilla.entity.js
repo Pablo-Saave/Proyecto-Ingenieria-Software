@@ -28,7 +28,8 @@ export const CuadrillaSchema = new EntitySchema({
 
     estado: {
         type: "varchar",
-        nullable: false
+        nullable: false,
+        default: "activa"
     }
   },
 

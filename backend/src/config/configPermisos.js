@@ -58,7 +58,6 @@ export const PERMISOS = {
     'canales:ver_todas',
     'canales:publicar',
     'canales:eliminar',
-    'etiquetas:gestionar',
     'dashboard:personal',
     'dashboard:supervisor',
     'dashboard:admin',

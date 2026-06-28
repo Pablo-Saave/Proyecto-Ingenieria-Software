@@ -2,7 +2,6 @@
 import { DataSource } from "typeorm";
 import { DATABASE, DB_USERNAME, HOST, PASSWORD, DB_PORT } from "./configEnv.js";
 import { TrabajadorSchema } from "../entities/trabajador.entity.js";
-import { EtiquetaSchema } from "../entities/etiqueta.entity.js";
 import { AusenciaSchema } from "../entities/ausencia.entity.js";
 import { ContratoTrabajadorSchema } from "../entities/contrato_trabajador.entity.js";
 import { AsignadoSchema } from "../entities/asignado.entity.js";
@@ -10,6 +9,12 @@ import { RemuneracionSchema } from "../entities/remuneracion.entity.js";
 import { ProyectoSchema } from "../entities/proyecto.entity.js";
 import { ClienteSchema } from "../entities/cliente.entity.js";
 import { AvisoSchema } from "../entities/aviso.entity.js";
+import { AccidenteLaboralSchema } from "../entities/accidente_laboral.entity.js";
+import { ContratoProyectoSchema } from "../entities/contrato_proyecto.entity.js";
+import { CuadrillaSchema } from "../entities/cuadrilla.entity.js";
+import { InventarioSchema } from "../entities/inventario.entity.js";
+import { JustificacionAusenciaSchema } from "../entities/justificacion_ausencia.entity.js";
+import { MaterialLimpiezaSchema } from "../entities/material_limpieza.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -19,8 +24,13 @@ export const AppDataSource = new DataSource({
   password: `${PASSWORD}`,
   database: `${DATABASE}`,
   entities: [
+    AccidenteLaboralSchema,
+    ContratoProyectoSchema,
+    CuadrillaSchema,
+    InventarioSchema,
+    JustificacionAusenciaSchema,
+    MaterialLimpiezaSchema,
     TrabajadorSchema,
-    EtiquetaSchema,
     AusenciaSchema,
     ContratoTrabajadorSchema,
     AsignadoSchema,

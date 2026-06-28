@@ -1,10 +1,8 @@
-
 import { AppDataSource } from "../config/configDb.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/handleJWT.js";
 
 const trabajadoresTable = AppDataSource.getRepository("Trabajador");
-const etiquetasTable = AppDataSource.getRepository("Etiqueta");
 
 // Valores válidos para tipo_usuario
 const TIPOS_USUARIO_VALIDOS = [
@@ -24,9 +22,6 @@ export const register = async (req, res) => {
         const rutExists = await trabajadoresTable.findOne({
             where: { rut: req.body.rut }
         });
-        const etiquetaExists = await etiquetasTable.findOne({
-            where: { id_etiqueta: req.body.id_etiqueta }
-        });
 
         if (mailExists) {
             console.log("Ya existe un usuario registrado con este mail.");
@@ -44,17 +39,8 @@ export const register = async (req, res) => {
             });
         }
 
-        if (!etiquetaExists) {
-            console.log("No existe una etiqueta con el id_etiqueta proporcionado.");
-            return res.status(400).json({
-                status: "error",
-                message: "Etiqueta no existente."
-            });
-        }
-
         const {
             tipo_usuario,
-            id_etiqueta,
             rut,
             nombres,
             apellidos,
@@ -98,7 +84,6 @@ export const register = async (req, res) => {
         // Crear trabajador
         const trabajadorNuevo = trabajadoresTable.create({
             tipo_usuario,
-            id_etiqueta: id_etiqueta ? parseInt(id_etiqueta) : null,
             rut,
             nombres,
             apellidos,

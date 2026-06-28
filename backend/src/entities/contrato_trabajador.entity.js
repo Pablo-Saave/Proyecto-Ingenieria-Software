@@ -5,7 +5,7 @@ export const ContratoTrabajadorSchema = new EntitySchema({
   tableName: "contratos_trabajadores",
 
   columns: {
-    id_contrato_trabajador: {
+    id_contrato: {
       primary: true,
       type: "int",
       generated: true,

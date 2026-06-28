@@ -11,7 +11,7 @@ export const RemuneracionSchema = new EntitySchema({
       generated: true,
     },
 
-    id_contrato_trabajador: {
+    id_contrato: {
       type: "int",
       nullable: false,
     },
@@ -41,7 +41,7 @@ export const RemuneracionSchema = new EntitySchema({
     contratoTrabajador: {
       type: "many-to-one",
       target: "ContratoTrabajador",
-      joinColumn: { name: "id_contrato_trabajador" },
+      joinColumn: { name: "id_contrato" },
       inverseSide: "remuneraciones",
       nullable: false,
     },

@@ -33,8 +33,19 @@ export const ProyectoSchema = new EntitySchema({
     },
 
     cantidad_personal_requerido: {
-      type: "varchar"
+      type: "int"
     },
+
+    fecha_creacion: {
+      type: "date",
+      nullable: false
+    },
+
+    estado: {
+      type: "varchar",
+      nullable: false,
+      default: "activo",
+    }
 
   },
 

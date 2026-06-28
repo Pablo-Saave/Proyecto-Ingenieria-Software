@@ -34,6 +34,12 @@ export const AsignadoSchema = new EntitySchema({
       type: "date",
       nullable: true,
     },
+
+    es_bodeguero: {
+      type: "boolean",
+      nullable: false,
+      default: false
+    }
   },
 
   relations: {

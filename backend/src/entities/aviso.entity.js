@@ -16,8 +16,13 @@ export const AvisoSchema = new EntitySchema({
       nullable: false,
     },
 
-    publicado_por: {
+    id_autor: {
       type: "int",
+      nullable: false,
+    },
+
+    nombre_autor: {
+      type: "varchar",
       nullable: false,
     },
 
