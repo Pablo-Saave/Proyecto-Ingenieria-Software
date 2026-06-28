@@ -5,14 +5,29 @@ export const AsignadoSchema = new EntitySchema({
   tableName: "asignados",
 
   columns: {
-    id_asignado: {
-      primary: true,
+    id_trabajador: {
       type: "int",
-      generated: true,
+      primary: true, // PK compuesto de  (id_trabajador, id_cuadrilla)
+    },
+
+    id_cuadrilla: {
+      type: "int",
+      primary: true, // PK compuesto de  (id_trabajador, id_cuadrilla)
+    },
+
+    cargo_operativo: {
+      type: "varchar",
+      nullable: true,
+    },
+
+    tipo_jornada: {
+      type: "varchar",
+      nullable: true,
     },
 
     fecha_asignacion: {
       type: "date",
+      nullable: false,
     },
 
     fecha_retiro: {
@@ -20,34 +35,30 @@ export const AsignadoSchema = new EntitySchema({
       nullable: true,
     },
 
-    tipo_jornada: {
-      type: "varchar",
-    },
-
-    cargo_operativo: {
-      type: "varchar",
-    },
+    es_bodeguero: {
+      type: "boolean",
+      nullable: false,
+      default: false
+    }
   },
 
   relations: {
     trabajador: {
       type: "many-to-one",
       target: "Trabajador",
-      joinColumn: {
-        name: "id_trabajador",
-      },
-      nullable: false,
+      joinColumn: { name: "id_trabajador" }, // FK
       inverseSide: "asignados",
+      primary: true,
+      nullable: false,
     },
 
-    // proyecto: {
-    //   type: "many-to-one",
-    //   target: "Proyecto",
-    //   joinColumn: {
-    //     name: "id_proyecto",
-    //   },
-    //   nullable: false,
-    //   inverseSide: "asignados",
-    // },
+    cuadrilla: {
+      type: "many-to-one",
+      target: "Cuadrilla",
+      joinColumn: { name: "id_cuadrilla" }, // FK
+      inverseSide: "asignados",
+      primary: true,
+      nullable: false,
+    },
   },
 });

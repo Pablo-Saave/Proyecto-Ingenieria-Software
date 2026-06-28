@@ -1,6 +1,6 @@
 import { EntitySchema } from "typeorm";
 
-export const ClienteSchema= new EntitySchema({
+export const ClienteSchema = new EntitySchema({
   name: "Cliente",
   tableName: "cliente",
 
@@ -10,13 +10,37 @@ export const ClienteSchema= new EntitySchema({
       type: "int",
       generated: true,
     },
-    nombres: { type: "varchar" },
-    apellidos: { type: "varchar" },
-    tipo_cliente: { type: "varchar" },
-    rubro: { type: "varchar" },
-    telefono: { type: "varchar" },
-    correo: { type: "varchar" },
-    direccion: { type: "varchar" },
+
+    nombres: { 
+      type: "varchar",
+      nullable: false
+    },
+
+    apellidos: { 
+      type: "varchar",
+      nullabe: false
+    },
+
+    tipo_cliente: {
+      type: "varchar"
+    },
+
+    rubro: {
+      type: "varchar"
+    },
+
+    telefono: {
+      type: "varchar"
+    },
+
+    correo: {
+      type: "varchar",
+      unique: true
+    },
+
+    direccion: {
+      type: "varchar"
+    },
   },
 
   relations: {

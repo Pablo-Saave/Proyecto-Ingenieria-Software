@@ -11,8 +11,18 @@ export const AvisoSchema = new EntitySchema({
       generated: true,
     },
 
-    publicado_por: {
+    id_cuadrilla: {
       type: "int",
+      nullable: false,
+    },
+
+    id_autor: {
+      type: "int",
+      nullable: false,
+    },
+
+    nombre_autor: {
+      type: "varchar",
       nullable: false,
     },
 
@@ -37,25 +47,14 @@ export const AvisoSchema = new EntitySchema({
       length: 30,
       default: "normal",
     },
-
-    id_etiqueta: {
-      type: "int",
-      nullable: false,
-    },
   },
 
   relations: {
-    autor: {
+    cuadrilla: {
       type: "many-to-one",
-      target: "Trabajador",
-      joinColumn: { name: "publicado_por" },
-      nullable: false,
-    },
-
-    etiqueta: {
-      type: "many-to-one",
-      target: "Etiqueta",
-      joinColumn: { name: "id_etiqueta" },
+      target: "Cuadrilla",
+      joinColumn: { name: "id_cuadrilla" },
+      inverseSide: "avisos",
       nullable: false,
     },
   },

@@ -4,9 +4,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing                from './pages/Landing';
 import Login                  from './pages/Login';
 import Dashboard              from './pages/Dashboard';
-import Contratos              from './pages/Contratos';
-import ContratosSupervisor    from './pages/ContratosSupervisor';
-import ContratosTrabajador    from './pages/ContratosTrabajador';
+import Contratos              from './pages/Contratos'; // Administrador
+import ContratosSupervisor    from './pages/ContratosSupervisor'; // Supervisor
+import ContratosTrabajador    from './pages/ContratosTrabajador'; // Trabajador
 import Trabajadores           from './pages/trabajadores';
 import Ausencias              from './pages/ausencias';
 import { Pagos }              from './pages/Pagos';

@@ -13,7 +13,7 @@ export async function getAllTrabajadores(req, res) {
   try {
     const repo = getRepo();
     const trabajadores = await repo.find({
-      relations: ["etiqueta", "contratos"],
+      relations: ["contratos"],
     });
     res.json({ status: "success", data: trabajadores });
   } catch (error) {
@@ -27,28 +27,11 @@ export async function getTrabajadorById(req, res) {
     const repo = getRepo();
     const trabajador = await repo.findOne({
       where: { id_trabajador: parseInt(req.params.id) },
-      relations: ["etiqueta", "contratos"],
+      relations: ["contratos"],
     });
     if (!trabajador)
       return res.status(404).json({ status: "error", message: "Trabajador no encontrado" });
     res.json({ status: "success", data: trabajador });
-  } catch (error) {
-    res.status(500).json({ status: "error", message: error.message });
-  }
-}
-
-// GET /api/trabajadores/etiqueta/:id_etiqueta
-// Obtiene todos los trabajadores de una unidad organizacional (para segmentar avisos, canales, etc.)
-export async function getTrabajadoresByEtiqueta(req, res) {
-  try {
-    const repo = getRepo();
-    const trabajadores = await repo.find({
-      where: {
-        etiqueta: { id_etiqueta: parseInt(req.params.id_etiqueta) },
-      },
-      relations: ["etiqueta"],
-    });
-    res.json({ status: "success", data: trabajadores });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });
   }
@@ -59,7 +42,6 @@ export async function createTrabajador(req, res) {
   try {
     const {
       tipo_usuario,
-      id_etiqueta,
       rut,
       nombres,
       apellidos,
@@ -92,7 +74,6 @@ export async function createTrabajador(req, res) {
     const repo = getRepo();
     const nuevo = repo.create({
       tipo_usuario,
-      id_etiqueta: id_etiqueta ? parseInt(id_etiqueta) : null,
       rut,
       nombres,
       apellidos,

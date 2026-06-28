@@ -23,11 +23,6 @@ export const TrabajadorSchema = new EntitySchema({
       nullable: false,
     },
 
-    id_etiqueta: {
-      type: "int",
-      nullable: true,
-    },
-
     rut: {
       type: "varchar",
       unique: true,
@@ -77,27 +72,21 @@ export const TrabajadorSchema = new EntitySchema({
   },
 
   relations: {
-    // Unidad organizacional. Solo restringe visibilidad de canales de avisos por ejemplo.
-    etiqueta: {
-      type: "many-to-one",
-      target: "Etiqueta",
-      joinColumn: { name: "id_etiqueta" },
-      nullable: true,
-      inverseSide: "trabajadores",
-    },
-
     contratos: {
-      type: "one-to-many",
-      target: "ContratoTrabajador",
-      inverseSide: "trabajador",
+    type: "one-to-many",
+    target: "ContratoTrabajador",
+    inverseSide: "trabajador",
     },
-
     ausencias: {
       type: "one-to-many",
       target: "Ausencia",
       inverseSide: "trabajador",
     },
-
+    accidentes: {
+      type: "one-to-many",
+      target: "AccidenteLaboral",
+      inverseSide: "trabajador",
+    },
     asignados: {
       type: "one-to-many",
       target: "Asignado",

@@ -10,45 +10,70 @@ export const ProyectoSchema = new EntitySchema({
       type: "int",
       generated: true,
     },
-    nombre_proyecto: { type: "varchar" },
-    tipo_instalacion: { type: "varchar" },
-    direccion: { type: "varchar" },
-    nivel_exigencia: { type: "varchar" },
-    cantidad_personal_requerido: { type: "varchar" },
+
+    id_cliente: {
+      type: "int",
+      nullable: false,
+    },
+
+    nombre_proyecto: {
+      type: "varchar"
+    },
+
+    tipo_instalacion: {
+      type: "varchar"
+    },
+
+    direccion: {
+      type: "varchar"
+    },
+
+    nivel_exigencia: {
+      type: "varchar"
+    },
+
+    cantidad_personal_requerido: {
+      type: "int"
+    },
+
+    fecha_creacion: {
+      type: "date",
+      nullable: false
+    },
+
+    estado: {
+      type: "varchar",
+      nullable: false,
+      default: "activo",
+    }
+
   },
 
   relations: {
     cliente: {
       type: "many-to-one",
-      target: "cliente",
-      joinColumn: true, 
+      target: "Cliente",
+      joinColumn: { name: "id_cliente" },
+      inverseSide: "proyectos",
       nullable: false,
-      inverseSide: "proyecto",
     },
-    /*trabajador: {
-      type: "many-to-many",
-      target: "trabajador",
-      joinTable: true,
-      inverseSide: "proyecto",
-    },*/
-    /*
-    contrato_proyecto: {
-      type: "one-to-one",
-      target: "contrato_proyecto",
-      joinColumn: true,
-      inverseSide: "proyecto",
-    },
-    accidente_laboral: {
+
+    cuadrillas: {
       type: "one-to-many",
-      target: "accidente_laboral",
+      target: "Cuadrilla",
       inverseSide: "proyecto",
     },
-    abastecimiento: {
+
+    contratoProyecto: {
       type: "one-to-one",
-      target: "abastecimiento",
-      joinColumn: true, 
+      target: "ContratoProyecto",
       inverseSide: "proyecto",
     },
-    */
+
+    inventarios: {
+      type: "one-to-many",
+      target: "Inventario",
+      inverseSide: "proyecto",
+    },
   },
 });

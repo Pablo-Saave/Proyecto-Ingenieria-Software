@@ -4,12 +4,11 @@ import "reflect-metadata";
 import { connectDB } from "./config/configDb.js";
 import clienteRoutes from "./routes/cliente.routes.js";
 import ausenciaRoutes from "./routes/ausencia.routes.js";
-import asignadoRoutes from "./routes/asignado.routes.js";
 import contratoRoutes from "./routes/contrato.routes.js";
 import trabajadorRoutes from "./routes/trabajador.routes.js";
 import proyectoRoutes from "./routes/proyecto.routes.js";
+import cuadrillaRoutes from "./routes/cuadrilla.routes.js"
 import remuneracionRoutes from "./routes/remuneracion.routes.js";
-import etiquetaRoutes from "./routes/etiqueta.routes.js";
 import avisoRoutes from "./routes/aviso.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import { iniciarCronContratos } from "./jobs/contratosCron.js";
@@ -22,6 +21,7 @@ export const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Servir Frontend React
 app.use(express.static(path.join(__dirname, "../public")));
 app.use(express.json());
 app.use(cors());
@@ -42,12 +42,11 @@ export async function initializeApp() {
 
 app.use("/api/clientes",       clienteRoutes);
 app.use("/api/ausencias",      ausenciaRoutes);
-app.use("/api/asignados",      asignadoRoutes);
 app.use("/api/contratos",      contratoRoutes);
 app.use("/api/trabajadores",   trabajadorRoutes);
 app.use("/api/proyectos",      proyectoRoutes);
+app.use("/api/cuadrilla",      cuadrillaRoutes);
 app.use("/api/remuneraciones", remuneracionRoutes);
-app.use("/api/etiquetas",      etiquetaRoutes);
 app.use("/api/avisos",         avisoRoutes);
 app.use("/api/auth",           authRoutes);
 

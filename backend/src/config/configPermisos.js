@@ -1,3 +1,8 @@
+// RBAC //
+
+// config/permisos.js
+// Fuente de verdad de permisos por rol.
+// Si un rol necesita un permiso nuevo, se agrega aquí y se propaga automáticamente.
 // config/configPermisos.js
 
 export const PERMISOS = {
@@ -53,7 +58,6 @@ export const PERMISOS = {
     'canales:ver_todas',
     'canales:publicar',
     'canales:eliminar',
-    'etiquetas:gestionar',
     'dashboard:personal',
     'dashboard:supervisor',
     'dashboard:admin',
@@ -61,6 +65,7 @@ export const PERMISOS = {
 
 };
 
+// Retorna los permisos de un rol dado
 export const getPermisosPorRol = (tipo_usuario) => {
   return PERMISOS[tipo_usuario] ?? [];
 };
