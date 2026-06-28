@@ -103,37 +103,8 @@ function DashboardPersonal({ usuario, onLogout }) {
               </div>
 
               {/* Métricas */}
-              <div className="metrics-grid" style={{ marginBottom: '24px' }}>
-                <div className="metric-card">
-                  <div className="metric-header">
-                    <h3 className="metric-title">Asignaciones Activas</h3>
-                    <Briefcase size={20} color="#4F46E5" />
-                  </div>
-                  <div className="metric-value">{activasCount}</div>
-                </div>
-                <div className="metric-card">
-                  <div className="metric-header">
-                    <h3 className="metric-title">Ausencias Aprobadas</h3>
-                    <CheckCircle size={20} color="#10B981" />
-                  </div>
-                  <div className="metric-value" style={{ color: '#10B981' }}>{aprobadas}</div>
-                </div>
-                <div className="metric-card">
-                  <div className="metric-header">
-                    <h3 className="metric-title">Solicitudes Pendientes</h3>
-                    <Clock size={20} color="#F59E0B" />
-                  </div>
-                  <div className="metric-value" style={{ color: '#F59E0B' }}>{pendientes}</div>
-                </div>
-                <div className="metric-card">
-                  <div className="metric-header">
-                    <h3 className="metric-title">Ausencias Rechazadas</h3>
-                    <XCircle size={20} color="#EF4444" />
-                  </div>
-                  <div className="metric-value" style={{ color: '#EF4444' }}>{rechazadas}</div>
-                </div>
-              </div>
-
+              
+                 
               {/* Últimas ausencias */}
               <div className="alerts-coverage-wrapper">
                 <div className="alerts-section">
