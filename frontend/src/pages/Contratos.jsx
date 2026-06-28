@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/contratos.css';
-import { Eye, MoreVertical, Plus, X, AlertTriangle } from 'lucide-react';
+import { Eye, MoreVertical, Plus, X, AlertTriangle, Download } from 'lucide-react';
+import { generarPDFContrato } from '../utils/generarPDFContrato';
 import {
   getContratos,
   createContrato,
@@ -296,7 +297,11 @@ function DetalleModal({ contrato, onClose }) {
           )}
         </div>
         <div className="modal-footer">
-          <button className="btn-guardar" onClick={onClose}>Cerrar</button>
+          <button className="btn-cancelar" onClick={onClose}>Cerrar</button>
+          <button className="btn-guardar" onClick={() => generarPDFContrato(contrato)}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Download size={15} /> Descargar PDF
+          </button>
         </div>
       </div>
     </div>
