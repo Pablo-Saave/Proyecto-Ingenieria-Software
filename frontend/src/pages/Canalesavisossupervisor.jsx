@@ -84,24 +84,11 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
             )}
           </div>
 
-          {/* Tarjeta de unidad */}
-          <div className="metric-card" style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Tag size={20} color="#4F46E5" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ margin: 0, fontSize: 11, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase' }}>Mi Cuadrilla</p>
-              <h2 style={{ margin: '2px 0 0', fontSize: 18, color: '#111827' }}>{unidad?.nombre_etiqueta ?? 'Sin unidad asignada'}</h2>
-              {unidad?.descripcion && <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>{unidad.descripcion}</p>}
-            </div>
-            <span className="tw-badge badge-activo">{avisos.length} aviso{avisos.length !== 1 ? 's' : ''}</span>
-          </div>
-
           {error && <div className="tw-error-banner"><AlertCircle size={16} /> {error}</div>}
 
           {/* Formulario nuevo aviso */}
           {showForm && (
-            <form className="metric-card" onSubmit={handleSubmit} style={{ display: 'block', marginBottom: 20 }}>
+            <form onSubmit={handleSubmit} style={{ display: 'block', marginBottom: 20, padding: '16px 0', borderTop: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb' }}>
               <div className="tw-form-grid" style={{ gridTemplateColumns: '2fr 1fr', gap: 12 }}>
                 <div className="tw-field" style={{ marginBottom: 0 }}>
                   <label>Título *</label>
@@ -145,7 +132,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
           ) : (
             <div style={{ display: 'grid', gap: 14 }}>
               {avisos.map((aviso) => (
-                <article key={aviso.id_aviso} className="metric-card" style={{ display: 'block' }}>
+                <article key={aviso.id_aviso} style={{ display: 'block', padding: '18px 0', borderBottom: '1px solid #e5e7eb' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                       <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

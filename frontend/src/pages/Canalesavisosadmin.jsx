@@ -5,7 +5,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/trabajadores.css';
 import '../styles/dashboard.css';
-import { AlertCircle, Bell, MessageSquare, Plus, Send, Tag, Trash2, X } from 'lucide-react';
+import { AlertCircle, Bell, MessageSquare, Plus, Send, Trash2, X } from 'lucide-react';
 import { getTodosLosAvisos, getEtiquetasAviso, crearAviso, eliminarAviso } from '../services/avisosService';
 
 const EMPTY_FORM = { titulo: '', contenido: '', prioridad: 'normal', id_etiqueta: '' };
@@ -126,28 +126,11 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
           </div>
 
           {/* Métricas rápidas */}
-          <div className="metrics-grid" style={{ marginBottom: 20 }}>
-            <div className="metric-card">
-              <div className="metric-header"><h3 className="metric-title">Total Avisos</h3><Bell size={20} color="#4F46E5" /></div>
-              <div className="metric-value">{avisos.length}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-header"><h3 className="metric-title">Cuadrillas</h3><Tag size={20} color="#10B981" /></div>
-              <div className="metric-value">{etiquetas.length}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-header"><h3 className="metric-title">Urgentes</h3><AlertCircle size={20} color="#EF4444" /></div>
-              <div className="metric-value" style={{ color: '#EF4444' }}>
-                {avisos.filter((a) => a.prioridad === 'urgente').length}
-              </div>
-            </div>
-          </div>
-
           {error && <div className="tw-error-banner"><AlertCircle size={16} /> {error}</div>}
 
           {/* Formulario nuevo aviso */}
           {showForm && (
-            <form className="metric-card" onSubmit={handleSubmit} style={{ display: 'block', marginBottom: 20 }}>
+            <form onSubmit={handleSubmit} style={{ display: 'block', marginBottom: 20, padding: '16px 0', borderTop: '1px solid #e5e7eb', borderBottom: '1px solid #e5e7eb' }}>
               <h3 style={{ margin: '0 0 14px', fontSize: 15, color: '#111827' }}>Publicar nuevo aviso</h3>
               <div className="tw-form-grid" style={{ gridTemplateColumns: '2fr 1fr 1fr', gap: 12 }}>
                 <div className="tw-field" style={{ marginBottom: 0 }}>
@@ -223,7 +206,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
           ) : (
             <div style={{ display: 'grid', gap: 14 }}>
               {avisosFiltrados.map((aviso) => (
-                <article key={aviso.id_aviso} className="metric-card" style={{ display: 'block' }}>
+                <article key={aviso.id_aviso} style={{ display: 'block', padding: '18px 0', borderBottom: '1px solid #e5e7eb' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                       <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
