@@ -193,7 +193,13 @@ function Login({ onLoginSuccess }) {
 
             <p className="login-footer">
               ¿Olvidaste tu contraseña?{' '}
-              <button type="button" className="login-link">Cambia tu contraseña</button>
+             <button 
+               type="button" 
+               className="login-link"
+              onClick={() => navigate('/cambiar-password')}
+             >
+              Cambia tu contraseña
+            </button>
             </p>
           </form>
 

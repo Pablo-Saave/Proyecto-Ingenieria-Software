@@ -17,6 +17,7 @@ import DashboardPersonal      from './pages/miDashboard';
 import CanalesAvisosAdmin     from './pages/CanalesAvisosAdmin';
 import CanalesAvisosSupervisor from './pages/CanalesAvisosSupervisor';
 import CanalesAvisosTrabajador from './pages/CanalesAvisosTrabajador';
+import CambiarPassword from './pages/CambiarPassword';
 
 import { getUsuarioLocal, logoutClean } from './services/authService';
 import './styles/globals.css';
@@ -60,6 +61,7 @@ function App() {
         {/* Públicas */}
         <Route path="/"      element={isLoggedIn ? <HomeRol usuario={usuario} /> : <Landing onLoginSuccess={handleLoginSuccess} />} />
         <Route path="/login" element={isLoggedIn ? <HomeRol usuario={usuario} /> : <Login   onLoginSuccess={handleLoginSuccess} />} />
+        <Route path="/cambiar-password" element={<CambiarPassword />} />
 
         {/* Solo Administrador */}
         <Route path="/admin" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Dashboard {...pageProps} /></RolRoute>} />

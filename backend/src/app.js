@@ -12,6 +12,7 @@ import remuneracionRoutes from "./routes/remuneracion.routes.js";
 import avisoRoutes from "./routes/aviso.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import { iniciarCronContratos } from "./jobs/contratosCron.js";
+import resetPasswordRoutes from './routes/resetPasswordRoutes.js';
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -49,6 +50,7 @@ app.use("/api/cuadrilla",      cuadrillaRoutes);
 app.use("/api/remuneraciones", remuneracionRoutes);
 app.use("/api/avisos",         avisoRoutes);
 app.use("/api/auth",           authRoutes);
+app.use('/api/reset', resetPasswordRoutes);
 
 // Expone la carpeta uploads para servir archivos estáticos (imágenes, documentos, etc.) desde el backend 
 app.use('/uploads', express.static('uploads'));
