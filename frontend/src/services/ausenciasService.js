@@ -16,21 +16,35 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
-// Obtener todas las ausencias
+// Obtener todas las ausencias (Filtra por cuadrilla automáticamente en el backend)
 export const getAusencias = () =>
   apiFetch('/api/ausencias');
 
-// Crear ausencia
+// Crear ausencia (Flujo normal del trabajador)
 export const crearAusencia = (datos) =>
   apiFetch('/api/ausencias', {
     method: 'POST',
     body: JSON.stringify(datos),
   });
 
-// Revisar ausencia (aprobar / rechazar)
+// Crear ausencia por Supervisor (Inasistencia espontánea)
+export const crearAusenciaPorSupervisor = (datos) =>
+  apiFetch('/api/ausencias/supervisor', { // Asegúrate de que tu router apunte a /supervisor
+    method: 'POST',
+    body: JSON.stringify(datos),
+  });
+
+// Justificar una inasistencia (El trabajador sube el motivo/documento)
+export const justificarAusencia = (id, datos) =>
+  apiFetch(`/api/ausencias/justificar/${id}`, { // Sincronizado con tu controlador
+    method: 'POST',
+    body: JSON.stringify(datos),
+  });
+
+// Revisar ausencia (Aprobar / Rechazar por el Supervisor)
 export const revisarAusencia = (id, datos) =>
-  apiFetch(`/api/ausencias/${id}/revisar`, {
-    method: 'PUT',
+  apiFetch(`/api/ausencias/revisar/${id}`, { 
+    method: 'PATCH', // Cambiado a PATCH porque altera un estado parcial y usa transacciones
     body: JSON.stringify(datos),
   });
 
