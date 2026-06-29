@@ -10,46 +10,23 @@ export const AusenciaSchema = new EntitySchema({
       type: "int",
       generated: true,
     },
-
     id_trabajador: {
       type: "int",
       nullable: false,
     },
-
     id_cuadrilla: {
       type: "int",
       nullable: false,
     },
-
     fecha_inicio: {
       type: "date",
     },
-
     fecha_termino: {
       type: "date",
     },
-
-    motivo: {
-      type: "varchar",
-    },
-
+    // El "estado" general de la ausencia depende de si se justifica o no
     estado: {
-      type: "varchar",
-    },
-
-    comentario_revision: {
-      type: "varchar",
-      nullable: true,
-    },
-
-    fecha_revision: {
-      type: "date",
-      nullable: true,
-    },
-
-    url_documento: {
-      type: 'varchar',
-      nullable: true,
+      type: "varchar", // ej: "Pendiente", "Justificada", "Injustificada"
     },
   },
 
@@ -57,23 +34,17 @@ export const AusenciaSchema = new EntitySchema({
     trabajador: {
       type: "many-to-one",
       target: "Trabajador",
-      joinColumn: {
-        name: "id_trabajador",
-      },
+      joinColumn: { name: "id_trabajador" },
       inverseSide: "ausencias",
       nullable: false,
     },
-
     cuadrilla: {
       type: "many-to-one",
       target: "Cuadrilla",
-      joinColumn: {
-        name: "id_cuadrilla",
-      },
+      joinColumn: { name: "id_cuadrilla" },
       inverseSide: "ausencias",
       nullable: false,
     },
-
     justificacion: {
       type: "one-to-one",
       target: "JustificacionAusencia",
