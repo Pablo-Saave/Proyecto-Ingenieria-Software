@@ -284,7 +284,7 @@ const CambiarPassword = () => {
                 <InputField label="Código de verificación">
                   <input
                     className="cp-otp-input"
-                    placeholder="0  0  0  0  0  0"
+                    placeholder="000000"
                     value={codigo}
                     onChange={e => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     maxLength={6}
@@ -385,7 +385,13 @@ const CambiarPassword = () => {
       {/* Footer — mismo patrón que .footer-bottom */}
       <p className="cp-page-footer">
         ¿Necesitas ayuda?{' '}
-        <a href="mailto:soporte@aseocorp.cl">Contáctanos</a>
+        <a
+          href="https://mail.google.com/mail/?view=cm&fs=1&to=info.aseocorp@gmail.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Contáctanos
+        </a>
       </p>
     </div>
   );
