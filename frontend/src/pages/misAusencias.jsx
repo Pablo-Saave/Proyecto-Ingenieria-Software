@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/trabajadores.css';
 import {
-  CalendarOff, Plus, X, Save, AlertCircle, ClipboardList,
+  Plus, X, Save, AlertCircle, ClipboardList,
   Trash2, Paperclip, FileText, AlertTriangle,
 } from 'lucide-react';
 
@@ -89,11 +89,6 @@ function MisAusencias({ usuario, onLogout }) {
     return diff >= 0 ? `${diff + 1} día${diff !== 0 ? 's' : ''}` : '—';
   };
 
-  const total           = ausencias.length;
-  const porJustificar    = ausencias.filter((a) => a.estado === 'Por Justificar').length;
-  const aprobadas        = ausencias.filter((a) => a.estado === 'Aprobada').length;
-  const pendientes       = ausencias.filter((a) => a.estado === 'Pendiente').length;
-  const rechazadas       = ausencias.filter((a) => a.estado === 'Rechazada').length;
   const ausenciasPorJustificar = ausencias.filter((a) => a.estado === 'Por Justificar');
 
   // La columna Acciones solo se muestra si alguna fila visible tiene una acción posible
@@ -243,25 +238,6 @@ function MisAusencias({ usuario, onLogout }) {
               </button>
             </div>
           )}
-
-          {/* Resumen */}
-          <div className="metrics-grid" style={{ marginBottom: '20px' }}>
-            {[
-              { label: 'Total',          value: total,         color: '#4F46E5' },
-              { label: 'Por Justificar', value: porJustificar, color: '#ea580c' },
-              { label: 'Aprobadas',      value: aprobadas,     color: '#10B981' },
-              { label: 'Pendientes',     value: pendientes,    color: '#F59E0B' },
-              { label: 'Rechazadas',     value: rechazadas,    color: '#EF4444' },
-            ].map((m) => (
-              <div key={m.label} className="metric-card">
-                <div className="metric-header">
-                  <h3 className="metric-title">{m.label}</h3>
-                  <CalendarOff size={18} color={m.color} />
-                </div>
-                <div className="metric-value" style={{ color: m.color }}>{m.value}</div>
-              </div>
-            ))}
-          </div>
 
           {/* Filtros */}
           <div className="tw-toolbar" style={{ marginBottom: '12px' }}>

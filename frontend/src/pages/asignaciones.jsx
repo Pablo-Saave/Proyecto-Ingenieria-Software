@@ -3,8 +3,8 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/trabajadores.css';
 import {
-  Plus, Search, Trash2, X, Save, AlertCircle, Users, Briefcase,
-  UserCheck, ChevronDown, ChevronUp, UserPlus,
+  Plus, Search, Trash2, X, Save, AlertCircle, Users,
+  ChevronDown, ChevronUp, UserPlus,
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
@@ -119,11 +119,6 @@ function Asignaciones({ usuario, onLogout }) {
     return !q || nombreT(idT).toLowerCase().includes(q) || a.cargo_operativo?.toLowerCase().includes(q);
   });
 
-  // Métricas
-  const activas    = asignaciones.filter((a) => !a.fecha_retiro).length;
-  const nSups      = asignacionesSup.length;
-  const nOps       = asignacionesOp.length;
-
   // ── Guardar supervisor ────────────────────────────────────────────────────
   const handleSubmitSup = async (e) => {
     e.preventDefault();
@@ -206,22 +201,6 @@ function Asignaciones({ usuario, onLogout }) {
             <button className="btn-nuevo-trabajador" onClick={() => { setSupForm(EMPTY_SUPERVISOR_FORM); setSupError(null); setShowModalSup(true); }}>
               <Plus size={16} /> Nueva Cuadrilla
             </button>
-          </div>
-
-          {/* Métricas */}
-          <div className="metrics-grid" style={{ marginBottom: '24px' }}>
-            <div className="metric-card">
-              <div className="metric-header"><h3 className="metric-title">Asignaciones Activas</h3><Users size={20} color="#4F46E5" /></div>
-              <div className="metric-value">{activas}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-header"><h3 className="metric-title">Supervisores</h3><UserCheck size={20} color="#10B981" /></div>
-              <div className="metric-value" style={{ color: '#10B981' }}>{nSups}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-header"><h3 className="metric-title">Operarios</h3><Briefcase size={20} color="#F59E0B" /></div>
-              <div className="metric-value" style={{ color: '#F59E0B' }}>{nOps}</div>
-            </div>
           </div>
 
           {/* Buscador */}

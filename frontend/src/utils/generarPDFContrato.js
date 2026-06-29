@@ -19,7 +19,7 @@ function calcularAntiguedad(fechaInicio) {
     years--;
     months += 12;
   }
-  return `${years} ano${years !== 1 ? 's' : ''}, ${months} mes${months !== 1 ? 'es' : ''}`;
+  return `${years} año${years !== 1 ? 's' : ''}, ${months} mes${months !== 1 ? 'es' : ''}`;
 }
 
 function getDatosTrabajador(contrato) {
