@@ -4,8 +4,8 @@ import { AppDataSource } from "../config/configDb.js";
 import { ProyectoSchema } from "../entities/proyecto.entity.js";
 import { ClienteSchema } from "../entities/cliente.entity.js";
 
-const proyectoRepo = AppDataSource.getRepository(ProyectoSchema);
-const clienteRepo = AppDataSource.getRepository(ClienteSchema);
+const proyectoRepository = AppDataSource.getRepository(ProyectoSchema);
+const clienteRepository = AppDataSource.getRepository(ClienteSchema);
 const asignadoRepository = AppDataSource.getRepository("Asignado");
 
 /***
@@ -170,6 +170,7 @@ export const crearProyecto = async (req, res) => {
       direccion,
       nivel_exigencia,
       cantidad_personal_requerido: Number(cantidad_personal_requerido),
+      fecha_creacion: new Date(),
     });
 
     await proyectoRepository.save(nuevoProyecto);

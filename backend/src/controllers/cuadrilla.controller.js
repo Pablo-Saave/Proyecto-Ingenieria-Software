@@ -978,7 +978,7 @@ export const eliminarTrabajadorCuadrilla = async (req, res) => {
 
 
 /***
- * Obtiene una lista paginada de las cuadrillas a las que pertenece un trabajador de un proyecto, en base a un id_proyecto proveido en el body y un id_trabajador proveido en el token.
+ * Obtiene una lista paginada de las cuadrillas a las que pertenece un trabajador de un proyecto, en base a un id_proyecto provisto en la URL y un id_trabajador proveido en el token.
  * Cada cuadrilla incluye una lista de sus integrantes con la forma:
  * { id_trabajador, nombres, apellidos, cargo_operativo, es_bodeguero, tipo_jornada, fecha_asignacion }
  * Validaciones
@@ -990,7 +990,7 @@ export const eliminarTrabajadorCuadrilla = async (req, res) => {
  */
 export const getMyCuadrillasAndWorkersFromIdProyecto = async (req, res) => {
   try {
-    const { id_proyecto } = req.body;
+    const { id_proyecto } = req.params;
     const { id_trabajador: id_solicitante } = req.user;
 
     if (!id_proyecto) {

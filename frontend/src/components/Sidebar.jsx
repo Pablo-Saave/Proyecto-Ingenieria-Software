@@ -20,8 +20,6 @@ const MENU_POR_ROL = {
     { id: 'mis-asignaciones', label: 'Mis Asignaciones',  icon: Briefcase,       path: '/app/mis-asignaciones' },
     { id: 'mis-contratos',    label: 'Mis Contratos',     icon: FileText,        path: '/app/mis-contratos' },
     { id: 'ausencias',        label: 'Ausencias',         icon: Clock,           path: '/admin/ausencias' },
-    { id: 'trabajadores',     label: 'Trabajadores',      icon: Users,           path: '/admin/trabajadores' },
-    { id: 'contratos',        label: 'Contratos',         icon: FileText,        path: '/supervisor/contratos' },
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/supervisor/avisos' },
   ],
   trabajador: [

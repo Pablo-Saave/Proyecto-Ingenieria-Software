@@ -6,9 +6,9 @@ import Header from '../components/Header';
 import '../styles/trabajadores.css';
 import '../styles/dashboard.css';
 import { AlertCircle, Bell, MessageSquare, Plus, Send, Trash2, X } from 'lucide-react';
-import { getTodosLosAvisos, getEtiquetasAviso, crearAviso, eliminarAviso } from '../services/avisosService';
+import { getTodosLosAvisos, getCuadrillasAviso, crearAviso, eliminarAviso } from '../services/avisosService';
 
-const EMPTY_FORM = { titulo: '', contenido: '', prioridad: 'normal', id_etiqueta: '' };
+const EMPTY_FORM = { titulo: '', contenido: '', prioridad: 'normal', id_cuadrilla: '' };
 const PRIORIDAD_LABEL = { baja: 'Baja', normal: 'Normal', alta: 'Alta', urgente: 'Urgente' };
 
 function formatFecha(fecha) {
@@ -51,21 +51,21 @@ function ConfirmEliminar({ aviso, onClose, onConfirmar, eliminando }) {
 
 function CanalesAvisosAdmin({ usuario, onLogout }) {
   const [avisos,      setAvisos]      = useState([]);
-  const [etiquetas,   setEtiquetas]   = useState([]);
+  const [cuadrillas,   setCuadrillas]   = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState(null);
   const [form,        setForm]        = useState(EMPTY_FORM);
   const [saving,      setSaving]      = useState(false);
   const [showForm,    setShowForm]    = useState(false);
-  const [filtroEtiq,  setFiltroEtiq]  = useState('todas');
+  const [filtroCuad,  setFiltroCuad]  = useState('todas');
   const [avisoDelete, setAvisoDelete] = useState(null);
   const [eliminando,  setEliminando]  = useState(false);
 
   const cargar = () => {
     setLoading(true);
     setError(null);
-    Promise.all([getTodosLosAvisos(), getEtiquetasAviso()])
-      .then(([av, et]) => { setAvisos(av); setEtiquetas(et); })
+    Promise.all([getTodosLosAvisos(), getCuadrillasAviso()])
+      .then(([av, et]) => { setAvisos(av); setCuadrillas(et); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
@@ -75,7 +75,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.titulo.trim() || !form.contenido.trim()) { setError('Título y contenido son obligatorios.'); return; }
-    if (!form.id_etiqueta) { setError('Debes seleccionar una cuadrilla.'); return; }
+    if (!form.id_cuadrilla) { setError('Debes seleccionar una cuadrilla.'); return; }
     setSaving(true);
     setError(null);
     try {
@@ -104,9 +104,9 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
     }
   };
 
-  const avisosFiltrados = filtroEtiq === 'todas'
+  const avisosFiltrados = filtroCuad === 'todas'
     ? avisos
-    : avisos.filter((a) => String(a.id_etiqueta) === String(filtroEtiq));
+    : avisos.filter((a) => String(a.id_cuadrilla) === String(filtroCuad));
 
   return (
     <div className="dashboard-wrapper">
@@ -139,10 +139,10 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
                 </div>
                 <div className="tw-field" style={{ marginBottom: 0 }}>
                   <label>Cuadrilla *</label>
-                  <select value={form.id_etiqueta} onChange={(e) => setForm((p) => ({ ...p, id_etiqueta: e.target.value }))} required>
+                  <select value={form.id_cuadrilla} onChange={(e) => setForm((p) => ({ ...p, id_cuadrilla: e.target.value }))} required>
                     <option value="">— Seleccionar —</option>
-                    {etiquetas.map((et) => (
-                      <option key={et.id_etiqueta} value={et.id_etiqueta}>{et.nombre_etiqueta}</option>
+                    {cuadrillas.map((et) => (
+                      <option key={et.id_cuadrilla} value={et.id_cuadrilla}>{et.nombre_cuadrilla}</option>
                     ))}
                   </select>
                 </div>
@@ -174,25 +174,25 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
           {/* Filtro por cuadrilla */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
             <button
-              onClick={() => setFiltroEtiq('todas')}
+              onClick={() => setFiltroCuad('todas')}
               style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', fontSize: 13, cursor: 'pointer', fontWeight: 600,
-                background: filtroEtiq === 'todas' ? '#4F46E5' : '#fff',
-                color:      filtroEtiq === 'todas' ? '#fff'    : '#374151',
-                borderColor: filtroEtiq === 'todas' ? '#4F46E5' : '#D1D5DB',
+                background: filtroCuad === 'todas' ? '#4F46E5' : '#fff',
+                color:      filtroCuad === 'todas' ? '#fff'    : '#374151',
+                borderColor: filtroCuad === 'todas' ? '#4F46E5' : '#D1D5DB',
               }}
             >
               Todas
             </button>
-            {etiquetas.map((et) => (
-              <button key={et.id_etiqueta}
-                onClick={() => setFiltroEtiq(String(et.id_etiqueta))}
+            {cuadrillas.map((et) => (
+              <button key={et.id_cuadrilla}
+                onClick={() => setFiltroCuad(String(et.id_cuadrilla))}
                 style={{ padding: '5px 14px', borderRadius: 999, border: '1px solid', fontSize: 13, cursor: 'pointer', fontWeight: 600,
-                  background: filtroEtiq === String(et.id_etiqueta) ? '#4F46E5' : '#fff',
-                  color:      filtroEtiq === String(et.id_etiqueta) ? '#fff'    : '#374151',
-                  borderColor: filtroEtiq === String(et.id_etiqueta) ? '#4F46E5' : '#D1D5DB',
+                  background: filtroCuad === String(et.id_cuadrilla) ? '#4F46E5' : '#fff',
+                  color:      filtroCuad === String(et.id_cuadrilla) ? '#fff'    : '#374151',
+                  borderColor: filtroCuad === String(et.id_cuadrilla) ? '#4F46E5' : '#D1D5DB',
                 }}
               >
-                {et.nombre_etiqueta}
+                {et.nombre_cuadrilla}
               </button>
             ))}
           </div>
@@ -201,7 +201,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
             <div className="tw-loading"><div className="tw-spinner" /> Cargando avisos...</div>
           ) : avisosFiltrados.length === 0 ? (
             <div className="tw-empty" style={{ padding: '60px 20px' }}>
-              <Bell size={40} /><p>No hay avisos{filtroEtiq !== 'todas' ? ' para esta cuadrilla' : ''}.</p>
+              <Bell size={40} /><p>No hay avisos{filtroCuad !== 'todas' ? ' para esta cuadrilla' : ''}.</p>
             </div>
           ) : (
             <div style={{ display: 'grid', gap: 14 }}>
@@ -215,7 +215,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
                       <div>
                         <h2 style={{ fontSize: 16, color: '#111827', margin: 0 }}>{aviso.titulo}</h2>
                         <p style={{ fontSize: 12, color: '#6b7280', margin: '3px 0 0' }}>
-                          {aviso.autor?.nombres ?? 'Usuario'} {aviso.autor?.apellidos ?? ''} · {formatFecha(aviso.fecha_publicacion)}
+                          {aviso.nombre_autor ?? 'Usuario'} · {formatFecha(aviso.fecha_publicacion)}
                         </p>
                       </div>
                     </div>
@@ -236,7 +236,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
                     {aviso.contenido}
                   </p>
                   <div style={{ marginTop: 14, display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span className="tw-etiqueta-badge">{aviso.etiqueta?.nombre_etiqueta ?? '—'}</span>
+                    <span className="tw-etiqueta-badge">{aviso.cuadrilla?.nombre_cuadrilla ?? '—'}</span>
                   </div>
                 </article>
               ))}
@@ -258,3 +258,5 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
 }
 
 export default CanalesAvisosAdmin;
+
+

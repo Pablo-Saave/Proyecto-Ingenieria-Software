@@ -9,6 +9,7 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -16,11 +17,13 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
     "node-cron": "^4.5.0",
+    "nodemailer": "^9.0.1",
     "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.28"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "nodemon": "^2.0.20"
   }
 }
