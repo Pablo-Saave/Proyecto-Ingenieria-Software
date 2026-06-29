@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
@@ -16,21 +16,35 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
-// Obtener todas las ausencias
+// Obtener todas las ausencias (Filtra por cuadrilla automáticamente en el backend)
 export const getAusencias = () =>
   apiFetch('/api/ausencias');
 
-// Crear ausencia
+// Crear ausencia (Flujo normal del trabajador desde su panel)
 export const crearAusencia = (datos) =>
   apiFetch('/api/ausencias', {
     method: 'POST',
     body: JSON.stringify(datos),
   });
 
-// Revisar ausencia (aprobar / rechazar)
+// Crear inasistencia por Supervisor (Inasistencia espontánea detectada en terreno)
+export const crearAusenciaPorSupervisor = (datos) =>
+  apiFetch('/api/ausencias/supervisor', {
+    method: 'POST',
+    body: JSON.stringify(datos),
+  });
+
+// Justificar una inasistencia (El trabajador sube el motivo/documento)
+export const justificarAusencia = (id, datos) =>
+  apiFetch(`/api/ausencias/justificar/${id}`, {
+    method: 'POST',
+    body: JSON.stringify(datos),
+  });
+
+// Revisar ausencia (Aprobar / Rechazar por el Supervisor)
 export const revisarAusencia = (id, datos) =>
-  apiFetch(`/api/ausencias/${id}/revisar`, {
-    method: 'PUT',
+  apiFetch(`/api/ausencias/revisar/${id}`, { 
+    method: 'PATCH', // Sincronizado con router.patch en el backend
     body: JSON.stringify(datos),
   });
 

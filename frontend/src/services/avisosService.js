@@ -28,9 +28,9 @@ export async function getTodosLosAvisos() {
   return Array.isArray(res.data) ? res.data : [];
 }
 
-// Admin: lista de etiquetas para el selector al publicar
-export async function getEtiquetasAviso() {
-  const res = await apiFetch('/api/avisos/etiquetas');
+// Admin: lista de cuadrillas para el selector al publicar
+export async function getCuadrillasAviso() {
+  const res = await apiFetch('/api/avisos/cuadrillas');
   return Array.isArray(res.data) ? res.data : [];
 }
 

@@ -1,10 +1,86 @@
 // controllers/aviso.controller.js
 import { AppDataSource } from "../config/configDb.js";
+import { IsNull } from "typeorm";
 
 const PRIORIDADES_VALIDAS = ["baja", "normal", "alta", "urgente"];
 
-function getAvisoRepo()     { return AppDataSource.getRepository("Aviso"); }
-function getTrabajadorRepo(){ return AppDataSource.getRepository("Trabajador"); }
+const avisoRepository = AppDataSource.getRepository("Aviso");
+const trabajadorRepository = AppDataSource.getRepository("Trabajador");
+const cuadrillaRepository = AppDataSource.getRepository("Cuadrilla");
+const asignadoRepository = AppDataSource.getRepository("Asignado");
+
+const getAsignacionActiva = (id_trabajador) =>
+  asignadoRepository.findOne({
+    where: { id_trabajador, fecha_retiro: IsNull() },
+    relations: ["cuadrilla"],
+  });
+
+const validarPrioridad = (prioridad) =>
+  prioridad === undefined || PRIORIDADES_VALIDAS.includes(prioridad);
+
+export const getCuadrillas = async (req, res) => {
+  try {
+    const { tipo_usuario } = req.user;
+
+    if (tipo_usuario !== "administrador") {
+      return res.status(403).json({ message: "No tiene permisos para ver las cuadrillas" });
+    }
+
+    const cuadrillas = await cuadrillaRepository.find({
+      order: { nombre_cuadrilla: "ASC" },
+    });
+
+    return res.status(200).json({ data: cuadrillas });
+  } catch (error) {
+    console.error("Error en getCuadrillas:", error);
+    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+  }
+};
+
+export const getTodosLosAvisos = async (req, res) => {
+  try {
+    const { tipo_usuario } = req.user;
+
+    if (tipo_usuario !== "administrador") {
+      return res.status(403).json({ message: "No tiene permisos para ver todos los avisos" });
+    }
+
+    const avisos = await avisoRepository.find({
+      relations: ["cuadrilla"],
+      order: { fecha_publicacion: "DESC" },
+    });
+
+    return res.status(200).json({ data: avisos });
+  } catch (error) {
+    console.error("Error en getTodosLosAvisos:", error);
+    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+  }
+};
+
+export const getAvisosMiUnidad = async (req, res) => {
+  try {
+    const { id_trabajador } = req.user;
+
+    const asignacion = await getAsignacionActiva(id_trabajador);
+    if (!asignacion) {
+      return res.status(200).json({ unidad: null, data: [] });
+    }
+
+    const avisos = await avisoRepository.find({
+      where: { id_cuadrilla: asignacion.id_cuadrilla },
+      relations: ["cuadrilla"],
+      order: { fecha_publicacion: "DESC" },
+    });
+
+    return res.status(200).json({
+      unidad: asignacion.cuadrilla,
+      data: avisos,
+    });
+  } catch (error) {
+    console.error("Error en getAvisosMiUnidad:", error);
+    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+  }
+};
 
 
 /***
@@ -40,6 +116,7 @@ export const verAvisos = async (req, res) => {
         where: {
           id_trabajador,
           id_cuadrilla: Number(id_cuadrilla),
+          fecha_retiro: IsNull(),
         },
       });
 
@@ -83,10 +160,6 @@ export const verAvisos = async (req, res) => {
 
 
 
-
-
-
-
 /***
  * Crea un aviso en una cuadrilla
  * Recibe: id_cuadrilla (param), titulo, contenido, prioridad (body)
@@ -102,20 +175,34 @@ export const verAvisos = async (req, res) => {
  */
 export const crearAviso = async (req, res) => {
   try {
-    const { id_cuadrilla } = req.params;
+    let id_cuadrilla = req.params.id_cuadrilla ?? req.body.id_cuadrilla;
     const { titulo, contenido, prioridad } = req.body;
     const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
-
-    if (isNaN(Number(id_cuadrilla))) {
-      return res.status(400).json({
-        message: "id_cuadrilla debe ser numérico",
-      });
-    }
 
     // 5. Validar que los campos esperados no estén vacíos
     if (!titulo || !contenido) {
       return res.status(400).json({
         message: "Los campos titulo y contenido son obligatorios",
+      });
+    }
+
+    if (!validarPrioridad(prioridad)) {
+      return res.status(400).json({
+        message: "Prioridad inválida",
+      });
+    }
+
+    if (tipo_solicitante === "supervisor" && !id_cuadrilla) {
+      const asignacion = await getAsignacionActiva(id_solicitante);
+      if (!asignacion) {
+        return res.status(404).json({ message: "No tiene una cuadrilla activa asignada" });
+      }
+      id_cuadrilla = asignacion.id_cuadrilla;
+    }
+
+    if (!id_cuadrilla || isNaN(Number(id_cuadrilla))) {
+      return res.status(400).json({
+        message: "id_cuadrilla debe ser numérico",
       });
     }
 
@@ -154,6 +241,7 @@ export const crearAviso = async (req, res) => {
         where: {
           id_trabajador: id_solicitante,
           id_cuadrilla: Number(id_cuadrilla),
+          fecha_retiro: IsNull(),
         },
       });
 
@@ -186,19 +274,13 @@ export const crearAviso = async (req, res) => {
 
     return res.status(201).json({
       message: "Aviso creado correctamente",
-      data: nuevoAviso,
+      data: { ...nuevoAviso, cuadrilla },
     });
   } catch (error) {
     console.error("Error en crearAviso:", error);
     return res.status(500).json({ message: "Error interno del servidor", error: error.message });
   }
 };
-
-
-
-
-
-
 
 
 
@@ -282,14 +364,6 @@ export const editarAviso = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
 /***
  * Elimina un aviso
  * Recibe: id_aviso (param)
@@ -347,6 +421,7 @@ export const eliminarAviso = async (req, res) => {
         where: {
           id_trabajador: id_solicitante,
           id_cuadrilla: aviso.cuadrilla.id_cuadrilla,
+          fecha_retiro: IsNull(),
         },
       });
 
@@ -364,7 +439,7 @@ export const eliminarAviso = async (req, res) => {
       }
     }
 
-    // 6. Eliminar el aviso (physical delete)
+    // 6. Eliminar el aviso
     await avisoRepository.remove(aviso);
 
     return res.status(200).json({

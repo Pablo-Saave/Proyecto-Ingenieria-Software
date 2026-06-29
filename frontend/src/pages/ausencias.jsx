@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Search, UserX, CalendarOff, AlertCircle, ClipboardList, 
+  CheckCircle, Trash2, X 
+} from 'lucide-react';
+
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import '../styles/ausencias.css';
-import {
-  CalendarOff, Search, Trash2, X, Save, AlertCircle,
-  ClipboardList, CheckCircle, UserX,
-} from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -18,9 +18,17 @@ async function apiFetch(path, options = {}) {
     },
     ...options,
   });
+
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || err.error || `Error ${res.status}`);
+    let msg = `Error ${res.status}`;
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const err = await res.json().catch(() => ({}));
+      msg = err.message || err.error || msg;
+    } else {
+      msg = `Error interno del servidor (${res.status}). Verifica los parámetros de la entidad.`;
+    }
+    throw new Error(msg);
   }
   return res.json();
 }
@@ -38,8 +46,9 @@ async function getTrabajadores() {
   return Array.isArray(data) ? data : data.data ?? [];
 }
 
-const EMPTY_INASISTENCIA = { id_trabajador: '', fecha_inicio: '', fecha_termino: '' };
-const FILTROS = ['Todos', 'Por Justificar', 'Pendiente', 'Aprobada', 'Rechazada'];
+const EMPTY_INASISTENCIA = { id_trabajador: '', id_cuadrilla: '', fecha_inicio: '', fecha_termino: '', motivo: '' };
+// Adaptado a los estados que realmente usa el backend
+const FILTROS = ['Todos', 'Pendiente', 'Por Justificar', 'Justificada', 'Injustificada'];
 
 function Ausencias({ usuario, onLogout }) {
   const [ausencias, setAusencias]       = useState([]);
@@ -55,18 +64,17 @@ function Ausencias({ usuario, onLogout }) {
   const [inasistError, setInasistError] = useState(null);
   const [savingInasist, setSavingInasist] = useState(false);
 
-  // Modal revisar — comentario es lo único editable; el revisor es el usuario logueado
-  const [showRevision, setShowRevision]     = useState(false);
-  const [revisionEstado, setRevisionEstado] = useState('Aprobada');
+  // Modal revisar
+  const [showRevision, setShowRevision]             = useState(false);
+  const [revisionEstado, setRevisionEstado]         = useState('Aprobado'); 
   const [revisionComentario, setRevisionComentario] = useState('');
-  const [revisionId, setRevisionId]         = useState(null);
-  const [revisionError, setRevisionError]   = useState(null);
-  const [savingRevision, setSavingRevision] = useState(false);
+  const [revisionId, setRevisionId]                 = useState(null);
+  const [revisionError, setRevisionError]           = useState(null);
+  const [savingRevision, setSavingRevision]         = useState(false);
 
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const mostrarColumnaAcciones = usuario?.tipo_usuario === 'administrador'
-    || usuario?.tipo_usuario === 'supervisor';
+  const mostrarColumnaAcciones = usuario?.tipo_usuario === 'administrador' || usuario?.tipo_usuario === 'supervisor';
 
   const fetchData = async () => {
     setLoading(true);
@@ -96,15 +104,17 @@ function Ausencias({ usuario, onLogout }) {
     const q = searchQuery.toLowerCase();
     const idT = a.trabajador?.id_trabajador ?? a.id_trabajador;
     const nombre = nombreTrabajador(idT).toLowerCase();
-    const matchSearch = !q || nombre.includes(q) || a.motivo?.toLowerCase().includes(q);
+    
+    // Búsqueda adaptada a la relación uno-a-uno de justificación
+    const motivoJustif = a.justificacion?.motivo?.toLowerCase() ?? '';
+    const matchSearch = !q || nombre.includes(q) || motivoJustif.includes(q);
     const matchEstado = filterEstado === 'Todos' || a.estado === filterEstado;
     return matchSearch && matchEstado;
   });
 
   const estadoBadgeClass = (estado) => {
-    if (estado === 'Aprobada')       return 'badge-activo';
-    if (estado === 'Rechazada')      return 'badge-inactivo';
-    if (estado === 'Por Justificar') return 'badge-por-justificar';
+    if (estado === 'Justificada')    return 'badge-activo'; 
+    if (estado === 'Injustificada')  return 'badge-inactivo';
     return 'badge-licencia';
   };
 
@@ -130,13 +140,19 @@ function Ausencias({ usuario, onLogout }) {
     e.preventDefault();
     setInasistError(null);
     setSavingInasist(true);
+
+    const payload = {
+      fecha_inicio: inasistForm.fecha_inicio,
+      fecha_termino: inasistForm.fecha_termino,
+      id_trabajador: Number(inasistForm.id_trabajador),
+      id_cuadrilla: Number(inasistForm.id_cuadrilla),
+      motivo: inasistForm.motivo || 'Inasistencia registrada por supervisor',
+    };
+
     try {
       await apiFetch('/api/ausencias/supervisor', {
         method: 'POST',
-        body: JSON.stringify({
-          ...inasistForm,
-          id_trabajador: Number(inasistForm.id_trabajador),
-        }),
+        body: JSON.stringify(payload),
       });
       closeInasistencia();
       fetchData();
@@ -147,9 +163,9 @@ function Ausencias({ usuario, onLogout }) {
     }
   };
 
-  // ── Revisar (el revisor es siempre el usuario logueado) ──────────────────
+  // ── Revisar ───────────────────────────────────────────────────────────────
   const openRevision = (ausencia) => {
-    setRevisionEstado('Aprobada');
+    setRevisionEstado('Aprobado'); 
     setRevisionComentario('');
     setRevisionError(null);
     setRevisionId(ausencia.id_ausencia);
@@ -165,9 +181,8 @@ function Ausencias({ usuario, onLogout }) {
       await apiFetch(`/api/ausencias/${revisionId}/revisar`, {
         method: 'PUT',
         body: JSON.stringify({
-          estado: revisionEstado,
+          estado_aprobacion: revisionEstado,
           comentario_revision: revisionComentario,
-          revisado_por: usuario?.id_trabajador, // siempre el usuario logueado
         }),
       });
       closeRevision();
@@ -234,7 +249,7 @@ function Ausencias({ usuario, onLogout }) {
 
           <div className="tw-count">
             <CalendarOff size={14} />
-            {filtered.length} ausencia{filtered.length !== 1 ? 's' : ''}
+            {filtered.length} ausencias registradas
             {filterEstado !== 'Todos' && ` · ${filterEstado}`}
           </div>
 
@@ -263,9 +278,8 @@ function Ausencias({ usuario, onLogout }) {
                 <tbody>
                   {filtered.map((a) => {
                     const idT = a.trabajador?.id_trabajador ?? a.id_trabajador;
-                    const esPendiente     = a.estado === 'Pendiente';
-                    const esPorJustificar = a.estado === 'Por Justificar';
-                    // No se puede revisar la propia ausencia
+                    const esPendiente = a.estado === 'Pendiente';
+                    const esInjustificada = a.estado === 'Injustificada';
                     const esPropia = idT === usuario?.id_trabajador;
                     return (
                       <tr key={a.id_ausencia}>
@@ -278,16 +292,19 @@ function Ausencias({ usuario, onLogout }) {
                         <td>{formatFecha(a.fecha_inicio)}</td>
                         <td>{formatFecha(a.fecha_termino)}</td>
                         <td className="aus-duracion">{diasAusencia(a.fecha_inicio, a.fecha_termino)}</td>
+                        
+                        {/* Renderizado adaptado a la relación de Justificación uno-a-uno */}
                         <td className="aus-motivo">
-                          {esPorJustificar
+                          {esInjustificada && !a.justificacion
                             ? <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Esperando justificación del trabajador...</span>
-                            : (a.motivo ?? '—')}
+                            : (a.justificacion?.motivo ?? '—')}
                         </td>
                         <td>
-                          {a.url_documento
-                            ? <a href={`${API_BASE}${a.url_documento}`} target="_blank" rel="noopener noreferrer">📄</a>
+                          {a.justificacion?.documento_respaldo
+                            ? <a href={`${API_BASE}${a.justificacion.documento_respaldo}`} target="_blank" rel="noopener noreferrer">📄</a>
                             : <span style={{ color: '#d1d5db' }}>—</span>}
                         </td>
+                        
                         <td>
                           <span className={`tw-badge ${estadoBadgeClass(a.estado)}`}>{a.estado ?? '—'}</span>
                         </td>
@@ -301,10 +318,10 @@ function Ausencias({ usuario, onLogout }) {
                               )}
                               {esPendiente && esPropia && (
                                 <span style={{ fontSize: '11px', color: '#9ca3af', fontStyle: 'italic' }}>
-                                  No puedes revisar tu propia solicitud
+                                  No puedes revisar tu solicitud
                                 </span>
                               )}
-                              {usuario?.tipo_usuario === 'administrador' && esPendiente && (
+                              {usuario?.tipo_usuario === 'administrador' && (
                                 <button className="tw-btn-delete" title="Eliminar" onClick={() => setConfirmDelete(a.id_ausencia)}>
                                   <Trash2 size={14} />
                                 </button>
@@ -331,7 +348,7 @@ function Ausencias({ usuario, onLogout }) {
               <button className="tw-modal-close" onClick={closeInasistencia}><X size={18} /></button>
             </div>
             <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 24px 14px' }}>
-              Usa esta opción cuando detectes una falta no avisada. El trabajador tendrá 24h para justificarla.
+              Usa esta opción para registrar faltas detectadas en terreno asignadas a tu cuadrilla.
             </p>
             {inasistError && <div className="tw-form-error"><AlertCircle size={14} /> {inasistError}</div>}
             <form className="tw-form" onSubmit={handleSubmitInasist}>
@@ -354,6 +371,14 @@ function Ausencias({ usuario, onLogout }) {
                 <div className="tw-field">
                   <label>Fecha Término *</label>
                   <input name="fecha_termino" type="date" value={inasistForm.fecha_termino} onChange={handleInasistChange} required />
+                </div>
+                <div className="tw-field tw-field-full">
+                  <label>ID de Cuadrilla *</label>
+                  <input name="id_cuadrilla" type="number" min="1" value={inasistForm.id_cuadrilla} onChange={handleInasistChange} required placeholder="Ej: 1" />
+                </div>
+                <div className="tw-field tw-field-full">
+                  <label>Motivo</label>
+                  <input name="motivo" value={inasistForm.motivo} onChange={handleInasistChange} placeholder="Ej: Falta injustificada" />
                 </div>
               </div>
               <div className="tw-modal-footer">
@@ -381,26 +406,17 @@ function Ausencias({ usuario, onLogout }) {
                 <div className="tw-field tw-field-full">
                   <label>Decisión *</label>
                   <select value={revisionEstado} onChange={(e) => setRevisionEstado(e.target.value)} required>
-                    <option value="Aprobada"> Aprobar</option>
-                    <option value="Rechazada"> Rechazar</option>
+                    <option value="Aprobado">Aprobar y Registrar Justificación</option>
+                    <option value="Rechazado">Rechazar (Permanecer Injustificada)</option>
                   </select>
                 </div>
                 <div className="tw-field tw-field-full">
-                  <label>Comentario *</label>
+                  <label>Comentario de Revisión *</label>
                   <input
                     value={revisionComentario}
                     onChange={(e) => setRevisionComentario(e.target.value)}
                     required
-                    placeholder="Ej: Documentación recibida correctamente"
-                  />
-                </div>
-                {/* Revisor autocompletado y bloqueado */}
-                <div className="tw-field tw-field-full">
-                  <label>Revisado por</label>
-                  <input
-                    value={`${usuario?.nombres ?? ''} ${usuario?.apellidos ?? ''}`}
-                    disabled
-                    style={{ background: '#f3f4f6', color: '#6b7280', cursor: 'not-allowed' }}
+                    placeholder="Ej: Certificado médico validado"
                   />
                 </div>
               </div>
@@ -423,7 +439,7 @@ function Ausencias({ usuario, onLogout }) {
               <h2>Confirmar eliminación</h2>
               <button className="tw-modal-close" onClick={() => setConfirmDelete(null)}><X size={18} /></button>
             </div>
-            <p className="tw-confirm-text">¿Estás seguro de que deseas eliminar esta ausencia?</p>
+            <p className="tw-confirm-text">¿Estás seguro de que deseas eliminar este registro de ausencia?</p>
             <div className="tw-modal-footer">
               <button className="tw-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancelar</button>
               <button className="tw-btn-delete-confirm" onClick={() => handleDelete(confirmDelete)}>
