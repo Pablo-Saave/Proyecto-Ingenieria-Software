@@ -47,12 +47,16 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
     const verifSupervisor = await AppDataSource.getRepository("Asignado").findOne({
       where: {
         id_trabajador: req.user?.id_trabajador,
-        id_cuadrilla: id_cuadrilla,
-        rol: "supervisor",
+        id_cuadrilla: Number(id_cuadrilla),
       },
+      relations: ["trabajador"],
     });
 
-    if (!verifSupervisor) {
+    const esSupervisorAutorizado =
+      req.user?.tipo_usuario === "administrador" ||
+      verifSupervisor?.trabajador?.tipo_usuario === "supervisor";
+
+    if (!esSupervisorAutorizado) {
       return res.status(403).json({ error: "No eres supervisor autorizado de esta cuadrilla" });
     }
 
@@ -68,8 +72,7 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
     const nueva = repo.create({
       fecha_inicio,
       fecha_termino,
-      motivo: motivo || "Inasistencia no avisada — pendiente de justificación",
-      estado: "Por Justificar",
+      estado: "Pendiente",
       trabajador: { id_trabajador },
       cuadrilla: { id_cuadrilla },
     });
@@ -97,7 +100,9 @@ export const justificarAusencia = async (req, res) => {
       return res.status(404).json({ error: "Ausencia no encontrada" });
     }
 
-    if (ausencia.estado !== "Por Justificar") {
+    const requiereJustificacion = ausencia.estado === "Por Justificar" || ausencia.estado === "Pendiente";
+
+    if (!requiereJustificacion) {
       return res.status(400).json({ error: "Esta ausencia no requiere justificación o ya está en proceso" });
     }
 
@@ -153,7 +158,7 @@ export const eliminarAusencia = async (req, res) => {
   try {
     const ausencia = await repo.findOne({ where: { id_ausencia: Number(req.params.id) } });
 
-    if (!ausence) return res.status(404).json({ error: 'Ausencia no encontrada' });
+    if (!ausencia) return res.status(404).json({ error: 'Ausencia no encontrada' });
     if (ausencia.estado !== 'Pendiente' && ausencia.estado !== 'Por Justificar') {
       return res.status(400).json({ error: 'No se puede eliminar una ausencia ya procesada o cerrada' });
     }
@@ -207,8 +212,10 @@ export const revisarAusencia = async (req, res) => {
       return res.status(404).json({ error: "Ausencia no encontrada" });
     }
 
-    if (ausencia.estado !== "Pendiente") {
-      return res.status(400).json({ error: "La ausencia no está en estado Pendiente para revisión" });
+    const permiteRevision = ausencia.estado === "Pendiente" || ausencia.estado === "Por Justificar";
+
+    if (!permiteRevision) {
+      return res.status(400).json({ error: "La ausencia no está en un estado válido para revisión" });
     }
 
     // REGLA: El supervisor no puede auto-revisarse si él fue el que faltó
@@ -221,12 +228,15 @@ export const revisarAusencia = async (req, res) => {
       where: {
         id_trabajador: req.user?.id_trabajador,
         id_cuadrilla: ausencia.cuadrilla?.id_cuadrilla,
-        trabajador: { tipo_usuario: "supervisor" } // <-- Valida el rol guardado en el Trabajador
       },
-      relations: ["trabajador"]
+      relations: ["trabajador"],
     });
 
-    if (!asignacionRevisor) {
+    const esRevisorValido =
+      req.user?.tipo_usuario === "administrador" ||
+      asignacionRevisor?.trabajador?.tipo_usuario === "supervisor";
+
+    if (!esRevisorValido) {
       return res.status(403).json({ 
         error: "No tienes permisos de supervisor en la cuadrilla de esta ausencia para poder revisarla." 
       });
