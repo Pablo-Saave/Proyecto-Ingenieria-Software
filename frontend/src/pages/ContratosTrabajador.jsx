@@ -52,6 +52,8 @@ function getEstadoBadgeStyle(estado) {
 }
 
 function mapContrato(c) {
+  const t = c.trabajador || {};
+
   return {
     id_contrato: c.id_contrato,
     tipo_contrato: c.tipo_contrato || '—',
@@ -59,6 +61,13 @@ function mapContrato(c) {
     fecha_inicio: c.fecha_inicio,
     fecha_termino: c.fecha_termino || '',
     observaciones: c.observaciones || '',
+    trabajador: {
+      id_trabajador: t.id_trabajador,
+      nombre: `${t.nombres || ''} ${t.apellidos || ''}`.trim() || 'Sin nombre',
+      rut: t.rut || '-',
+      correo: t.correo || '',
+      telefono: t.telefono || '',
+    },
     estado: calcularEstado(c.fecha_termino),
     diasRestantes: calcularDiasRestantes(c.fecha_termino),
   };
@@ -88,6 +97,8 @@ function DetalleModal({ contrato, onClose }) {
           <button className="modal-close" onClick={onClose}><X size={18} /></button>
         </div>
         <div className="modal-body detalle-grid">
+          <div><span className="detalle-label">Trabajador</span><span>{contrato.trabajador?.nombre ?? '-'}</span></div>
+          <div><span className="detalle-label">RUT</span><span>{contrato.trabajador?.rut ?? '-'}</span></div>
           <div><span className="detalle-label">Tipo de contrato</span><span>{contrato.tipo_contrato}</span></div>
           <div>
             <span className="detalle-label">Estado</span>

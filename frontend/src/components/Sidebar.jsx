@@ -18,6 +18,7 @@ const MENU_POR_ROL = {
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
     { id: 'mis-ausencias',    label: 'Mis Ausencias',     icon: CalendarOff,     path: '/app/mis-ausencias' },
     { id: 'mis-asignaciones', label: 'Mis Asignaciones',  icon: Briefcase,       path: '/app/mis-asignaciones' },
+    { id: 'mis-contratos',    label: 'Mis Contratos',     icon: FileText,        path: '/app/mis-contratos' },
     { id: 'ausencias',        label: 'Ausencias',         icon: Clock,           path: '/admin/ausencias' },
     { id: 'trabajadores',     label: 'Trabajadores',      icon: Users,           path: '/admin/trabajadores' },
     { id: 'contratos',        label: 'Contratos',         icon: FileText,        path: '/supervisor/contratos' },
