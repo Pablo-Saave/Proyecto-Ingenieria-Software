@@ -75,7 +75,7 @@ function CanalesAvisosTrabajador({ usuario, onLogout }) {
                       <div>
                         <h2 style={{ fontSize: 16, color: '#111827', margin: 0 }}>{aviso.titulo}</h2>
                         <p style={{ fontSize: 12, color: '#6b7280', margin: '3px 0 0' }}>
-                          {aviso.autor?.nombres ?? 'Usuario'} {aviso.autor?.apellidos ?? ''} · {formatFecha(aviso.fecha_publicacion)}
+                          {aviso.nombre_autor ?? 'Usuario'} · {formatFecha(aviso.fecha_publicacion)}
                         </p>
                       </div>
                     </div>
@@ -87,7 +87,7 @@ function CanalesAvisosTrabajador({ usuario, onLogout }) {
                     {aviso.contenido}
                   </p>
                   <div style={{ marginTop: 14 }}>
-                    <span className="tw-etiqueta-badge">{aviso.etiqueta?.nombre_etiqueta ?? unidad.nombre_etiqueta}</span>
+                    <span className="tw-etiqueta-badge">{aviso.cuadrilla?.nombre_cuadrilla ?? unidad.nombre_cuadrilla}</span>
                   </div>
                 </article>
               ))}
@@ -100,3 +100,5 @@ function CanalesAvisosTrabajador({ usuario, onLogout }) {
 }
 
 export default CanalesAvisosTrabajador;
+
+
