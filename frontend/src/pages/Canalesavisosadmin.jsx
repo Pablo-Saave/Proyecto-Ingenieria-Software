@@ -350,7 +350,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
               <p className="vista-general-subtitle">Gestiona todas las comunicaciones por cuadrilla</p>
             </div>
             <button className="btn-nuevo-trabajador" onClick={() => setShowForm(true)}>
-              <Plus size={14} /> Nuevo aviso
+              <Plus size={18} /> Nuevo aviso
             </button>
           </div>
 

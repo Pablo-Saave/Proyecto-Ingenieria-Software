@@ -331,7 +331,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
             </div>
             {unidad && (
               <button className="btn-nuevo-trabajador" onClick={() => setShowForm(true)}>
-                <Plus size={14} /> Nuevo aviso
+                <Plus size={18} /> Nuevo aviso
               </button>
             )}
           </div>
