@@ -5,16 +5,36 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/trabajadores.css';
 import '../styles/dashboard.css';
-import { AlertCircle, Bell, Calendar, ChevronDown, Filter, MessageSquare, Tag } from 'lucide-react';
+import '../styles/Avisosfiltros.css';
+import { AlertCircle, Bell, Filter, MessageSquare, Tag } from 'lucide-react';
 import { getAvisosMiUnidad } from '../services/avisosService';
 
 const PRIORIDAD_LABEL = { baja: 'Baja', normal: 'Normal', alta: 'Alta', urgente: 'Urgente' };
 
-const ESTADO_OPCIONES = [
-  { value: 'todos',   label: 'Todos los estados' },
-  { value: 'activo',  label: 'Activo' },
-  { value: 'vencido', label: 'Vencido' },
+const PRIORIDAD_OPCIONES = [
+  { value: 'todas',   label: 'Todas las prioridades' },
+  { value: 'baja',    label: 'Baja' },
+  { value: 'normal',  label: 'Normal' },
+  { value: 'alta',    label: 'Alta' },
+  { value: 'urgente', label: 'Urgente' },
 ];
+
+const FECHA_OPCIONES = [
+  { value: 'todos',  label: 'Todas las fechas' },
+  { value: '30dias', label: 'Últimos 30 días' },
+  { value: '6meses', label: 'Últimos 6 meses' },
+  { value: '1anio',  label: 'Último año' },
+];
+
+function getFechaLimite(rango) {
+  const hoy = new Date();
+  switch (rango) {
+    case '30dias': return new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 30);
+    case '6meses': return new Date(hoy.getFullYear(), hoy.getMonth() - 6, hoy.getDate());
+    case '1anio':  return new Date(hoy.getFullYear() - 1, hoy.getMonth(), hoy.getDate());
+    default:       return null;
+  }
+}
 
 function formatFecha(fecha) {
   return fecha
@@ -30,62 +50,42 @@ function getPrioridadStyle(prioridad) {
   return { background: '#DCFCE7', color: '#15803D' };
 }
 
-// ─── Selector con icono ──────────────────────────────────────────────────────
-function SelectConIcono({ icon, label, value, onChange, options }) {
+// ─── Selector con clases de Contratos ────────────────────────────────────────
+function SelectFiltro({ label, value, onChange, options }) {
   return (
-    <div style={{ minWidth: 200, flex: 1 }}>
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#111827', marginBottom: 7 }}>{label}</label>
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', border: '1px solid #E5E7EB', borderRadius: 9, padding: '9px 12px', background: '#fff' }}>
-        {icon}
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13.5, color: '#111827', appearance: 'none', marginLeft: 8, cursor: 'pointer' }}
-        >
-          {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-        <ChevronDown size={15} color="#9CA3AF" style={{ pointerEvents: 'none' }} />
-      </div>
+    <div className="avisos-filter-group">
+      <label>{label}</label>
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
     </div>
   );
 }
 
 // ─── Barra de filtros (Estado + Fecha) ───────────────────────────────────────
-function BarraFiltros({ filtros, setFiltros, onFiltrar }) {
+function BarraFiltros({ filtros, setFiltros, filtrosActivos, onFiltrar }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', background: '#fff', border: '1px solid #F1F5F9', borderRadius: 14, padding: '16px 18px', marginBottom: 18 }}>
-      <SelectConIcono
-        icon={<Tag size={15} color="#4F46E5" />}
-        label="Estado"
-        value={filtros.estado}
-        onChange={(v) => setFiltros((p) => ({ ...p, estado: v }))}
-        options={ESTADO_OPCIONES}
-      />
-      <div style={{ minWidth: 240, flex: 1 }}>
-        <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#111827', marginBottom: 7 }}>Fecha</label>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 6, border: '1px solid #E5E7EB', borderRadius: 9, padding: '9px 12px', background: '#fff' }}>
-          <Calendar size={15} color="#4F46E5" style={{ flexShrink: 0 }} />
-          <input
-            type="date"
-            value={filtros.desde}
-            onChange={(e) => setFiltros((p) => ({ ...p, desde: e.target.value }))}
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, color: filtros.desde ? '#111827' : '#9CA3AF', minWidth: 0 }}
-          />
-          <span style={{ color: '#9CA3AF' }}>–</span>
-          <input
-            type="date"
-            value={filtros.hasta}
-            onChange={(e) => setFiltros((p) => ({ ...p, hasta: e.target.value }))}
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, color: filtros.hasta ? '#111827' : '#9CA3AF', minWidth: 0 }}
-          />
-        </div>
+    <div className="avisos-filters">
+      <div className="avisos-filter-controls">
+        <SelectFiltro
+          label="Prioridad"
+          value={filtros.prioridad}
+          onChange={(v) => setFiltros((p) => ({ ...p, prioridad: v }))}
+          options={PRIORIDAD_OPCIONES}
+        />
+        <SelectFiltro
+          label="Fecha"
+          value={filtros.fecha}
+          onChange={(v) => setFiltros((p) => ({ ...p, fecha: v }))}
+          options={FECHA_OPCIONES}
+        />
+        <button
+          className={`avisos-btn-filtros${filtrosActivos ? ' avisos-btn-filtros-activo' : ''}`}
+          onClick={onFiltrar}
+        >
+          <Filter size={14} /> Filtrar
+        </button>
       </div>
-      <button
-        onClick={onFiltrar}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 9, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
-      >
-        <Filter size={14} color="#4F46E5" /> Filtrar
-      </button>
     </div>
   );
 }
@@ -95,8 +95,8 @@ function CanalesAvisosTrabajador({ usuario, onLogout }) {
   const [avisos,  setAvisos]  = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
-  const [filtros, setFiltros] = useState({ estado: 'todos', desde: '', hasta: '' });
-  const [filtrosAplicados, setFiltrosAplicados] = useState({ estado: 'todos', desde: '', hasta: '' });
+  const [filtros, setFiltros] = useState({ prioridad: 'todas', fecha: 'todos' });
+  const [filtrosActivos, setFiltrosActivos] = useState(false);
 
   useEffect(() => {
     getAvisosMiUnidad()
@@ -107,14 +107,17 @@ function CanalesAvisosTrabajador({ usuario, onLogout }) {
 
   const avisosFiltrados = useMemo(() => {
     return avisos.filter((a) => {
-      if (filtrosAplicados.estado !== 'todos' && a.estado && String(a.estado).toLowerCase() !== filtrosAplicados.estado) return false;
-      if (filtrosAplicados.desde && a.fecha_publicacion && new Date(a.fecha_publicacion) < new Date(filtrosAplicados.desde)) return false;
-      if (filtrosAplicados.hasta && a.fecha_publicacion && new Date(a.fecha_publicacion) > new Date(`${filtrosAplicados.hasta}T23:59:59`)) return false;
+      if (!filtrosActivos) return true;
+      if (filtros.prioridad !== 'todas' && String(a.prioridad).toLowerCase() !== filtros.prioridad) return false;
+      if (filtros.fecha !== 'todos' && a.fecha_publicacion) {
+        const lim = getFechaLimite(filtros.fecha);
+        if (lim && new Date(a.fecha_publicacion) < lim) return false;
+      }
       return true;
     });
-  }, [avisos, filtrosAplicados]);
+  }, [avisos, filtros, filtrosActivos]);
 
-  const hayFiltrosActivos = filtrosAplicados.estado !== 'todos' || filtrosAplicados.desde || filtrosAplicados.hasta;
+  const hayFiltrosActivos = filtrosActivos && (filtros.prioridad !== 'todas' || filtros.fecha !== 'todos');
 
   return (
     <div className="dashboard-wrapper">
@@ -136,8 +139,17 @@ function CanalesAvisosTrabajador({ usuario, onLogout }) {
             <BarraFiltros
               filtros={filtros}
               setFiltros={setFiltros}
-              onFiltrar={() => setFiltrosAplicados(filtros)}
+              filtrosActivos={filtrosActivos}
+              onFiltrar={() => setFiltrosActivos((p) => !p)}
             />
+          )}
+
+          {unidad && !loading && (
+            <div className="avisos-count">
+              {avisosFiltrados.length} aviso{avisosFiltrados.length !== 1 ? 's' : ''}
+              {hayFiltrosActivos && filtros.prioridad !== 'todas' && ` · ${PRIORIDAD_OPCIONES.find(o => o.value === filtros.prioridad)?.label}`}
+              {hayFiltrosActivos && filtros.fecha  !== 'todos' && ` · ${FECHA_OPCIONES.find(o => o.value === filtros.fecha)?.label}`}
+            </div>
           )}
 
           {loading ? (
@@ -153,8 +165,7 @@ function CanalesAvisosTrabajador({ usuario, onLogout }) {
           ) : (
             <div style={{ display: 'grid', gap: 12 }}>
               {avisosFiltrados.map((aviso) => (
-                <article key={aviso.id_aviso}
-                  style={{ background: '#fff', border: '1px solid #F1F5F9', borderRadius: 14, padding: '16px 18px', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
+                <article key={aviso.id_aviso} className="avisos-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                       <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

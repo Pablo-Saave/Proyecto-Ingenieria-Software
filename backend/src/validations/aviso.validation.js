@@ -28,7 +28,7 @@ export const validarCamposEditar = ({ titulo, contenido, prioridad }) => {
   return null;
 };
 
-// ─── Validaciones de acceso por rol ───────────────────────────────────────────
+// Validaciones de acceso por rol 
 
 export const validarAccesoLectura = (tipo_usuario) => {
   // Todos los roles pueden leer avisos de su unidad
@@ -52,7 +52,7 @@ export const validarAccesoEliminar = (tipo_usuario) => {
   return null;
 };
 
-// ─── Validaciones de parámetros de ruta/query ─────────────────────────────────
+// Validaciones de parámetros de ruta/query 
 
 export const validarIdCuadrilla = (id_cuadrilla) => {
   if (!esIdNumerico(id_cuadrilla)) return "id_cuadrilla debe ser un número válido";
