@@ -1,452 +1,146 @@
 // controllers/aviso.controller.js
-import { AppDataSource } from "../config/configDb.js";
-import { IsNull } from "typeorm";
+import * as avisoService from "../services/aviso.service.js";
+import {
+  validarCamposCrear,
+  validarCamposEditar,
+  validarAccesoCrear,
+  validarAccesoEliminar,
+  validarIdCuadrilla,
+  validarIdAviso,
+  normalizarPaginacion,
+} from "../validations/aviso.validation.js";
 
-const PRIORIDADES_VALIDAS = ["baja", "normal", "alta", "urgente"];
+// ─── Helpers HTTP ──────────────────────────────────────────────────────────────
 
-const avisoRepository = AppDataSource.getRepository("Aviso");
-const trabajadorRepository = AppDataSource.getRepository("Trabajador");
-const cuadrillaRepository = AppDataSource.getRepository("Cuadrilla");
-const asignadoRepository = AppDataSource.getRepository("Asignado");
+const ok      = (res, data, meta)    => res.status(200).json({ data, ...(meta && { meta }) });
+const created = (res, message, data) => res.status(201).json({ message, data });
+const badReq  = (res, message)       => res.status(400).json({ message });
+const forbid  = (res, message)       => res.status(403).json({ message });
 
-const getAsignacionActiva = (id_trabajador) =>
-  asignadoRepository.findOne({
-    where: { id_trabajador, fecha_retiro: IsNull() },
-    relations: ["cuadrilla"],
-  });
+const manejarError = (res, error, contexto) => {
+  if (error.status) return res.status(error.status).json({ message: error.message });
+  console.error(`Error en ${contexto}:`, error);
+  return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+};
 
-const validarPrioridad = (prioridad) =>
-  prioridad === undefined || PRIORIDADES_VALIDAS.includes(prioridad);
+// ─── GET /avisos/cuadrillas  (solo Admin) ─────────────────────────────────────
 
 export const getCuadrillas = async (req, res) => {
   try {
-    const { tipo_usuario } = req.user;
+    if (req.user.tipo_usuario !== "administrador")
+      return forbid(res, "No tiene permisos para ver las cuadrillas");
 
-    if (tipo_usuario !== "administrador") {
-      return res.status(403).json({ message: "No tiene permisos para ver las cuadrillas" });
-    }
-
-    const cuadrillas = await cuadrillaRepository.find({
-      order: { nombre_cuadrilla: "ASC" },
-    });
-
-    return res.status(200).json({ data: cuadrillas });
-  } catch (error) {
-    console.error("Error en getCuadrillas:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
+    const data = await avisoService.listarCuadrillas();
+    return ok(res, data);
+  } catch (error) { return manejarError(res, error, "getCuadrillas"); }
 };
+
+// ─── GET /avisos/todas  (solo Admin) ─────────────────────────────────────────
 
 export const getTodosLosAvisos = async (req, res) => {
   try {
-    const { tipo_usuario } = req.user;
+    if (req.user.tipo_usuario !== "administrador")
+      return forbid(res, "No tiene permisos para ver todos los avisos");
 
-    if (tipo_usuario !== "administrador") {
-      return res.status(403).json({ message: "No tiene permisos para ver todos los avisos" });
-    }
-
-    const avisos = await avisoRepository.find({
-      relations: ["cuadrilla"],
-      order: { fecha_publicacion: "DESC" },
-    });
-
-    return res.status(200).json({ data: avisos });
-  } catch (error) {
-    console.error("Error en getTodosLosAvisos:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
+    const data = await avisoService.listarTodosLosAvisos();
+    return ok(res, data);
+  } catch (error) { return manejarError(res, error, "getTodosLosAvisos"); }
 };
+
+// ─── GET /avisos/mi-unidad  (Admin / Supervisor / Trabajador) ────────────────
 
 export const getAvisosMiUnidad = async (req, res) => {
   try {
-    const { id_trabajador } = req.user;
-
-    const asignacion = await getAsignacionActiva(id_trabajador);
-    if (!asignacion) {
-      return res.status(200).json({ unidad: null, data: [] });
-    }
-
-    const avisos = await avisoRepository.find({
-      where: { id_cuadrilla: asignacion.id_cuadrilla },
-      relations: ["cuadrilla"],
-      order: { fecha_publicacion: "DESC" },
-    });
-
-    return res.status(200).json({
-      unidad: asignacion.cuadrilla,
-      data: avisos,
-    });
-  } catch (error) {
-    console.error("Error en getAvisosMiUnidad:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
+    const { unidad, avisos } = await avisoService.listarAvisosMiUnidad(req.user.id_trabajador);
+    return res.status(200).json({ unidad, data: avisos });
+  } catch (error) { return manejarError(res, error, "getAvisosMiUnidad"); }
 };
 
+// ─── GET /avisos/cuadrilla/:id_cuadrilla  (Admin / Supervisor / Trabajador) ──
 
-/***
- * Retorna lista de avisos de una cuadrilla (tupla completa de la entidad Aviso)
- * Paginado y Ordenado por fecha_publicacion (por defecto)
- * Recibe: id_cuadrilla (param), page, limit (query params)
- * Validaciones:
- * - El que hace la peticion debe tener tipo_usuario = administrador, o pertenecer a la cuadrilla
- * - La cuadrilla debe existir
- */
 export const verAvisos = async (req, res) => {
   try {
     const { id_cuadrilla } = req.params;
-    const { id_trabajador, tipo_usuario: tipo_solicitante } = req.user;
+    const { id_trabajador, tipo_usuario } = req.user;
 
-    if (isNaN(Number(id_cuadrilla))) {
-      return res.status(400).json({
-        message: "id_cuadrilla debe ser numérico",
-      });
-    }
+    const errId = validarIdCuadrilla(id_cuadrilla);
+    if (errId) return badReq(res, errId);
 
-    // 2. Validar que la cuadrilla exista
-    const cuadrilla = await cuadrillaRepository.findOne({
-      where: { id_cuadrilla: Number(id_cuadrilla) },
-    });
-    if (!cuadrilla) {
-      return res.status(404).json({ message: "Cuadrilla no encontrada" });
-    }
+    const { page, limit } = normalizarPaginacion(req.query);
 
-    // 1. Validar que sea administrador o pertenezca a la cuadrilla
-    if (tipo_solicitante !== "administrador") {
-      const pertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador,
-          id_cuadrilla: Number(id_cuadrilla),
-          fecha_retiro: IsNull(),
-        },
-      });
-
-      if (!pertenece) {
-        return res.status(403).json({
-          message: "No tiene permisos para ver los avisos de esta cuadrilla",
-        });
-      }
-    }
-
-    let { page = 1, limit = 10 } = req.query;
-
-    page = Number(page);
-    limit = Number(limit);
-
-    if (isNaN(page) || page < 1) page = 1;
-    if (isNaN(limit) || limit < 1) limit = 10;
-
-    const [avisos, total] = await avisoRepository.findAndCount({
-      where: { id_cuadrilla: Number(id_cuadrilla) },
-      order: { fecha_publicacion: "DESC" },
-      skip: (page - 1) * limit,
-      take: limit,
+    const { avisos, ...meta } = await avisoService.listarAvisosDeCuadrilla({
+      id_cuadrilla, id_trabajador, tipo_usuario, page, limit,
     });
 
-    return res.status(200).json({
-      data: avisos,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    console.error("Error en verAvisos:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
+    return ok(res, avisos, meta);
+  } catch (error) { return manejarError(res, error, "verAvisos"); }
 };
 
+// ─── POST /avisos  o  POST /avisos/cuadrilla/:id_cuadrilla  (Admin / Supervisor) ──
 
-
-
-/***
- * Crea un aviso en una cuadrilla
- * Recibe: id_cuadrilla (param), titulo, contenido, prioridad (body)
- * Validaciones:
- * - El que realiza la peticion debe tener tipo_usuario = administrador o tipo_usuario = supervisor,
- *   si es supervisor tiene que pertenecer a la cuadrilla
- * - La cuadrilla debe existir
- * - El proyecto debe tener estado activo
- * - La cuadrilla debe tener estado activa
- * - Los campos esperados no pueden estar vacios
- * - id_autor y nombre_autor se completan automáticamente con los datos del
- *   trabajador que realiza la petición (obtenidos del token)
- */
 export const crearAviso = async (req, res) => {
   try {
-    let id_cuadrilla = req.params.id_cuadrilla ?? req.body.id_cuadrilla;
     const { titulo, contenido, prioridad } = req.body;
-    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
+    const { id_trabajador: id_solicitante, tipo_usuario } = req.user;
 
-    // 5. Validar que los campos esperados no estén vacíos
-    if (!titulo || !contenido) {
-      return res.status(400).json({
-        message: "Los campos titulo y contenido son obligatorios",
-      });
-    }
+    const errRol = validarAccesoCrear(tipo_usuario);
+    if (errRol) return forbid(res, errRol);
 
-    if (!validarPrioridad(prioridad)) {
-      return res.status(400).json({
-        message: "Prioridad inválida",
-      });
-    }
+    const errCampos = validarCamposCrear({ titulo, contenido, prioridad });
+    if (errCampos) return badReq(res, errCampos);
 
-    if (tipo_solicitante === "supervisor" && !id_cuadrilla) {
-      const asignacion = await getAsignacionActiva(id_solicitante);
-      if (!asignacion) {
-        return res.status(404).json({ message: "No tiene una cuadrilla activa asignada" });
-      }
-      id_cuadrilla = asignacion.id_cuadrilla;
-    }
+    const id_cuadrilla = req.params.id_cuadrilla ?? req.body.id_cuadrilla;
 
-    if (!id_cuadrilla || isNaN(Number(id_cuadrilla))) {
-      return res.status(400).json({
-        message: "id_cuadrilla debe ser numérico",
-      });
-    }
-
-    // 2. Validar que la cuadrilla exista (con su proyecto, para validar estados)
-    const cuadrilla = await cuadrillaRepository.findOne({
-      where: { id_cuadrilla: Number(id_cuadrilla) },
-      relations: ["proyecto"],
-    });
-    if (!cuadrilla) {
-      return res.status(404).json({ message: "Cuadrilla no encontrada" });
-    }
-
-    // 3. Validar que el proyecto esté activo
-    if (cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se puede crear el aviso porque el proyecto no está activo",
-      });
-    }
-
-    // 4. Validar que la cuadrilla esté activa
-    if (cuadrilla.estado !== "activa") {
-      return res.status(409).json({
-        message: "No se puede crear el aviso porque la cuadrilla no está activa",
-      });
-    }
-
-    // 1. Validar quién realiza la petición: administrador (libre) o supervisor (debe pertenecer a la cuadrilla)
-    if (tipo_solicitante !== "administrador") {
-      if (tipo_solicitante !== "supervisor") {
-        return res.status(403).json({
-          message: "No tiene permisos para realizar esta acción",
-        });
-      }
-
-      const supervisorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla: Number(id_cuadrilla),
-          fecha_retiro: IsNull(),
-        },
-      });
-
-      if (!supervisorPertenece) {
-        return res.status(403).json({
-          message: "El supervisor no pertenece a la cuadrilla indicada",
-        });
-      }
-    }
-
-    // 6. Obtener nombre y apellido del trabajador que realiza la petición,
-    // para completar id_autor y nombre_autor automáticamente
-    const autor = await trabajadorRepository.findOne({
-      where: { id_trabajador: id_solicitante },
-    });
-    if (!autor) {
-      return res.status(404).json({ message: "Trabajador (autor) no encontrado" });
-    }
-
-    const nuevoAviso = avisoRepository.create({
-      id_cuadrilla: Number(id_cuadrilla),
-      titulo,
-      contenido,
-      prioridad: prioridad || "normal",
-      id_autor: id_solicitante,
-      nombre_autor: `${autor.nombres} ${autor.apellidos}`,
+    const data = await avisoService.crearAviso({
+      id_cuadrilla, titulo: titulo.trim(), contenido: contenido.trim(),
+      prioridad, id_solicitante, tipo_usuario,
     });
 
-    await avisoRepository.save(nuevoAviso);
-
-    return res.status(201).json({
-      message: "Aviso creado correctamente",
-      data: { ...nuevoAviso, cuadrilla },
-    });
-  } catch (error) {
-    console.error("Error en crearAviso:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
+    return created(res, "Aviso creado correctamente", data);
+  } catch (error) { return manejarError(res, error, "crearAviso"); }
 };
 
+// ─── PATCH /avisos/:id_aviso  (solo el autor) ────────────────────────────────
 
-
-
-
-/***
- * Edita los campos (titulo, contenido, prioridad) de un aviso
- * Validaciones:
- * - El aviso debe existir
- * - El aviso solo puede ser editado por el id_trabajador guardado en id_autor
- * - El proyecto debe tener estado activo
- * - La cuadrilla debe tener estado activa
- */
 export const editarAviso = async (req, res) => {
   try {
     const { id_aviso } = req.params;
     const { titulo, contenido, prioridad } = req.body;
     const { id_trabajador: id_solicitante } = req.user;
 
-    if (isNaN(Number(id_aviso))) {
-      return res.status(400).json({
-        message: "id_aviso debe ser numérico",
-      });
-    }
+    const errId = validarIdAviso(id_aviso);
+    if (errId) return badReq(res, errId);
 
-    // Validar que al menos un campo haya sido enviado (PATCH parcial)
-    if (titulo === undefined && contenido === undefined && prioridad === undefined) {
-      return res.status(400).json({
-        message: "Debe enviar al menos un campo para actualizar",
-      });
-    }
+    const errCampos = validarCamposEditar({ titulo, contenido, prioridad });
+    if (errCampos) return badReq(res, errCampos);
 
-    // 0. Validar que el aviso exista
-    const aviso = await avisoRepository.findOne({
-      where: { id_aviso: Number(id_aviso) },
-      relations: ["cuadrilla", "cuadrilla.proyecto"],
+    const data = await avisoService.editarAviso({
+      id_aviso,
+      titulo:    titulo?.trim(),
+      contenido: contenido?.trim(),
+      prioridad,
+      id_solicitante,
     });
-    if (!aviso) {
-      return res.status(404).json({ message: "Aviso no encontrado" });
-    }
 
-    // 2. Validar que el proyecto esté activo
-    if (aviso.cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se puede editar el aviso porque el proyecto no está activo",
-      });
-    }
-
-    // 3. Validar que la cuadrilla esté activa
-    if (aviso.cuadrilla.estado !== "activa") {
-      return res.status(409).json({
-        message: "No se puede editar el aviso porque la cuadrilla no está activa",
-      });
-    }
-
-    // 1. Validar que solo el autor pueda editar el aviso
-    if (aviso.id_autor !== id_solicitante) {
-      return res.status(403).json({
-        message: "No tiene permisos para editar este aviso",
-      });
-    }
-
-    // Aplicar solo los campos enviados
-    if (titulo !== undefined) aviso.titulo = titulo;
-    if (contenido !== undefined) aviso.contenido = contenido;
-    if (prioridad !== undefined) aviso.prioridad = prioridad;
-
-    await avisoRepository.save(aviso);
-
-    return res.status(200).json({
-      message: "Aviso actualizado correctamente",
-      data: aviso,
-    });
-  } catch (error) {
-    console.error("Error en editarAviso:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
+    return ok(res, data);
+  } catch (error) { return manejarError(res, error, "editarAviso"); }
 };
 
+// ─── DELETE /avisos/:id_aviso  (Admin libre / Supervisor solo los suyos) ─────
 
-
-
-
-/***
- * Elimina un aviso
- * Recibe: id_aviso (param)
- * Validaciones:
- * - El aviso debe existir
- * - El proyecto debe tener estado activo
- * - La cuadrilla debe tener estado activa
- * - El que realiza la peticion debe tener tipo_usuario = administrador (libre),
- *   o tipo_usuario = supervisor y pertenecer a la cuadrilla
- * - Si es supervisor, solo puede eliminar avisos donde id_autor coincida con su propio id_trabajador
- */
 export const eliminarAviso = async (req, res) => {
   try {
     const { id_aviso } = req.params;
-    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
+    const { id_trabajador: id_solicitante, tipo_usuario } = req.user;
 
-    if (isNaN(Number(id_aviso))) {
-      return res.status(400).json({
-        message: "id_aviso debe ser numérico",
-      });
-    }
+    const errId = validarIdAviso(id_aviso);
+    if (errId) return badReq(res, errId);
 
-    // 3. Validar que el aviso exista (con su cuadrilla y proyecto, para validar estados y pertenencia)
-    const aviso = await avisoRepository.findOne({
-      where: { id_aviso: Number(id_aviso) },
-      relations: ["cuadrilla", "cuadrilla.proyecto"],
-    });
-    if (!aviso) {
-      return res.status(404).json({ message: "Aviso no encontrado" });
-    }
+    const errRol = validarAccesoEliminar(tipo_usuario);
+    if (errRol) return forbid(res, errRol);
 
-    // 5. Validar que el proyecto esté activo
-    if (aviso.cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se puede eliminar el aviso porque el proyecto no está activo",
-      });
-    }
+    await avisoService.eliminarAviso({ id_aviso, id_solicitante, tipo_usuario });
 
-    // 4. Validar que la cuadrilla esté activa
-    if (aviso.cuadrilla.estado !== "activa") {
-      return res.status(409).json({
-        message: "No se puede eliminar el aviso porque la cuadrilla no está activa",
-      });
-    }
-
-    // 1. Validar quién realiza la petición: administrador (libre) o supervisor (debe pertenecer a la cuadrilla)
-    if (tipo_solicitante !== "administrador") {
-      if (tipo_solicitante !== "supervisor") {
-        return res.status(403).json({
-          message: "No tiene permisos para realizar esta acción",
-        });
-      }
-
-      const supervisorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla: aviso.cuadrilla.id_cuadrilla,
-          fecha_retiro: IsNull(),
-        },
-      });
-
-      if (!supervisorPertenece) {
-        return res.status(403).json({
-          message: "El supervisor no pertenece a la cuadrilla indicada",
-        });
-      }
-
-      // 2. Si es supervisor, solo puede eliminar sus propios avisos
-      if (aviso.id_autor !== id_solicitante) {
-        return res.status(403).json({
-          message: "Un supervisor solo puede eliminar sus propios avisos",
-        });
-      }
-    }
-
-    // 6. Eliminar el aviso
-    await avisoRepository.remove(aviso);
-
-    return res.status(200).json({
-      message: "Aviso eliminado correctamente",
-    });
-  } catch (error) {
-    console.error("Error en eliminarAviso:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
+    return res.status(200).json({ message: "Aviso eliminado correctamente" });
+  } catch (error) { return manejarError(res, error, "eliminarAviso"); }
 };
