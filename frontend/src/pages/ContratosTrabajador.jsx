@@ -5,7 +5,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/contratos.css';
 import {
-  Eye, X, AlertTriangle, FileText, Infinity, Clock,
+  Eye, X, AlertTriangle, FileText, Clock,
   Filter, CalendarDays, ArrowRight, Download,
 } from 'lucide-react';
 import { generarPDFContrato } from '../utils/generarPDFContrato';
@@ -171,7 +171,7 @@ function ContratoCard({ contrato, onVer }) {
         <div className="contrato-card-info">
           <span className="contrato-info-label">Fecha término</span>
           <div className="contrato-info-value">
-            <Infinity size={14} />
+            {!esIndefinido && <CalendarDays size={14} />}
             <span>{esIndefinido ? 'Sin vencimiento' : formatearFecha(contrato.fecha_termino)}</span>
           </div>
         </div>
