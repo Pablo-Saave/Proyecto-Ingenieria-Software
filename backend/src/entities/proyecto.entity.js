@@ -68,5 +68,11 @@ export const ProyectoSchema = new EntitySchema({
       target: "ContratoProyecto",
       inverseSide: "proyecto",
     },
+
+    inventarios: {
+      type: "one-to-many",
+      target: "Inventario",
+      inverseSide: "proyecto",
+    },
   },
 });

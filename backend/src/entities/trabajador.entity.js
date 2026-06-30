@@ -73,23 +73,32 @@ export const TrabajadorSchema = new EntitySchema({
 
   relations: {
     contratos: {
-    type: "one-to-many",
-    target: "ContratoTrabajador",
-    inverseSide: "trabajador",
+      type: "one-to-many",
+      target: "ContratoTrabajador",
+      inverseSide: "trabajador",
     },
+
+    remuneraciones: {
+      type: "one-to-many",
+      target: "Remuneracion",
+      inverseSide: "trabajador",
+    },
+
+    asignados: {
+      type: "one-to-one",
+      target: "Asignado",
+      inverseSide: "trabajador",
+    },
+
     ausencias: {
       type: "one-to-many",
       target: "Ausencia",
       inverseSide: "trabajador",
     },
+
     accidentes: {
       type: "one-to-many",
       target: "AccidenteLaboral",
-      inverseSide: "trabajador",
-    },
-    asignados: {
-      type: "one-to-many",
-      target: "Asignado",
       inverseSide: "trabajador",
     },
   },

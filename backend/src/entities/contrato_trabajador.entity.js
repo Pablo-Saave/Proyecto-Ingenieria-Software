@@ -47,11 +47,5 @@ export const ContratoTrabajadorSchema = new EntitySchema({
       inverseSide: "contratos", 
       nullable: false,
     },
-    
-    remuneraciones: {
-      type: "one-to-many",
-      target: "Remuneracion",
-      inverseSide: "contratoTrabajador",
-    },
   },
 });

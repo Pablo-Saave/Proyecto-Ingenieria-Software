@@ -55,5 +55,11 @@ export const ContratoProyectoSchema = new EntitySchema({
       inverseSide: "contratoProyecto",
       nullable: false,
     },
+
+    anexos: {
+      type: "one-to-many",
+      target: "AnexoContratoProyecto",
+      inverseSide: "contratoProyecto",
+    },
   },
 });

@@ -11,7 +11,7 @@ export const InventarioSchema = new EntitySchema({
       generated: true,
     },
 
-    id_cuadrilla: {
+    id_proyecto: {
       type: "int",
       nullable: false,
     },
@@ -23,10 +23,10 @@ export const InventarioSchema = new EntitySchema({
   },
 
   relations: {
-    cuadrilla: {
+    proyecto: {
       type: "many-to-one",
-      target: "Cuadrilla",
-      joinColumn: { name: "id_cuadrilla" },
+      target: "Proyecto",
+      joinColumn: { name: "id_proyecto" },
       inverseSide: "inventarios",
       nullable: false,
     },

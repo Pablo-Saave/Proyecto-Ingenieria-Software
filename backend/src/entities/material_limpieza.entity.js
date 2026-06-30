@@ -33,7 +33,7 @@ export const MaterialLimpiezaSchema = new EntitySchema({
 
     stock_minimo: {
         type: "int",
-        nullable: false
+        nullable: true
     }
   },
 

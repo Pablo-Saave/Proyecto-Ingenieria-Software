@@ -48,12 +48,6 @@ export const CuadrillaSchema = new EntitySchema({
       inverseSide: "cuadrilla",
     },
 
-    avisos: {
-      type: "one-to-many",
-      target: "Aviso",
-      inverseSide: "cuadrilla",
-    },
-
     ausencias: {
       type: "one-to-many",
       target: "Ausencia",
@@ -66,9 +60,9 @@ export const CuadrillaSchema = new EntitySchema({
       inverseSide: "cuadrilla",
     },
 
-    inventarios: {
+    avisos: {
       type: "one-to-many",
-      target: "Inventario",
+      target: "Aviso",
       inverseSide: "cuadrilla",
     },
   },
