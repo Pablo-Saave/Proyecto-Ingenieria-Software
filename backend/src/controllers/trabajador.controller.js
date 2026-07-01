@@ -1,6 +1,13 @@
 "use strict";
 import { AppDataSource } from "../config/configDb.js";
 
+import { In, Not } from "typeorm";
+import { TrabajadorSchema } from "../entities/trabajador.entity.js";
+import { AsignadoSchema }   from "../entities/asignado.entity.js";
+
+const trabajadorRepo = AppDataSource.getRepository(TrabajadorSchema);
+const asignadoRepo   = AppDataSource.getRepository(AsignadoSchema);
+
 // Valores válidos para tipo_usuario. Definir aquí para validación consistente.
 const TIPOS_USUARIO_VALIDOS = ["trabajador", "supervisor", "administrador"];
 
@@ -136,5 +143,90 @@ export async function deleteTrabajador(req, res) {
     res.json({ status: "success", message: "Trabajador eliminado correctamente" });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * GET /sinCuadrilla/
+ *
+ * Recibe:
+ *   - req.user.tipo_usuario (desde el token JWT via authMiddleware)
+ *
+ * Retorna 200:
+ *   {
+ *     status: "success",
+ *     data: [
+ *       {
+ *         id_trabajador,
+ *         tipo_usuario,
+ *         rut,
+ *         nombres,
+ *         apellidos,
+ *         sexo,
+ *         telefono,
+ *         correo,
+ *         direccion,
+ *         fecha_nacimiento,
+ *         fecha_ingreso,
+ *         estado_laboral,
+ *         experiencia_previa,
+ *         contratos: [{ ...ContratoTrabajador }]
+ *       }
+ *     ]
+ *   }
+ */
+export async function getAllTrabajadoresSinCuadrilla(req, res) {
+  try {
+    // ── Validación 1: solo administrador ──────────────────────────────────────
+    if (req.user?.tipo_usuario !== "administrador") {
+      return res.status(403).json({
+        status:  "error",
+        message: "Solo un administrador puede consultar esta información.",
+      });
+    }
+
+    // ── Paso 1: obtener todos los id_trabajador que ya están en una cuadrilla ─
+    const asignados = await asignadoRepo.find({
+      select: ["id_trabajador"],
+    });
+
+    const idsAsignados = asignados.map((a) => a.id_trabajador);
+
+    // ── Paso 2: trabajadores cuyo id no esté en esa lista ────────────────────
+    const where = idsAsignados.length
+      ? { id_trabajador: Not(In(idsAsignados)) }
+      : {};
+
+    const trabajadores = await trabajadorRepo.find({
+      where,
+      relations: ["contratos"],
+    });
+
+    // ── Paso 3: excluir hashed_pass de la respuesta ───────────────────────────
+    const data = trabajadores.map(({ hashed_pass, ...resto }) => resto);
+
+    return res.status(200).json({ status: "success", data });
+
+  } catch (error) {
+    console.error("[getAllTrabajadoresSinCuadrilla]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
