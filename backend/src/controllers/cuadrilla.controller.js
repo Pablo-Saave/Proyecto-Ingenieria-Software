@@ -1,6 +1,11 @@
 "use strict";
 
 import { AppDataSource } from "../config/configDb.js"; // ajusta el path según tu proyecto
+import { ProyectoSchema }  from "../entities/proyecto.entity.js";
+import { CuadrillaSchema } from "../entities/cuadrilla.entity.js";
+import { AsignadoSchema }  from "../entities/asignado.entity.js";
+
+import { In } from "typeorm";
 
 const proyectoRepository = AppDataSource.getRepository("Proyecto");
 const trabajadorRepository = AppDataSource.getRepository("Trabajador");
@@ -1487,3 +1492,158 @@ export const despojarBodeguero = async (req, res) => {
     return res.status(500).json({ message: "Error interno del servidor", error: error.message });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// controllers/cuadrilla.controller.js
+
+
+
+/*
+ * GET /supervisor/misCuadrillasAndIntegrantes
+ *
+ * Recibe:
+ *   - req.user.id_trabajador  (desde el token JWT via authMiddleware)
+ *
+ * Validación:
+ *   - El id_trabajador del token debe coincidir con el campo id_supervisor
+ *     de al menos un Proyecto activo (es decir, el usuario autenticado
+ *     debe ser supervisor de algún proyecto).
+ *
+ * Retorna:
+ *   [
+ *     {
+ *       id_cuadrilla,
+ *       id_proyecto,
+ *       nombre_cuadrilla,
+ *       fecha_creacion,
+ *       estado,
+ *       integrantes: [
+ *         {
+ *           id_trabajador,
+ *           rut,
+ *           nombres,
+ *           apellidos,
+ *           telefono,
+ *           correo,
+ *           direccion,
+ *           fecha_nacimiento,
+ *           fecha_ingreso,
+ *           estado_laboral,
+ *           cargo_operativo,    <- viene de Asignado
+ *           tipo_jornada,       <- viene de Asignado
+ *           fecha_asignacion    <- viene de Asignado
+ *         }
+ *       ]
+ *     }
+ *   ]
+ */
+export async function getMyCuadrillasAndIntegrantesFromToken(req, res) {
+  try {
+    const id_trabajador = req.user.id_trabajador;
+
+    const proyectoRepo  = AppDataSource.getRepository(ProyectoSchema);
+    const cuadrillaRepo = AppDataSource.getRepository(CuadrillaSchema);
+
+    // ── Paso 1: proyectos activos donde este trabajador es supervisor ─────────
+    const proyectos = await proyectoRepo.find({
+      where: { id_supervisor: id_trabajador, estado: "activo" },
+      select: ["id_proyecto"],
+    });
+
+    // ── Validación 1: debe supervisar al menos un proyecto ────────────────────
+    if (!proyectos.length) {
+      return res.status(403).json({
+        status: "error",
+        message: "No tienes proyectos activos asignados como supervisor.",
+      });
+    }
+
+    const idProyectos = proyectos.map((p) => p.id_proyecto);
+
+    // ── Paso 2: cuadrillas de esos proyectos ──────────────────────────────────
+    const cuadrillas = await cuadrillaRepo.find({
+      where: { id_proyecto: In(idProyectos) },
+    });
+
+    if (!cuadrillas.length) {
+      return res.status(200).json({ status: "success", data: [] });
+    }
+
+    const idCuadrillas = cuadrillas.map((c) => c.id_cuadrilla);
+
+    // ── Paso 3: asignados con datos del trabajador (un solo query, sin N+1) ───
+    const asignados = await AppDataSource.getRepository(AsignadoSchema)
+      .createQueryBuilder("a")
+      .innerJoinAndSelect("a.trabajador", "t")
+      .where("a.id_cuadrilla IN (:...ids)", { ids: idCuadrillas })
+      .getMany();
+
+    // ── Paso 4: agrupar asignados por id_cuadrilla ────────────────────────────
+    const integrantesPorCuadrilla = {};
+
+    for (const asignado of asignados) {
+      const { id_cuadrilla, cargo_operativo, tipo_jornada, fecha_asignacion, trabajador } = asignado;
+
+      if (!integrantesPorCuadrilla[id_cuadrilla]) {
+        integrantesPorCuadrilla[id_cuadrilla] = [];
+      }
+
+      integrantesPorCuadrilla[id_cuadrilla].push({
+        id_trabajador:   trabajador.id_trabajador,
+        rut:             trabajador.rut,
+        nombres:         trabajador.nombres,
+        apellidos:       trabajador.apellidos,
+        telefono:        trabajador.telefono,
+        correo:          trabajador.correo,
+        direccion:       trabajador.direccion,
+        fecha_nacimiento: trabajador.fecha_nacimiento,
+        fecha_ingreso:   trabajador.fecha_ingreso,
+        estado_laboral:  trabajador.estado_laboral,
+        cargo_operativo,
+        tipo_jornada,
+        fecha_asignacion,
+      });
+    }
+
+    // ── Paso 5: armar respuesta final ─────────────────────────────────────────
+    const data = cuadrillas.map((cuadrilla) => ({
+      id_cuadrilla:    cuadrilla.id_cuadrilla,
+      id_proyecto:     cuadrilla.id_proyecto,
+      nombre_cuadrilla: cuadrilla.nombre_cuadrilla,
+      fecha_creacion:  cuadrilla.fecha_creacion,
+      estado:          cuadrilla.estado,
+      integrantes:     integrantesPorCuadrilla[cuadrilla.id_cuadrilla] ?? [],
+    }));
+
+    return res.status(200).json({ status: "success", data });
+
+  } catch (error) {
+    console.error("[getMyCuadrillasAndIntegrantesFromToken]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+  }
+}
