@@ -8,9 +8,10 @@ import {
 } from 'lucide-react';
 import {
   crearCuadrilla,
+  inactivarCuadrilla,
   getAllCuadrillasAndWorkersByIdProyecto,
-  agregarSupervisorCuadrilla,
-  eliminarSupervisorCuadrilla,
+  agregarSupervisorCuadrilla, //SE DEBE ELIMINAR POR REGLA DE NEGOCIO
+  eliminarSupervisorCuadrilla, //SE DEBE ELIMINAR POR REGLA DE NEGOCIO
   agregarTrabajadorCuadrilla,
   eliminarTrabajadorCuadrilla,
 } from '../services/cuadrillasService';
@@ -36,7 +37,6 @@ async function apiFetch(path, options = {}) {
 const JORNADAS = ['Diurna', 'Nocturna', 'Mixta'];
 
 const EMPTY_CREATE_FORM   = { id_proyecto: '', nombre_cuadrilla: '' };
-const EMPTY_SUPERVISOR_FORM = { id_trabajador: '', cargo_operativo: 'Supervisor de Cuadrilla', tipo_jornada: 'Diurna' };
 const EMPTY_OPERARIO_FORM   = { id_trabajador: '', cargo_operativo: '', tipo_jornada: 'Diurna' };
 
 function Asignaciones({ usuario, onLogout }) {
@@ -49,18 +49,18 @@ function Asignaciones({ usuario, onLogout }) {
   const [searchQuery, setSearchQuery]       = useState('');
   const [expandedIds, setExpandedIds]       = useState({}); // cuadrillas expandidas
 
+  // Prevencionista (solo frontend)
+  const [prevencionistas, setPrevencionistas] = useState({});
+  const [showPrevModal, setShowPrevModal] = useState(false);
+  const [tempPrevencionista, setTempPrevencionista] = useState('');
+  
   // Modales
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createForm, setCreateForm]           = useState(EMPTY_CREATE_FORM);
   const [createError, setCreateError]         = useState(null);
   const [savingCreate, setSavingCreate]       = useState(false);
 
-  const [showSupModal, setShowSupModal]       = useState(false);
   const [selectedCuadrillaId, setSelectedCuadrillaId] = useState(null);
-  const [supForm, setSupForm]                 = useState(EMPTY_SUPERVISOR_FORM);
-  const [supError, setSupError]               = useState(null);
-  const [savingSup, setSavingSup]             = useState(false);
-
   const [showOpModal, setShowOpModal]         = useState(false);
   const [opForm, setOpForm]                   = useState(EMPTY_OPERARIO_FORM);
   const [opError, setOpError]                 = useState(null);
@@ -115,7 +115,6 @@ function Asignaciones({ usuario, onLogout }) {
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  const supervisores = trabajadores.filter((t) => t.tipo_usuario === 'supervisor');
   const operarios    = trabajadores.filter((t) => t.tipo_usuario === 'trabajador');
 
   const filteredCuadrillas = cuadrillas.filter((c) => {
@@ -135,11 +134,10 @@ function Asignaciones({ usuario, onLogout }) {
     ? trabajadores.find((t) => t.id_trabajador === selectedProject.id_supervisor)
     : null;
 
-  // Determinar si un integrante es supervisor por su tipo_usuario
-  const getTipo = (idTrabajador) => {
-    const t = trabajadores.find((w) => w.id_trabajador === Number(idTrabajador));
-    return t?.tipo_usuario ?? 'trabajador';
-  };
+  // Prevencionista del proyecto
+  const prevencionistaProyecto = selectedProject
+    ? prevencionistas[selectedProject.id_proyecto] ?? ''
+    : '';
 
   // ── Crear cuadrilla ───────────────────────────────────────────────────────
   const handleCreateCuadrilla = async (e) => {
@@ -159,34 +157,6 @@ function Asignaciones({ usuario, onLogout }) {
       setCreateError(e.message);
     } finally {
       setSavingCreate(false);
-    }
-  };
-
-  // ── Agregar supervisor ────────────────────────────────────────────────────
-  const abrirModalSup = (idCuadrilla) => {
-    setSelectedCuadrillaId(idCuadrilla);
-    setSupForm(EMPTY_SUPERVISOR_FORM);
-    setSupError(null);
-    setShowSupModal(true);
-  };
-
-  const handleSubmitSup = async (e) => {
-    e.preventDefault();
-    setSupError(null);
-    setSavingSup(true);
-    try {
-      await agregarSupervisorCuadrilla(
-        Number(supForm.id_trabajador),
-        Number(selectedCuadrillaId),
-        supForm.cargo_operativo,
-        supForm.tipo_jornada,
-      );
-      setShowSupModal(false);
-      reloadCuadrillas();
-    } catch (e) {
-      setSupError(e.message);
-    } finally {
-      setSavingSup(false);
     }
   };
 
@@ -218,22 +188,27 @@ function Asignaciones({ usuario, onLogout }) {
     }
   };
 
-  // ── Eliminar integrante ───────────────────────────────────────────────────
-  const handleDelete = async () => {
-    if (!confirmDelete) return;
-    try {
-      if (confirmDelete.tipo === 'supervisor') {
-        await eliminarSupervisorCuadrilla(confirmDelete.id_trabajador, confirmDelete.id_cuadrilla);
-      } else {
-        await eliminarTrabajadorCuadrilla(confirmDelete.id_trabajador, confirmDelete.id_cuadrilla);
-      }
-      reloadCuadrillas();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setConfirmDelete(null);
+// ── Eliminar integrante y cuadrilla ───────────────────────────────────────────────────
+const handleDelete = async () => {
+  if (!confirmDelete) return;
+
+  try {
+    if (confirmDelete.tipo === "cuadrilla") {
+      await inactivarCuadrilla(confirmDelete.id_cuadrilla);
+    } else {
+      await eliminarTrabajadorCuadrilla(
+        confirmDelete.id_trabajador,
+        confirmDelete.id_cuadrilla
+      );
     }
-  };
+
+    reloadCuadrillas();
+  } catch (e) {
+    setError(e.message);
+  } finally {
+    setConfirmDelete(null);
+  }
+};
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -307,32 +282,38 @@ function Asignaciones({ usuario, onLogout }) {
                 )}
               </div>
 
-              {/* Prevencionista de riesgo — visible pero pendiente de integración backend */}
-              <div style={{ minWidth: '200px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                  <Shield size={14} color="#F59E0B" />
-                  <p style={{ fontSize: '11px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Prevencionista de Riesgo</p>
-                </div>
-                {selectedProject.id_prevencionista ? (
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#111827', margin: 0 }}>
-                    {trabajadores.find((t) => t.id_trabajador === selectedProject.id_prevencionista)?.nombres ?? `ID ${selectedProject.id_prevencionista}`}
-                  </p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                    <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0, fontStyle: 'italic' }}>Sin asignar</p>
-                    <button
-                      type="button"
-                      className="tw-btn-edit"
-                      style={{ width: 'auto', padding: '5px 10px', fontSize: '12px' }}
-                      disabled
-                      title="Pendiente de integración con el backend"
-                    >
-                      Agregar prevencionista
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Prevencionista de Riesgos */}
+<div style={{ minWidth: '200px' }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+    <Shield size={14} color="#F59E0B" />
+    <p style={{ fontSize: '11px', fontWeight: 700, color: '#6b7280', margin: 0 }}>
+      Prevencionista de Riesgos
+    </p>
+  </div>
+
+  {prevencionistaProyecto ? (
+    <p style={{ fontSize: '14px', fontWeight: 600, color: '#111827', margin: 0 }}>
+      {prevencionistaProyecto}
+    </p>
+  ) : (
+    <p style={{ fontSize: '13px', color: '#9ca3af', fontStyle: 'italic', margin: 0 }}>
+      Sin asignar
+    </p>
+  )}
+
+  <button
+    type="button"
+    className="tw-btn-edit"
+    style={{ width: 'auto', padding: '5px 10px', fontSize: '12px', marginTop: '8px' }}
+    onClick={() => {
+      setTempPrevencionista(prevencionistaProyecto);
+      setShowPrevModal(true);
+    }}
+  >
+    {prevencionistaProyecto ? 'Editar' : 'Agregar'}
+  </button>
+</div>
+</div>
           )}
 
           {/* ── Métricas ────────────────────────────────────────────────── */}
@@ -381,8 +362,6 @@ function Asignaciones({ usuario, onLogout }) {
               {filteredCuadrillas.map((c) => {
                 const expanded   = !!expandedIds[c.id_cuadrilla];
                 const integrantes = c.integrantes ?? [];
-                const supsCuadrilla  = integrantes.filter((i) => getTipo(i.id_trabajador) === 'supervisor');
-                const trabsCuadrilla = integrantes.filter((i) => getTipo(i.id_trabajador) === 'trabajador');
 
                 return (
                   <div key={c.id_cuadrilla} className="tw-table-card" style={{ overflow: 'hidden' }}>
@@ -405,19 +384,20 @@ function Asignaciones({ usuario, onLogout }) {
                       {/* Botones — detener propagación del click de expandir */}
                       <button
                         className="tw-btn-edit"
-                        title="Agregar supervisor"
-                        onClick={(e) => { e.stopPropagation(); abrirModalSup(c.id_cuadrilla); }}
-                        style={{ width: 'auto', padding: '5px 10px', gap: '5px', display: 'flex', alignItems: 'center', fontSize: '12px' }}
-                      >
-                        <HardHat size={13} /> Supervisor
-                      </button>
-                      <button
-                        className="tw-btn-edit"
                         title="Agregar trabajador"
                         onClick={(e) => { e.stopPropagation(); abrirModalOp(c.id_cuadrilla); }}
                         style={{ width: 'auto', padding: '5px 10px', gap: '5px', display: 'flex', alignItems: 'center', fontSize: '12px' }}
                       >
                         <UserPlus size={13} /> Trabajador
+                      </button>
+                      <button
+                        type="button"
+                        className="tw-btn-delete"
+                        title="Eliminar cuadrilla"
+                        onClick={(e) => {e.stopPropagation();setConfirmDelete({tipo: "cuadrilla",id_cuadrilla: c.id_cuadrilla,nombre: c.nombre_cuadrilla,});}}
+                      >
+                        <Trash2 size={13} />
+                        Eliminar
                       </button>
                     </div>
 
@@ -430,25 +410,8 @@ function Asignaciones({ usuario, onLogout }) {
                           </div>
                         ) : (
                           <>
-                            {/* Supervisores primero */}
-                            {supsCuadrilla.map((i) => (
-                              <div key={i.id_trabajador} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 16px', borderBottom: '1px solid #f3f4f6', background: '#f0fdf4' }}>
-                                <div className="tw-avatar" style={{ width: '28px', height: '28px', fontSize: '11px', background: '#d1fae5', color: '#065f46' }}>
-                                  {(i.nombres?.[0] ?? '?').toUpperCase()}
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                  <div style={{ fontWeight: 600, fontSize: '13px', color: '#374151' }}>{i.nombres} {i.apellidos}</div>
-                                  <div style={{ fontSize: '11px', color: '#9ca3af' }}>{i.cargo_operativo} · {i.tipo_jornada}</div>
-                                </div>
-                                <span className="tw-badge badge-activo" style={{ fontSize: '10px' }}>Supervisor</span>
-                                <button
-                                  className="tw-btn-delete"
-                                  onClick={() => setConfirmDelete({ tipo: 'supervisor', id_trabajador: i.id_trabajador, id_cuadrilla: c.id_cuadrilla })}
-                                ><Trash2 size={12} /></button>
-                              </div>
-                            ))}
                             {/* Trabajadores */}
-                            {trabsCuadrilla.map((i) => (
+                            {integrantes.map((i) => (
                               <div key={i.id_trabajador} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 16px 10px 36px', borderBottom: '1px solid #f3f4f6' }}>
                                 <div className="tw-avatar" style={{ width: '26px', height: '26px', fontSize: '10px' }}>
                                   {(i.nombres?.[0] ?? '?').toUpperCase()}
@@ -509,45 +472,53 @@ function Asignaciones({ usuario, onLogout }) {
         </div>
       )}
 
-      {/* ── Modal Agregar Supervisor ──────────────────────────────────────── */}
-      {showSupModal && (
-        <div className="tw-modal-overlay" onClick={() => setShowSupModal(false)}>
-          <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="tw-modal-header">
-              <h2>Agregar Supervisor a Cuadrilla</h2>
-              <button className="tw-modal-close" onClick={() => setShowSupModal(false)}><X size={18} /></button>
-            </div>
-            {supError && <div className="tw-form-error"><AlertCircle size={14} /> {supError}</div>}
-            <form className="tw-form" onSubmit={handleSubmitSup}>
-              <div className="tw-form-grid">
-                <div className="tw-field tw-field-full">
-                  <label>Supervisor *</label>
-                  <select value={supForm.id_trabajador} onChange={(e) => setSupForm((p) => ({ ...p, id_trabajador: e.target.value }))} required>
-                    <option value="">— Seleccionar supervisor —</option>
-                    {supervisores.map((t) => <option key={t.id_trabajador} value={t.id_trabajador}>{t.nombres} {t.apellidos} — {t.rut}</option>)}
-                  </select>
-                </div>
-                <div className="tw-field">
-                  <label>Cargo Operativo</label>
-                  <input value={supForm.cargo_operativo} onChange={(e) => setSupForm((p) => ({ ...p, cargo_operativo: e.target.value }))} />
-                </div>
-                <div className="tw-field">
-                  <label>Tipo de Jornada</label>
-                  <select value={supForm.tipo_jornada} onChange={(e) => setSupForm((p) => ({ ...p, tipo_jornada: e.target.value }))}>
-                    {JORNADAS.map((j) => <option key={j} value={j}>{j}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="tw-modal-footer">
-                <button type="button" className="tw-btn-cancel" onClick={() => setShowSupModal(false)}>Cancelar</button>
-                <button type="submit" className="tw-btn-save" disabled={savingSup}>
-                  <Save size={14} /> {savingSup ? 'Guardando...' : 'Agregar Supervisor'}
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* ── Modal Prevencionista ─────────────────────────────────────────── */}
+{showPrevModal && (
+  <div className="tw-modal-overlay" onClick={() => setShowPrevModal(false)}>
+    <div className="tw-modal" onClick={(e) => e.stopPropagation()}>
+
+      <div className="tw-modal-header">
+        <h2>Prevencionista de Riesgos</h2>
+        <button className="tw-modal-close" onClick={() => setShowPrevModal(false)}>
+          <X size={18} />
+        </button>
+      </div>
+
+      <form
+        className="tw-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setPrevencionistas((prev) => ({
+            ...prev,
+            [selectedProject.id_proyecto]: tempPrevencionista
+          }));
+          setShowPrevModal(false);
+        }}
+      >
+
+        <div className="tw-field tw-field-full">
+          <label>Nombre</label>
+          <input
+            type="text"
+            value={tempPrevencionista}
+            onChange={(e) => setTempPrevencionista(e.target.value)}
+          />
         </div>
-      )}
+
+        <div className="tw-modal-footer">
+          <button type="button" onClick={() => setShowPrevModal(false)}>
+            Cancelar
+          </button>
+
+          <button type="submit">
+            Guardar
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+)}
 
       {/* ── Modal Agregar Trabajador ──────────────────────────────────────── */}
       {showOpModal && (
@@ -589,24 +560,43 @@ function Asignaciones({ usuario, onLogout }) {
         </div>
       )}
 
-      {/* ── Confirmar eliminación ─────────────────────────────────────────── */}
-      {confirmDelete && (
-        <div className="tw-modal-overlay" onClick={() => setConfirmDelete(null)}>
-          <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
-            <div className="tw-modal-header">
-              <h2>Confirmar eliminación</h2>
-              <button className="tw-modal-close" onClick={() => setConfirmDelete(null)}><X size={18} /></button>
-            </div>
-            <p className="tw-confirm-text">¿Deseas quitar este integrante de la cuadrilla? Esta acción no se puede deshacer.</p>
-            <div className="tw-modal-footer">
-              <button className="tw-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancelar</button>
-              <button className="tw-btn-delete-confirm" onClick={handleDelete}><Trash2 size={14} /> Eliminar</button>
-            </div>
-          </div>
-        </div>
-      )}
+{/* ── Confirmar eliminación / inactivación ───────────────────────────────── */}
+{confirmDelete && (
+  <div className="tw-modal-overlay" onClick={() => setConfirmDelete(null)}>
+    <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
+      <div className="tw-modal-header">
+        <h2>
+          {confirmDelete.tipo === "cuadrilla"
+            ? "Confirmar inactivación"
+            : "Confirmar eliminación"}
+        </h2>
+
+        <button className="tw-modal-close" onClick={() => setConfirmDelete(null)}>
+          <X size={18} />
+        </button>
+      </div>
+
+      <p className="tw-confirm-text">
+        {confirmDelete.tipo === "cuadrilla"
+          ? `¿Deseas inactivar la cuadrilla "${confirmDelete.nombre}"? Esta acción cambiará su estado a inactiva.`
+          : "¿Deseas quitar este integrante de la cuadrilla? Esta acción no se puede deshacer."}
+      </p>
+
+      <div className="tw-modal-footer">
+        <button className="tw-btn-cancel" onClick={() => setConfirmDelete(null)}>
+          Cancelar
+        </button>
+
+        <button className="tw-btn-delete-confirm" onClick={handleDelete}>
+          <Trash2 size={14} />
+          {confirmDelete.tipo === "cuadrilla" ? "Inactivar" : "Eliminar"}
+        </button>
+      </div>
     </div>
+  </div>
+  )}
+  </div>
   );
-}
+  };
 
 export default Asignaciones;
