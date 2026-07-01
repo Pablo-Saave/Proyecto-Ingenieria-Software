@@ -177,12 +177,13 @@ export const crearContratoProyecto = async (req, res) => {
       fecha_termino,
       fecha_extension,
       estado_contrato,
+      monto,
     } = req.body;
 
-    if (!id_proyecto || !descripcion || !fecha_inicio || !fecha_termino || !estado_contrato) {
+    if (!id_proyecto || !descripcion || !fecha_inicio || !fecha_termino || !estado_contrato || monto === undefined || monto === null || monto === '') {
       return res.status(400).json({
         message:
-          "Los campos id_proyecto, descripcion, fecha_inicio, fecha_termino y estado_contrato son obligatorios",
+          "Los campos id_proyecto, descripcion, fecha_inicio, fecha_termino, estado_contrato y monto son obligatorios",
       });
     }
 
@@ -193,6 +194,12 @@ export const crearContratoProyecto = async (req, res) => {
     if (!ESTADOS_VALIDOS.includes(estado_contrato)) {
       return res.status(400).json({
         message: `estado_contrato debe ser uno de: ${ESTADOS_VALIDOS.join(", ")}`,
+      });
+    }
+
+    if (Number.isNaN(Number(monto))) {
+      return res.status(400).json({
+        message: "monto debe ser numérico",
       });
     }
 
@@ -225,6 +232,7 @@ export const crearContratoProyecto = async (req, res) => {
       fecha_termino,
       fecha_extension: fecha_extension || fecha_termino,
       estado_contrato,
+      monto: Number(monto),
     });
 
     await contratoProyectoRepository.save(nuevoContrato);
@@ -267,6 +275,7 @@ export const actualizarContratoProyecto = async (req, res) => {
       fecha_termino,
       fecha_extension,
       estado_contrato,
+      monto,
     } = req.body;
 
     if (
@@ -274,7 +283,8 @@ export const actualizarContratoProyecto = async (req, res) => {
       fecha_inicio === undefined &&
       fecha_termino === undefined &&
       fecha_extension === undefined &&
-      estado_contrato === undefined
+      estado_contrato === undefined &&
+      monto === undefined
     ) {
       return res.status(400).json({
         message: "Debe enviar al menos un campo para actualizar",
@@ -284,6 +294,12 @@ export const actualizarContratoProyecto = async (req, res) => {
     if (estado_contrato !== undefined && !ESTADOS_VALIDOS.includes(estado_contrato)) {
       return res.status(400).json({
         message: `estado_contrato debe ser uno de: ${ESTADOS_VALIDOS.join(", ")}`,
+      });
+    }
+
+    if (monto !== undefined && monto !== null && monto !== '' && Number.isNaN(Number(monto))) {
+      return res.status(400).json({
+        message: "monto debe ser numérico",
       });
     }
 
@@ -307,6 +323,7 @@ export const actualizarContratoProyecto = async (req, res) => {
     if (fecha_termino !== undefined) contrato.fecha_termino = fecha_termino;
     if (fecha_extension !== undefined) contrato.fecha_extension = fecha_extension;
     if (estado_contrato !== undefined) contrato.estado_contrato = estado_contrato;
+    if (monto !== undefined) contrato.monto = Number(monto);
 
     await contratoProyectoRepository.save(contrato);
 

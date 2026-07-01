@@ -28,6 +28,15 @@ function formatearFecha(fecha) {
   });
 }
 
+function formatearMonto(monto) {
+  if (monto === null || monto === undefined || monto === '') return '--';
+  return Number(monto).toLocaleString('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  });
+}
+
 function calcularAntiguedad(fechaInicio) {
   if (!fechaInicio) return '--';
   const inicio = new Date(`${fechaInicio}T00:00:00`);
@@ -87,6 +96,7 @@ function mapContrato(c) {
     tipo_contrato: c.tipo_contrato || '--',
     fecha_inicio: c.fecha_inicio,
     fecha_termino: c.fecha_termino || '',
+    monto: c.monto ?? null,
     trabajador: {
       id_trabajador: t.id_trabajador,
       nombre: `${t.nombres || ''} ${t.apellidos || ''}`.trim() || 'Sin nombre',
@@ -122,6 +132,7 @@ function DetalleModal({ contrato, onClose }) {
             <span className="detalle-label">Fecha término</span>
             <span>{esIndefinido ? 'Sin vencimiento' : formatearFecha(contrato.fecha_termino)}</span>
           </div>
+          <div><span className="detalle-label">Sueldo</span><span>{formatearMonto(contrato.monto)}</span></div>
           <div><span className="detalle-label">Antigüedad</span><span>{calcularAntiguedad(contrato.fecha_inicio)}</span></div>
           {!esIndefinido && (
             <div><span className="detalle-label">Días restantes</span><span>{contrato.diasRestantes} días</span></div>
@@ -242,6 +253,7 @@ function ContratosSupervisor({ usuario, onLogout }) {
                     <tr>
                       <th>TRABAJADOR</th>
                       <th>TIPO CONTRATO</th>
+                      <th>SUELDO</th>
                       <th>INICIO</th>
                       <th>TÉRMINO</th>
                       <th>ESTADO</th>
@@ -251,7 +263,7 @@ function ContratosSupervisor({ usuario, onLogout }) {
                   </thead>
                   <tbody>
                     {visibles.length === 0 ? (
-                      <tr><td colSpan={7} className="table-empty">No se encontraron contratos.</td></tr>
+                      <tr><td colSpan={8} className="table-empty">No se encontraron contratos.</td></tr>
                     ) : visibles.map((contrato) => (
                       <tr key={contrato.id_contrato}>
                         <td className="col-trabajador">
@@ -264,6 +276,7 @@ function ContratosSupervisor({ usuario, onLogout }) {
                           </div>
                         </td>
                         <td>{contrato.tipo_contrato}</td>
+                        <td>{formatearMonto(contrato.monto)}</td>
                         <td>{formatearFecha(contrato.fecha_inicio)}</td>
                         <td>{contrato.tipo_contrato === 'Indefinido' ? '--' : formatearFecha(contrato.fecha_termino)}</td>
                         <td><span className={`estado-badge ${getEstadoClass(contrato.estado)}`}>{contrato.estado}</span></td>

@@ -131,6 +131,11 @@ export function validarFormContratoProyecto(form, esEdicion = false) {
   if (!form.estado_contrato) {
     errores.push("Debe seleccionar un estado");
   }
+  if (form.monto === "" || form.monto === null || form.monto === undefined) {
+    errores.push("El monto es obligatorio");
+  } else if (Number.isNaN(Number(form.monto))) {
+    errores.push("El monto debe ser numérico");
+  }
 
   return errores;
 }

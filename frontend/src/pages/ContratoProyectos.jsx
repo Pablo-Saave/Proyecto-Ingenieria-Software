@@ -57,6 +57,7 @@ function mapContrato(c) {
     fecha_termino:        c.fecha_termino,
     fecha_extension:      c.fecha_extension,
     estado_contrato:      c.estado_contrato,
+    monto:                c.monto ?? null,
     proyecto: {
       nombre: p.nombre_proyecto || 'Proyecto sin nombre',
       direccion: p.direccion || '—',
@@ -64,6 +65,11 @@ function mapContrato(c) {
     },
     diasRestantes: calcularDiasRestantes(c.fecha_termino),
   };
+}
+
+function formatearMonto(monto) {
+  if (monto === null || monto === undefined || monto === '') return '—';
+  return Number(monto).toLocaleString('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
 }
 
 function IconoFiltro() {
@@ -83,6 +89,7 @@ const FORM_VACIO = {
   estado_contrato: 'activo',
   fecha_inicio:    '',
   fecha_termino:   '',
+  monto:           '',
 };
 
 function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDisponibles }) {
@@ -96,6 +103,7 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
           estado_contrato: contratoEdit.estado_contrato || 'activo',
           fecha_inicio:    contratoEdit.fecha_inicio  || '',
           fecha_termino:   contratoEdit.fecha_termino || '',
+          monto:           contratoEdit.monto ?? '',
         }
       : FORM_VACIO
   );
@@ -123,6 +131,7 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
           estado_contrato: form.estado_contrato,
           fecha_inicio:    form.fecha_inicio,
           fecha_termino:   form.fecha_termino,
+          monto:           form.monto === '' ? null : Number(form.monto),
         });
       } else {
         await createContratoProyecto({
@@ -131,6 +140,7 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
           estado_contrato: form.estado_contrato,
           fecha_inicio:    form.fecha_inicio,
           fecha_termino:   form.fecha_termino,
+          monto:           form.monto === '' ? null : Number(form.monto),
         });
       }
       onGuardado();
@@ -208,6 +218,17 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
             value={form.fecha_termino}
             min={form.fecha_inicio || hoy}
             onChange={handleChange}
+          />
+
+          <label>Monto del contrato *</label>
+          <input
+            type="number"
+            name="monto"
+            value={form.monto}
+            onChange={handleChange}
+            min="0"
+            step="1"
+            placeholder="Ej: 4500000"
           />
         </div>
 
@@ -382,6 +403,7 @@ function DetalleModal({ contratoResumen, onClose, onCambio }) {
               <div><span className="detalle-label">Fecha inicio</span><span>{formatearFecha(contrato.fecha_inicio)}</span></div>
               <div><span className="detalle-label">Fecha término</span><span>{formatearFecha(contrato.fecha_termino)}</span></div>
               <div><span className="detalle-label">Fecha extensión vigente</span><span>{formatearFecha(contrato.fecha_extension)}</span></div>
+              <div><span className="detalle-label">Monto</span><span>{formatearMonto(contrato.monto)}</span></div>
               <div className="detalle-full">
                 <span className="detalle-label">Descripción</span>
                 <span>{contrato.descripcion}</span>
@@ -494,6 +516,7 @@ function ContratoProyectos({ usuario, onLogout }) {
 
   const [searchTerm,     setSearchTerm]     = useState('');
   const [filtroEstado,   setFiltroEstado]   = useState('Todos');
+  const [filtroFecha,    setFiltroFecha]    = useState('Todos');
   const [filtrosActivos, setFiltrosActivos] = useState(false);
   const [pagina,          setPagina]        = useState(1);
 
@@ -531,13 +554,29 @@ function ContratoProyectos({ usuario, onLogout }) {
     fetchProyectosDisponibles();
   }, []);
 
+  const getFechaLimite = (rango) => {
+    const hoy = new Date();
+    switch (rango) {
+      case 'Último mes': return new Date(hoy.getFullYear(), hoy.getMonth() - 1, hoy.getDate());
+      case '3 meses':    return new Date(hoy.getFullYear(), hoy.getMonth() - 3, hoy.getDate());
+      case '6 meses':    return new Date(hoy.getFullYear(), hoy.getMonth() - 6, hoy.getDate());
+      case '12 meses':   return new Date(hoy.getFullYear() - 1, hoy.getMonth(), hoy.getDate());
+      default:           return null;
+    }
+  };
+
   const filtrados = contratos.filter((c) => {
     const term = searchTerm.toLowerCase();
     const matchSearch =
       c.proyecto.nombre.toLowerCase().includes(term) ||
       c.proyecto.cliente.toLowerCase().includes(term);
     const matchEstado = !filtrosActivos || filtroEstado === 'Todos' || c.estado_contrato === filtroEstado;
-    return matchSearch && matchEstado;
+    let matchFecha = true;
+    if (filtrosActivos && filtroFecha !== 'Todos') {
+      const lim = getFechaLimite(filtroFecha);
+      matchFecha = new Date(c.fecha_inicio + 'T00:00:00') >= lim;
+    }
+    return matchSearch && matchEstado && matchFecha;
   });
 
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
@@ -567,7 +606,7 @@ function ContratoProyectos({ usuario, onLogout }) {
   };
 
   return (
-    <div className="dashboard-wrapper">
+    <div className="dashboard-wrapper contrato-proyecto-page">
       <Sidebar usuario={usuario} />
       <div className="dashboard-main">
         <Header onLogout={onLogout} />
@@ -608,6 +647,16 @@ function ContratoProyectos({ usuario, onLogout }) {
                     ))}
                   </select>
                 </div>
+                <div className="filter-group">
+                  <label>Fecha</label>
+                  <select value={filtroFecha} onChange={(e) => { setFiltroFecha(e.target.value); setPagina(1); }}>
+                    <option value="Todos">Todas</option>
+                    <option value="Último mes">Último mes</option>
+                    <option value="3 meses">3 meses</option>
+                    <option value="6 meses">6 meses</option>
+                    <option value="12 meses">12 meses</option>
+                  </select>
+                </div>
                 <button
                   className={`btn-filtros${filtrosActivos ? ' btn-filtros-activo' : ''}`}
                   onClick={() => setFiltrosActivos((p) => !p)}
@@ -620,6 +669,7 @@ function ContratoProyectos({ usuario, onLogout }) {
             <div className="contratos-count">
               {filtrados.length} contrato{filtrados.length !== 1 ? 's' : ''}
               {filtrosActivos && filtroEstado !== 'Todos' && ` · ${getEstadoLabel(filtroEstado)}`}
+              {filtrosActivos && filtroFecha  !== 'Todos' && ` · ${filtroFecha}`}
             </div>
 
             <div className="contratos-table-wrapper">

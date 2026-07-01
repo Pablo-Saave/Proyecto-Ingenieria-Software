@@ -31,12 +31,16 @@ export function hoyLocal() {
 
 export function validarFormContrato(form, esEdicion = false) {
   const errores = [];
-  const { tipo_contrato, estado_contrato, fecha_inicio, fecha_termino, id_trabajador } = form;
+  const { tipo_contrato, estado_contrato, fecha_inicio, fecha_termino, monto, id_trabajador } = form;
 
   if (!esEdicion && !id_trabajador)   errores.push('Debes seleccionar un trabajador.');
   if (!tipo_contrato)                 errores.push('El tipo de contrato es obligatorio.');
   if (!estado_contrato)               errores.push('El estado del contrato es obligatorio.');
   if (!fecha_inicio)                  errores.push('La fecha de inicio es obligatoria.');
+  if (monto === '' || monto === null || monto === undefined)
+    errores.push('El monto del contrato es obligatorio.');
+  else if (Number.isNaN(Number(monto)))
+    errores.push('El monto del contrato debe ser numérico.');
 
   if (tipo_contrato && !TIPOS_CONTRATO.includes(tipo_contrato))
     errores.push(`Tipo inválido. Opciones: ${TIPOS_CONTRATO.join(', ')}.`);

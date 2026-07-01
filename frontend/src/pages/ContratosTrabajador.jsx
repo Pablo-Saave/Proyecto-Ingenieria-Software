@@ -23,6 +23,15 @@ function formatearFecha(fecha) {
   });
 }
 
+function formatearMonto(monto) {
+  if (monto === null || monto === undefined || monto === '') return '—';
+  return Number(monto).toLocaleString('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  });
+}
+
 function calcularAntiguedad(fechaInicio) {
   if (!fechaInicio) return '—';
   const inicio = new Date(fechaInicio + 'T00:00:00');
@@ -60,6 +69,7 @@ function mapContrato(c) {
     estado_contrato: c.estado_contrato || '—',
     fecha_inicio: c.fecha_inicio,
     fecha_termino: c.fecha_termino || '',
+    monto: c.monto ?? null,
     observaciones: c.observaciones || '',
     trabajador: {
       id_trabajador: t.id_trabajador,
@@ -108,6 +118,10 @@ function DetalleModal({ contrato, onClose }) {
           <div>
             <span className="detalle-label">Fecha término</span>
             <span>{esIndefinido ? 'Sin vencimiento' : formatearFecha(contrato.fecha_termino)}</span>
+          </div>
+          <div>
+            <span className="detalle-label">Sueldo</span>
+            <span>{formatearMonto(contrato.monto)}</span>
           </div>
           <div>
             <span className="detalle-label">Antigüedad</span>
@@ -187,6 +201,13 @@ function ContratoCard({ contrato, onVer }) {
         <div className="contrato-card-info">
           <span className="contrato-info-label">Estado</span>
           <span style={getEstadoBadgeStyle(etiquetaEstado)}>{etiquetaEstado}</span>
+        </div>
+
+        <div className="contrato-card-info">
+          <span className="contrato-info-label">Sueldo</span>
+          <div className="contrato-info-value">
+            <span>{formatearMonto(contrato.monto)}</span>
+          </div>
         </div>
       </div>
 

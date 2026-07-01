@@ -20,11 +20,12 @@ function esFechaValida(str) {
 
 export function validarCrearContrato(req, res, next) {
   const errores = [];
-  const { tipo_contrato, estado_contrato, fecha_inicio, fecha_termino, id_trabajador } = req.body;
+  const { tipo_contrato, estado_contrato, fecha_inicio, fecha_termino, monto, id_trabajador } = req.body;
 
   if (!tipo_contrato)   errores.push('El campo tipo_contrato es obligatorio.');
   if (!estado_contrato) errores.push('El campo estado_contrato es obligatorio.');
   if (!fecha_inicio)    errores.push('El campo fecha_inicio es obligatorio.');
+  if (monto === undefined || monto === null || monto === '') errores.push('El campo monto es obligatorio.');
   if (!id_trabajador)   errores.push('El campo id_trabajador es obligatorio.');
 
   if (errores.length) {
@@ -43,6 +44,10 @@ export function validarCrearContrato(req, res, next) {
     errores.push('fecha_inicio no es una fecha válida (formato YYYY-MM-DD).');
   } else if (fecha_inicio < hoyLocal()) {
     errores.push('La fecha de inicio no puede ser anterior a hoy.');
+  }
+
+  if (monto !== undefined && monto !== null && monto !== '' && Number.isNaN(Number(monto))) {
+    errores.push('monto debe ser numérico.');
   }
 
   if (tipo_contrato === 'Indefinido' && fecha_termino) {
@@ -64,6 +69,10 @@ export function validarCrearContrato(req, res, next) {
   }
 
   if (tipo_contrato === 'Indefinido') req.body.fecha_termino = null;
+
+  if (monto !== undefined && monto !== null && monto !== '') {
+    req.body.monto = Number(monto);
+  }
 
   next();
 }

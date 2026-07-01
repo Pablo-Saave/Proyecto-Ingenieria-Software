@@ -73,6 +73,7 @@ export async function createContrato(req, res) {
       fecha_inicio,
       fecha_termino,
       observaciones,
+      monto,
       id_trabajador,
     } = req.body;
 
@@ -96,6 +97,7 @@ export async function createContrato(req, res) {
       // Para contratos Indefinidos el validador ya dejó fecha_termino en null
       fecha_termino: fecha_termino || null,
       observaciones: observaciones || null,
+      monto: monto !== undefined && monto !== null ? Number(monto) : null,
       id_trabajador: parseInt(id_trabajador),
     });
 

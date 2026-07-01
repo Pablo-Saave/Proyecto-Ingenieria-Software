@@ -38,6 +38,15 @@ function getDatosTrabajador(contrato) {
   };
 }
 
+function formatearMonto(monto) {
+  if (monto === null || monto === undefined || monto === '') return '-';
+  return Number(monto).toLocaleString('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  });
+}
+
 export function generarPDFContrato(contrato) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const ancho = doc.internal.pageSize.getWidth();
@@ -112,6 +121,7 @@ export function generarPDFContrato(contrato) {
   fila(doc, 14, y, ancho, 'Estado', contrato.estado ?? contrato.estado_contrato ?? '-', GRIS_OSC, GRIS_MED); y += 9;
   fila(doc, 14, y, ancho, 'Fecha de inicio', formatearFecha(contrato.fecha_inicio), GRIS_OSC, GRIS_MED); y += 9;
   fila(doc, 14, y, ancho, 'Fecha de termino', esIndefinido ? 'Sin vencimiento (contrato indefinido)' : formatearFecha(contrato.fecha_termino), GRIS_OSC, GRIS_MED); y += 9;
+  fila(doc, 14, y, ancho, 'Sueldo', formatearMonto(contrato.monto), GRIS_OSC, GRIS_MED); y += 9;
   fila(doc, 14, y, ancho, 'Antiguedad', calcularAntiguedad(contrato.fecha_inicio), GRIS_OSC, GRIS_MED); y += 9;
 
   if (!esIndefinido && contrato.diasRestantes !== null && contrato.diasRestantes !== undefined) {

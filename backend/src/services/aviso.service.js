@@ -1,5 +1,4 @@
 // services/aviso.service.js
-import { IsNull } from "typeorm";
 import { AppDataSource } from "../config/configDb.js";
 
 const avisoRepository      = AppDataSource.getRepository("Aviso");
@@ -11,13 +10,13 @@ const asignadoRepository   = AppDataSource.getRepository("Asignado");
 
 const getAsignacionActiva = (id_trabajador) =>
   asignadoRepository.findOne({
-    where: { id_trabajador, fecha_retiro: IsNull() },
+    where: { id_trabajador },
     relations: ["cuadrilla"],
   });
 
 const supervisorPerteneceACuadrilla = (id_trabajador, id_cuadrilla) =>
   asignadoRepository.findOne({
-    where: { id_trabajador, id_cuadrilla: Number(id_cuadrilla), fecha_retiro: IsNull() },
+    where: { id_trabajador, id_cuadrilla: Number(id_cuadrilla) },
   });
 
 const getCuadrillaOperativa = async (id_cuadrilla) => {

@@ -38,6 +38,11 @@ function formatearFecha(fecha) {
   });
 }
 
+function formatearMonto(monto) {
+  if (monto === null || monto === undefined || monto === '') return '—';
+  return Number(monto).toLocaleString('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
+}
+
 function getIniciales(nombres = '', apellidos = '') {
   return ((nombres.trim()[0] || '') + (apellidos.trim()[0] || '')).toUpperCase();
 }
@@ -61,6 +66,7 @@ function mapContrato(c) {
     fecha_inicio:    c.fecha_inicio,
     fecha_termino:   c.fecha_termino  || '',
     observaciones:   c.observaciones  || '',
+    monto:           c.monto ?? null,
     id_trabajador:   t.id_trabajador,
     trabajador: {
       nombre:    `${t.nombres || ''} ${t.apellidos || ''}`.trim() || 'Sin nombre',
@@ -105,6 +111,7 @@ const FORM_VACIO = {
   estado_contrato: 'Activo',
   fecha_inicio:    '',
   fecha_termino:   '',
+  monto:           '',
   observaciones:   '',
 };
 
@@ -117,6 +124,7 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
           estado_contrato: contratoEdit.estado_contrato || 'Activo',
           fecha_inicio:    contratoEdit.fecha_inicio    || '',
           fecha_termino:   contratoEdit.fecha_termino   || '',
+          monto:           contratoEdit.monto ?? '',
           observaciones:   contratoEdit.observaciones   || '',
         }
       : FORM_VACIO
@@ -153,6 +161,7 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
         estado_contrato: form.estado_contrato,
         fecha_inicio:    form.fecha_inicio,
         fecha_termino:   esIndefinido ? null : (form.fecha_termino || null),
+        monto:           form.monto === '' ? null : Number(form.monto),
         observaciones:   form.observaciones || null,
         id_trabajador:   Number(form.id_trabajador),
       };
@@ -241,6 +250,17 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
             style={esIndefinido ? { opacity: 0.4, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
 
+          <label>Monto (sueldo) *</label>
+          <input
+            type="number"
+            name="monto"
+            value={form.monto}
+            onChange={handleChange}
+            min="0"
+            step="1"
+            placeholder="Ej: 650000"
+          />
+
           <label>Observaciones</label>
           <textarea
             name="observaciones"
@@ -288,6 +308,10 @@ function DetalleModal({ contrato, onClose }) {
           <div>
             <span className="detalle-label">Días restantes</span>
             <span>{contrato.tipo_contrato === 'Indefinido' ? '—' : `${contrato.diasRestantes} días`}</span>
+          </div>
+          <div>
+            <span className="detalle-label">Monto</span>
+            <span>{formatearMonto(contrato.monto)}</span>
           </div>
           {contrato.observaciones && (
             <div className="detalle-full">
