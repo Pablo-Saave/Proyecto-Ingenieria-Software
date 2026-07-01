@@ -37,6 +37,11 @@ export const ContratoTrabajadorSchema = new EntitySchema({
       type: "text",
       nullable: true,
     },
+
+    monto: {
+      type: "int",
+      nullable: false
+    }
   },
 
   relations: {
