@@ -71,13 +71,10 @@ function Asignaciones({ usuario, onLogout }) {
   // ── Carga base ────────────────────────────────────────────────────────────
   const fetchBase = async () => {
     try {
-      const [resP, resT] = await Promise.all([
-        apiFetch('/api/proyectos'),
-        apiFetch('/api/trabajadores'),
-      ]);
+      const resP = await apiFetch('/api/proyectos');
       const ps = Array.isArray(resP) ? resP : resP.data ?? [];
       setProyectos(ps);
-      setTrabajadores(Array.isArray(resT) ? resT : resT.data ?? []);
+      await fetchTrabajadoresSinCuadrilla();
       // Seleccionar primer proyecto activo por defecto
       const primero = ps.find((p) => p.estado === 'activo') ?? ps[0];
       if (primero) await selectProject(primero, ps);
@@ -109,6 +106,16 @@ function Asignaciones({ usuario, onLogout }) {
     try {
       const res = await getAllCuadrillasAndWorkersByIdProyecto(selectedProject.id_proyecto);
       setCuadrillas(Array.isArray(res?.data) ? res.data : []);
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  const fetchTrabajadoresSinCuadrilla = async () => {
+    try {
+      const res = await apiFetch("/api/trabajadores/sinCuadrilla");
+
+      setTrabajadores(Array.isArray(res) ? res : res.data ?? []);
     } catch (e) {
       setError(e.message);
     }
@@ -180,7 +187,10 @@ function Asignaciones({ usuario, onLogout }) {
         opForm.tipo_jornada,
       );
       setShowOpModal(false);
-      reloadCuadrillas();
+      await Promise.all([
+        reloadCuadrillas(),
+        fetchTrabajadoresSinCuadrilla(),
+      ]);
     } catch (e) {
       setOpError(e.message);
     } finally {
