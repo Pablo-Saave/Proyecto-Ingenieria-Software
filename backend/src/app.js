@@ -7,6 +7,7 @@ import ausenciaRoutes from "./routes/ausencia.routes.js";
 import contratoRoutes from "./routes/contrato.routes.js";
 import trabajadorRoutes from "./routes/trabajador.routes.js";
 import proyectoRoutes from "./routes/proyecto.routes.js";
+import contratoProyectoRoutes from "./routes/contrato_proyecto.routes.js";
 import cuadrillaRoutes from "./routes/cuadrilla.routes.js"
 import remuneracionRoutes from "./routes/remuneracion.routes.js";
 import avisoRoutes from "./routes/aviso.routes.js";
@@ -46,6 +47,7 @@ app.use("/api/ausencias",      ausenciaRoutes);
 app.use("/api/contratos",      contratoRoutes);
 app.use("/api/trabajadores",   trabajadorRoutes);
 app.use("/api/proyectos",      proyectoRoutes);
+app.use("/api/contratos-proyecto", contratoProyectoRoutes);
 app.use("/api/cuadrilla",      cuadrillaRoutes);
 app.use("/api/remuneraciones", remuneracionRoutes);
 app.use("/api/avisos",         avisoRoutes);

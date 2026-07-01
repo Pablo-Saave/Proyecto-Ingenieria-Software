@@ -1,0 +1,372 @@
+/* styles/contratoProyectos.css */
+
+.contratos-container {
+  padding: 24px;
+}
+
+.contratos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.btn-nuevo-contrato {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #4F46E5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-nuevo-contrato:hover { background: #4338CA; }
+
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.contratos-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+}
+.search-box input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.filter-controls { display: flex; align-items: flex-end; gap: 12px; }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 11px; color: #6b7280; font-weight: 600; }
+.filter-group select {
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.btn-filtros {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-filtros-activo { border-color: #4F46E5; color: #4F46E5; }
+
+.contratos-count { font-size: 13px; color: #6b7280; margin-bottom: 10px; }
+
+.contratos-table-wrapper {
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.contratos-table { width: 100%; border-collapse: collapse; }
+.contratos-table thead th {
+  text-align: left;
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #eef0f3;
+}
+.contratos-table tbody td {
+  padding: 14px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+.contratos-table tbody tr:last-child td { border-bottom: none; }
+
+.trabajador-info { display: flex; align-items: center; gap: 10px; }
+.trabajador-info .nombre { font-weight: 600; color: #111827; }
+.trabajador-info .rut { font-size: 12px; color: #9ca3af; }
+
+.table-empty, .table-loading {
+  text-align: center;
+  padding: 40px 16px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.estado-activo     { background: #ECFDF5; color: #059669; }
+.estado-por-vencer { background: #FFFBEB; color: #D97706; }
+.estado-vencido     { background: #FEF2F2; color: #DC2626; }
+.estado-terminado  { background: #F3F4F6; color: #6B7280; }
+
+.dias-text { font-size: 13px; color: #374151; }
+
+.col-acciones { display: flex; gap: 4px; align-items: center; }
+.btn-accion {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 6px;
+  border-radius: 6px;
+}
+.btn-accion:hover { background: #f3f4f6; color: #111827; }
+
+.context-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  overflow: hidden;
+}
+.context-menu button {
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+.context-menu button:hover { background: #f9fafb; }
+.context-menu .ctx-danger { color: #DC2626; }
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info { font-size: 13px; color: #6b7280; }
+.pagination-controls { display: flex; gap: 4px; }
+.btn-pagina {
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn-pagina.active { background: #4F46E5; color: #fff; border-color: #4F46E5; }
+.btn-pagina:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ─── Modales ────────────────────────────────────────────────────────────── */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal-box {
+  background: #fff;
+  border-radius: 14px;
+  width: 480px;
+  max-width: 92vw;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.modal-detalle-contrato { width: 560px; }
+.modal-confirm { width: 420px; }
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.modal-header h2 { font-size: 16px; margin: 0; }
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+}
+
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+.modal-body label { font-size: 12px; font-weight: 600; color: #374151; margin-top: 10px; }
+.modal-body input,
+.modal-body select,
+.modal-body textarea {
+  padding: 9px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.modal-error-list { margin-bottom: 8px; }
+.modal-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #DC2626;
+  font-size: 12px;
+  margin: 2px 0;
+}
+.modal-warn { color: #D97706; font-size: 13px; }
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid #f3f4f6;
+}
+.btn-cancelar {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-guardar {
+  background: #4F46E5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-guardar:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-eliminar {
+  background: #DC2626;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-eliminar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.detalle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.detalle-grid > div { display: flex; flex-direction: column; gap: 3px; }
+.detalle-full { grid-column: 1 / -1; }
+.detalle-label { font-size: 11px; color: #9ca3af; font-weight: 600; text-transform: uppercase; }
+
+/* ─── Sección de Anexos (dentro del modal de detalle) ───────────────────── */
+
+.anexos-section {
+  padding: 4px 20px 20px;
+  border-top: 1px solid #f3f4f6;
+}
+.anexos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 0 10px;
+}
+.anexos-header h3 { font-size: 14px; margin: 0; }
+.btn-agregar-anexo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #EEF2FF;
+  color: #4F46E5;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-agregar-anexo:hover { background: #E0E7FF; }
+
+.anexos-empty { font-size: 13px; color: #9ca3af; padding: 8px 0; }
+
+.anexos-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.anexo-item {
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fafafa;
+}
+.anexo-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.anexo-fecha { font-size: 12px; color: #6b7280; font-weight: 600; }
+.anexo-motivo { font-size: 13px; font-weight: 600; color: #111827; flex: 1; }
+.btn-eliminar-anexo {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 2px;
+}
+.btn-eliminar-anexo:hover { color: #DC2626; }
+
+.anexo-descripcion { font-size: 13px; color: #374151; margin: 4px 0; }
+.anexo-meta { display: flex; gap: 14px; font-size: 12px; color: #6b7280; }
+.anexo-observaciones { font-size: 12px; color: #9ca3af; margin-top: 4px; font-style: italic; }

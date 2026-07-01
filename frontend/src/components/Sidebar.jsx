@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/sidebar.css';
-import { LayoutDashboard, Users, Clock, FileText, DollarSign, CalendarOff, Briefcase, Bell } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, FileText, DollarSign, CalendarOff, Briefcase, Bell, ClipboardList } from 'lucide-react';
 
 // Menu por tipo de usuario
 const MENU_POR_ROL = {
@@ -10,6 +10,7 @@ const MENU_POR_ROL = {
     { id: 'trabajadores', label: 'Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
     { id: 'ausencias',    label: 'Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
     { id: 'contratos',    label: 'Contratos',       icon: FileText,        path: '/admin/contratos' },
+    { id: 'contratos-proyecto', label: 'Contratos de Proyecto', icon: ClipboardList, path: '/admin/contratos-proyecto' },
     { id: 'pagos',        label: 'Pagos',           icon: DollarSign,      path: '/admin/pagos' },
     { id: 'asignaciones', label: 'Asignaciones',    icon: Users,           path: '/admin/asignaciones' },
     { id: 'avisos',       label: 'Canales de Avisos', icon: Bell,          path: '/admin/avisos' },

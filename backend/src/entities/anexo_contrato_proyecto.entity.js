@@ -18,34 +18,34 @@ export const AnexoContratoProyectoSchema = new EntitySchema({
     },
 
     monto_nuevo: {
-        type: "int",
-        nullable: true,
+      type: "int",
+      nullable: true,
     },
 
     fecha_anexo: {
-        type: "date",
-        nullable: false,
+      type: "date",
+      nullable: false,
     },
 
     fecha_vigencia: {
-        type: "date",
-        nullable: false,
+      type: "date",
+      nullable: false,
     },
 
     motivo: {
-        type: "varchar",
-        nullable: false,
+      type: "varchar",
+      nullable: false,
     },
 
     descripcion_modificacion: {
-        type: "varchar",
-        nullable: false,
+      type: "varchar",
+      nullable: false,
     },
 
     observaciones: {
-        type: "varchar",
-        nullable: true
-    }
+      type: "varchar",
+      nullable: true,
+    },
   },
 
   relations: {
