@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import {
   crearCuadrilla,
-  inactivarCuadrilla,
   getAllCuadrillasAndWorkersByIdProyecto,
   agregarSupervisorCuadrilla, //SE DEBE ELIMINAR POR REGLA DE NEGOCIO
   eliminarSupervisorCuadrilla, //SE DEBE ELIMINAR POR REGLA DE NEGOCIO
@@ -204,15 +203,17 @@ const handleDelete = async () => {
 
   try {
     if (confirmDelete.tipo === "cuadrilla") {
-      await inactivarCuadrilla(confirmDelete.id_cuadrilla);
+      await apiFetch(`/api/cuadrilla/${confirmDelete.id_cuadrilla}`, {
+        method: "DELETE",
+      });
     } else {
-      await eliminarTrabajadorCuadrilla(
-        confirmDelete.id_trabajador,
-        confirmDelete.id_cuadrilla
-      );
+      await eliminarTrabajadorCuadrilla(confirmDelete.id_trabajador, confirmDelete.id_cuadrilla);
     }
 
-    reloadCuadrillas();
+    await Promise.all([
+      reloadCuadrillas(),
+      fetchTrabajadoresSinCuadrilla(),
+    ]);
   } catch (e) {
     setError(e.message);
   } finally {
@@ -588,7 +589,7 @@ const handleDelete = async () => {
 
       <p className="tw-confirm-text">
         {confirmDelete.tipo === "cuadrilla"
-          ? `¿Deseas inactivar la cuadrilla "${confirmDelete.nombre}"? Esta acción cambiará su estado a inactiva.`
+          ? `¿Deseas eliminar la cuadrilla "${confirmDelete.nombre}"? Esta acción eliminará todos sus registros asociados.`
           : "¿Deseas quitar este integrante de la cuadrilla? Esta acción no se puede deshacer."}
       </p>
 

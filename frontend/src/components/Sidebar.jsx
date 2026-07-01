@@ -9,10 +9,10 @@ const MENU_POR_ROL = {
     { id: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, path: '/admin' },
     { id: 'trabajadores', label: 'Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
     { id: 'ausencias',    label: 'Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
-    { id: 'contratos',    label: 'Contratos',       icon: FileText,        path: '/admin/contratos' },
+    { id: 'contratos',    label: 'Contratos laborales',       icon: FileText,        path: '/admin/contratos' },
     { id: 'contratos-proyecto', label: 'Contratos de Proyecto', icon: ClipboardList, path: '/admin/contratos-proyecto' },
     { id: 'pagos',        label: 'Pagos',           icon: DollarSign,      path: '/admin/pagos' },
-    { id: 'asignaciones', label: 'Asignaciones',    icon: Users,           path: '/admin/asignaciones' },
+    { id: 'asignaciones', label: 'Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
     { id: 'avisos',       label: 'Canales de Avisos', icon: Bell,          path: '/admin/avisos' },
   ],
   supervisor: [
