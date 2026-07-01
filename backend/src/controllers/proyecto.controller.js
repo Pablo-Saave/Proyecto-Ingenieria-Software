@@ -55,11 +55,13 @@ export const getProyectos = async (req, res) => {
     const data = proyectos.map((proyecto) => ({
       id_proyecto: proyecto.id_proyecto,
       id_cliente: proyecto.id_cliente,
+      id_supervisor: proyecto.id_supervisor,
       nombre_proyecto: proyecto.nombre_proyecto,
       tipo_instalacion: proyecto.tipo_instalacion,
       direccion: proyecto.direccion,
       nivel_exigencia: proyecto.nivel_exigencia,
       cantidad_personal_requerido: proyecto.cantidad_personal_requerido,
+      estado: proyecto.estado,
       cliente: {
         id_cliente: proyecto.cliente.id_cliente,
         nombres: proyecto.cliente.nombres,
