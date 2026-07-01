@@ -633,7 +633,6 @@ export const getAllCuadrillasAndWorkersByIdProyecto = async (req, res) => {
           "trabajador.nombres AS nombres",
           "trabajador.apellidos AS apellidos",
           "asignado.cargo_operativo AS cargo_operativo",
-          "asignado.es_bodeguero AS es_bodeguero",
           "asignado.tipo_jornada AS tipo_jornada",
           "asignado.fecha_asignacion AS fecha_asignacion",
         ])
@@ -695,11 +694,11 @@ export const getAllCuadrillasAndWorkersByIdProyecto = async (req, res) => {
  * - El trabajador a agregar no puede existir ya en la cuadrilla
  * - El proyecto debe tener estado "activo"
  * - La cuadrilla debe tener estado "activa"
- * - Todos los campos deben tener datos (id_cuadrilla, id_trabajador, cargo_operativo, tipo_jornada, es_bodeguero)
+ * - Todos los campos deben tener datos (id_cuadrilla, id_trabajador, cargo_operativo y tipo_jornada)
  */
 export const agregarTrabajadorCuadrilla = async (req, res) => {
   try {
-    const { id_cuadrilla, id_trabajador, cargo_operativo, tipo_jornada, es_bodeguero } = req.body;
+    const { id_cuadrilla, id_trabajador, cargo_operativo, tipo_jornada } = req.body;
     const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
 
     // Validar que todos los campos tengan datos
@@ -707,12 +706,6 @@ export const agregarTrabajadorCuadrilla = async (req, res) => {
       return res.status(400).json({
         message:
           "Los campos id_cuadrilla, id_trabajador, cargo_operativo y tipo_jornada son obligatorios",
-      });
-    }
-
-    if (typeof es_bodeguero !== "boolean") {
-      return res.status(400).json({
-        message: "El campo es_bodeguero es obligatorio y debe ser booleano",
       });
     }
 
@@ -802,7 +795,6 @@ export const agregarTrabajadorCuadrilla = async (req, res) => {
       id_cuadrilla: Number(id_cuadrilla),
       cargo_operativo,
       tipo_jornada,
-      es_bodeguero,
       fecha_asignacion: new Date(),
     });
 
@@ -1068,7 +1060,6 @@ export const getMyCuadrillasAndWorkersFromIdProyecto = async (req, res) => {
           "trabajador.nombres AS nombres",
           "trabajador.apellidos AS apellidos",
           "asignado.cargo_operativo AS cargo_operativo",
-          "asignado.es_bodeguero AS es_bodeguero",
           "asignado.tipo_jornada AS tipo_jornada",
           "asignado.fecha_asignacion AS fecha_asignacion",
         ])
@@ -1172,7 +1163,6 @@ export const getIntegrantesOfCuadrilla = async (req, res) => {
         "trabajador.apellidos AS apellidos",
         "asignado.cargo_operativo AS cargo_operativo",
         "asignado.tipo_jornada AS tipo_jornada",
-        "asignado.es_bodeguero AS es_bodeguero",
         "asignado.fecha_asignacion AS fecha_asignacion",
       ])
       .getRawMany();
@@ -1352,19 +1342,8 @@ export const asignarBodeguero = async (req, res) => {
       });
     }
 
-    // Validar que el trabajador no sea ya bodeguero
-    if (asignado.es_bodeguero) {
-      return res.status(409).json({
-        message: "El trabajador ya es bodeguero de esta cuadrilla",
-      });
-    }
-
-    // Asignar como bodeguero
-    asignado.es_bodeguero = true;
-    await asignadoRepository.save(asignado);
-
     return res.status(200).json({
-      message: "Trabajador asignado como bodeguero correctamente",
+      message: "La operación de bodeguero no se persiste porque el campo ya no existe en la base de datos.",
       data: asignado,
     });
   } catch (error) {
@@ -1472,19 +1451,8 @@ export const despojarBodeguero = async (req, res) => {
       });
     }
 
-    // Validar que el trabajador sea bodeguero
-    if (!asignado.es_bodeguero) {
-      return res.status(409).json({
-        message: "El trabajador no es bodeguero de esta cuadrilla",
-      });
-    }
-
-    // Despojar el rol de bodeguero
-    asignado.es_bodeguero = false;
-    await asignadoRepository.save(asignado);
-
     return res.status(200).json({
-      message: "Bodeguero despojado correctamente",
+      message: "La operación de bodeguero no se persiste porque el campo ya no existe en la base de datos.",
       data: asignado,
     });
   } catch (error) {

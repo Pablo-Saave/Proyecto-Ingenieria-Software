@@ -42,14 +42,16 @@ export const AppDataSource = new DataSource({
     AnexoContratoProyectoSchema
   ],
   synchronize: true,
-  dropSchema: false, // Elimina las tablas anteriores
-  logging: true,
+  dropSchema: false,
+  logging: false,
 });
 
 export async function connectDB() {
   try {
-    await AppDataSource.initialize();
-    console.log("=> Conexión exitosa a la base de datos PostgreSQL!");
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+      console.log("=> Conexión exitosa a la base de datos PostgreSQL!");
+    }
   } catch (error) {
     console.error("Error al conectar con la base de datos:", error);
     process.exit(1);

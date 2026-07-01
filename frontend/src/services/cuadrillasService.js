@@ -66,10 +66,10 @@ export const getAllCuadrillasAndWorkersByIdProyecto = (id_proyecto) =>
 // ── ACCIONES DE SUPERVISOR O ADMINISTRADOR ──────────────────────────────────
 
 // ASIGNACIÓN DE TRABAJADORES (Paso 3 - Armando el grueso del escuadrón)
-export const agregarTrabajadorCuadrilla = (id_trabajador, id_cuadrilla, cargo_operativo = '', tipo_jornada = 'Diurna', es_bodeguero = false) =>
+export const agregarTrabajadorCuadrilla = (id_trabajador, id_cuadrilla, cargo_operativo = '', tipo_jornada = 'Diurna') =>
   apiFetch('/api/cuadrilla/trabajador', {
     method: 'POST',
-    body: JSON.stringify({ id_trabajador, id_cuadrilla, cargo_operativo, tipo_jornada, es_bodeguero }),
+    body: JSON.stringify({ id_trabajador, id_cuadrilla, cargo_operativo, tipo_jornada }),
   });
 
 export const eliminarTrabajadorCuadrilla = (id_trabajador, id_cuadrilla) =>

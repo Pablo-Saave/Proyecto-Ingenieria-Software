@@ -43,18 +43,15 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
   try {
     const { fecha_inicio, fecha_termino, motivo, id_trabajador, id_cuadrilla } = req.body;
 
-    // REGLA: El usuario que ejecuta la acción debe ser supervisor de esa cuadrilla
-    const verifSupervisor = await AppDataSource.getRepository("Asignado").findOne({
-      where: {
-        id_trabajador: req.user?.id_trabajador,
-        id_cuadrilla: Number(id_cuadrilla),
-      },
-      relations: ["trabajador"],
+    // REGLA: El usuario debe ser supervisor del proyecto al que pertenece la cuadrilla
+    const cuadrilla = await AppDataSource.getRepository("Cuadrilla").findOne({
+      where: { id_cuadrilla: Number(id_cuadrilla) },
+      relations: ["proyecto"],
     });
 
     const esSupervisorAutorizado =
-      req.user?.tipo_usuario === "administrador" ||
-      verifSupervisor?.trabajador?.tipo_usuario === "supervisor";
+      req.user?.tipo_usuario === "supervisor" &&
+      cuadrilla?.proyecto?.id_supervisor === req.user?.id_trabajador;
 
     if (!esSupervisorAutorizado) {
       return res.status(403).json({ error: "No eres supervisor autorizado de esta cuadrilla" });
