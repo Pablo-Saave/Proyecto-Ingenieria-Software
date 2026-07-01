@@ -5,6 +5,7 @@ import Landing                from './pages/Landing';
 import Login                  from './pages/Login';
 import Dashboard              from './pages/Dashboard';
 import Contratos              from './pages/Contratos'; // Administrador
+import ContratoProyectos      from './pages/ContratoProyectos'; // Administrador
 import ContratosSupervisor    from './pages/ContratosSupervisor'; // Supervisor
 import ContratosTrabajador    from './pages/ContratosTrabajador'; // Trabajador
 import Trabajadores           from './pages/trabajadores';
@@ -67,6 +68,7 @@ function App() {
         <Route path="/admin" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Dashboard {...pageProps} /></RolRoute>} />
         <Route path="/admin/trabajadores" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Trabajadores {...pageProps} /></RolRoute>} />
         <Route path="/admin/contratos"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Contratos {...pageProps} /></RolRoute>} />
+        <Route path="/admin/contratos-proyecto" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><ContratoProyectos {...pageProps} /></RolRoute>} />
         <Route path="/admin/pagos"        element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Pagos {...pageProps} usuario={usuario} /></RolRoute>} />
         <Route path="/admin/asignaciones" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Asignaciones {...pageProps} /></RolRoute>} />
         <Route path="/admin/avisos"       element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><CanalesAvisosAdmin {...pageProps} /></RolRoute>} />
