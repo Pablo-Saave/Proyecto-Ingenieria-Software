@@ -18,33 +18,34 @@ export const ContratoProyectoSchema = new EntitySchema({
     },
 
     descripcion: {
-        type: "varchar"
+      type: "varchar",
     },
 
     fecha_inicio: {
-        type: "date",
-        nullable: false
+      type: "date",
+      nullable: false,
     },
 
     fecha_termino: {
-        type: "date",
-        nullable: false
+      type: "date",
+      nullable: false,
     },
 
     fecha_extension: {
-        type: "date",
-        nullable: false
-    },
-
-    anexos: {
-        type: "varchar"
+      type: "date",
+      nullable: false,
     },
 
     estado_contrato: {
-        type: "varchar",
-        nullable: false
-    }
+      type: "varchar",
+      nullable: false,
+    },
 
+    // NOTA: se eliminó la columna varchar "anexos" que existía aquí antes.
+    // Colisionaba de nombre con la relación "anexos" de más abajo (ambas
+    // intentaban ocupar la misma propiedad en la entidad). Los anexos reales
+    // ahora viven exclusivamente como registros en la tabla
+    // "anexo_contrato_proyecto", accesibles a través de la relación.
   },
 
   relations: {
