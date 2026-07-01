@@ -608,3 +608,96 @@ export const reactivarProyecto = async (req, res) => {
     return res.status(500).json({ message: "Error interno del servidor", error: error.message });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function hoyLocal() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+
+/*
+ * POST /
+ *
+ * Recibe (body):
+ *   id_cliente                  (int)    – cliente al que pertenece el proyecto
+ *   id_supervisor               (int)    – trabajador que supervisará el proyecto
+ *   nombre_proyecto             (string)
+ *   tipo_instalacion            (string)
+ *   direccion                   (string)
+ *   nivel_exigencia             (string)
+ *   cantidad_personal_requerido (int)
+ *
+ * Retorna 201:
+ *   {
+ *     status: "success",
+ *     message: "Proyecto creado exitosamente.",
+ *     data: {
+ *       id_proyecto,
+ *       id_cliente,
+ *       id_supervisor,
+ *       nombre_proyecto,
+ *       tipo_instalacion,
+ *       direccion,
+ *       nivel_exigencia,
+ *       cantidad_personal_requerido,
+ *       fecha_creacion,   <- generada automáticamente (fecha actual)
+ *       estado            <- "activo" por defecto
+ *     }
+ *   }
+ */
+export async function crearProyectoQuickFix(req, res) {
+  try {
+    const {
+      id_cliente,
+      id_supervisor,
+      nombre_proyecto,
+      tipo_instalacion,
+      direccion,
+      nivel_exigencia,
+      cantidad_personal_requerido,
+    } = req.body;
+
+    const proyectoRepo = AppDataSource.getRepository(ProyectoSchema);
+
+    const nuevoProyecto = proyectoRepo.create({
+      id_cliente:                 Number(id_cliente),
+      id_supervisor:              Number(id_supervisor),
+      nombre_proyecto,
+      tipo_instalacion,
+      direccion,
+      nivel_exigencia,
+      cantidad_personal_requerido: Number(cantidad_personal_requerido),
+      fecha_creacion:             hoyLocal(),
+      estado:                     "activo",
+    });
+
+    const proyectoGuardado = await proyectoRepo.save(nuevoProyecto);
+
+    return res.status(201).json({
+      status:  "success",
+      message: "Proyecto creado exitosamente.",
+      data:    proyectoGuardado,
+    });
+  } catch (error) {
+    console.error("[crearProyecto]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+  }
+}

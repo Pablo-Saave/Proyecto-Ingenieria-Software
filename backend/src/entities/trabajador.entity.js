@@ -66,7 +66,7 @@ export const TrabajadorSchema = new EntitySchema({
     },
 
     experiencia_previa: {
-      type: "int",
+      type: "varchar",
       nullable: true,
     },
   },
