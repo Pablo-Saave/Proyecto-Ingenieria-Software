@@ -15,6 +15,7 @@ import { CuadrillaSchema } from "../entities/cuadrilla.entity.js";
 import { InventarioSchema } from "../entities/inventario.entity.js";
 import { JustificacionAusenciaSchema } from "../entities/justificacion_ausencia.entity.js";
 import { MaterialLimpiezaSchema } from "../entities/material_limpieza.entity.js";
+import { AnexoContratoProyectoSchema } from "../entities/anexo_contrato_proyecto.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -38,6 +39,7 @@ export const AppDataSource = new DataSource({
     ProyectoSchema,
     ClienteSchema,
     AvisoSchema,
+    AnexoContratoProyectoSchema
   ],
   synchronize: true,
   dropSchema: false, // Elimina las tablas anteriores
