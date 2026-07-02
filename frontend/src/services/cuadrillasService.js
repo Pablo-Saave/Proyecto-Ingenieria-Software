@@ -105,3 +105,11 @@ export const getIntegrantesOfCuadrilla = (id_cuadrilla) =>
 // Obtener la data básica de una sola cuadrilla
 export const getCuadrillaData = (id_cuadrilla) =>
   apiFetch(`/api/cuadrilla/${id_cuadrilla}`);
+
+// La cuadrilla propia del trabajador autenticado (necesaria para crear una ausencia propia)
+export const getMiCuadrilla = () =>
+  apiFetch('/api/cuadrilla/miCuadrilla');
+
+// Ver mis propias ausencias (vista "Mis Ausencias")
+export const getAusenciasPorTrabajador = (id) =>
+  apiFetch(`/api/ausencias/trabajador/${id}`);
