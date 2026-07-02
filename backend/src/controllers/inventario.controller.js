@@ -1,375 +1,126 @@
-// Inventario Controller
+import { AppDataSource }    from "../config/configDb.js";
+import { InventarioSchema } from "../entities/inventario.entity.js";
+import { MaterialLimpiezaSchema } from "../entities/material_limpieza.entity.js";
 
+const inventarioRepo = AppDataSource.getRepository(InventarioSchema);
+const materialRepo = AppDataSource.getRepository(MaterialLimpiezaSchema);
 
-import { AppDataSource } from "../config/configDb";
-import { InventarioSchema } from "../entities/inventario.entity";
-import { MaterialLimpiezaSchema } from "../entities/material_limpieza.entity";
-import { In } from "typeorm";
-
-const inventarioRepository = AppDataSource.getRepository(InventarioSchema)
-const materialLimpiezaRepository = AppDataSource.getRepository(MaterialLimpiezaSchema);
-
-/***
- * Crea un inventario para una cuadrilla
- * Recibe: id_cuadrilla, nombre_inventario
- * Validaciones:
- * - El que realiza la peticion debe tener tipo_usuario = administrador o tipo_usuario = supervisor, si es supervisor debe pertenecer a la cuadrilla
- * - El proyecto debe existir
- * - La cuadrilla debe existir
- * - El proyecto debe tener estado "activo"
- * - La cuadrilla debe tener estado "activa"
- * - No deben existir campos vacios
- * - No debe existir ya un inventario con el mismo nombre dentro de la misma cuadrilla
+/*
+ * Crea un inventario asociado al proyecto activo del supervisor autenticado.
+ *
+ * Recibe:
+ *   body : { nombre_inventario (string) }
+ *   token: { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 201:
+ *   {
+ *     status:  "success",
+ *     message: "Inventario creado exitosamente."
+ *   }
  */
-export const crearInventario = async (req, res) => {
+export async function crearInventario(req, res) {
   try {
-    const { id_cuadrilla, nombre_inventario } = req.body;
-    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
+    const { nombre_inventario }      = req.body;
+    const { id_proyecto }            = req.proyectoValidado;
 
-    // Validar que los campos no estén vacíos
-    if (!id_cuadrilla || !nombre_inventario) {
-      return res.status(400).json({
-        message: "Los campos id_cuadrilla y nombre_inventario son obligatorios",
-      });
-    }
-
-    if (isNaN(Number(id_cuadrilla))) {
-      return res.status(400).json({
-        message: "id_cuadrilla debe ser numérico",
-      });
-    }
-
-    // Validar que la cuadrilla exista (con su proyecto, ya que "el proyecto
-    // debe existir" depende de que la cuadrilla cargue esa relación)
-    const cuadrilla = await cuadrillaRepository.findOne({
-      where: { id_cuadrilla: Number(id_cuadrilla) },
-      relations: ["proyecto"],
-    });
-    if (!cuadrilla) {
-      return res.status(404).json({ message: "Cuadrilla no encontrada" });
-    }
-
-    // El proyecto siempre existe si la cuadrilla existe (FK not nullable),
-    // pero se valida explícitamente por completitud según lo solicitado.
-    if (!cuadrilla.proyecto) {
-      return res.status(404).json({ message: "Proyecto no encontrado" });
-    }
-
-    // Validar que el proyecto esté activo
-    if (cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se puede crear el inventario porque el proyecto no está activo",
-      });
-    }
-
-    // Validar que la cuadrilla esté activa
-    if (cuadrilla.estado !== "activa") {
-      return res.status(409).json({
-        message: "No se puede crear el inventario porque la cuadrilla no está activa",
-      });
-    }
-
-    // Validar quién realiza la petición: administrador (libre) o supervisor (debe pertenecer a la cuadrilla)
-    if (tipo_solicitante !== "administrador") {
-      if (tipo_solicitante !== "supervisor") {
-        return res.status(403).json({
-          message: "No tiene permisos para realizar esta acción",
-        });
-      }
-
-      const supervisorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla: Number(id_cuadrilla),
-        },
-      });
-
-      if (!supervisorPertenece) {
-        return res.status(403).json({
-          message: "El supervisor no pertenece a la cuadrilla indicada",
-        });
-      }
-    }
-
-    // Validar que no exista ya un inventario con el mismo nombre en esta cuadrilla
-    const inventarioExistente = await inventarioRepository.findOne({
-      where: {
-        id_cuadrilla: Number(id_cuadrilla),
-        nombre_inventario,
-      },
-    });
-    if (inventarioExistente) {
-      return res.status(409).json({
-        message: "Ya existe un inventario con ese nombre en esta cuadrilla",
-      });
-    }
-
-    // Crear el inventario
-    const nuevoInventario = inventarioRepository.create({
-      id_cuadrilla: Number(id_cuadrilla),
-      nombre_inventario,
+    const nuevoInventario = inventarioRepo.create({
+      id_proyecto,
+      nombre_inventario: nombre_inventario.trim(),
     });
 
-    await inventarioRepository.save(nuevoInventario);
+    await inventarioRepo.save(nuevoInventario);
 
     return res.status(201).json({
-      message: "Inventario creado correctamente",
-      data: nuevoInventario,
+      status:  "success",
+      message: "Inventario creado exitosamente.",
     });
+
   } catch (error) {
-    console.error("Error en crearInventario:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+    console.error("[crearInventario]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
-};
+}
 
-
-
-
-
-
-
-
-
-/***
- * Elimina un inventario (physical delete)
- * Recibe: id_inventario (body)
- * Validaciones:
- * - El que realiza la peticion debe tener tipo_usuario = administrador o tipo_usuario = supervisor, si es supervisor debe pertenecer a la cuadrilla del inventario
- * - El inventario debe existir
- * - El proyecto debe tener estado "activo"
- * - La cuadrilla debe tener estado "activa"
- * - No deben existir campos vacios
- * - No se puede eliminar un inventario que posea materiales (solo inventarios vacíos)
+/*
+ * Elimina físicamente un inventario y todos sus materiales asociados.
+ *
+ * Recibe:
+ *   body : { id_inventario (int) }
+ *   token: { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 200:
+ *   {
+ *     status:  "success",
+ *     message: "Inventario eliminado exitosamente."
+ *   }
  */
-export const eliminarInventario = async (req, res) => {
+export async function eliminarInventario(req, res) {
+  const queryRunner = AppDataSource.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+
   try {
-    const { id_inventario } = req.body;
-    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
+    const { id_inventario } = req.inventarioValidado;
 
-    // Validar que los campos no estén vacíos
-    if (!id_inventario) {
-      return res.status(400).json({
-        message: "El campo id_inventario es obligatorio",
-      });
-    }
+    // Paso 1: eliminar materiales del inventario
+    await queryRunner.manager
+      .getRepository(MaterialLimpiezaSchema)
+      .delete({ id_inventario });
 
-    if (isNaN(Number(id_inventario))) {
-      return res.status(400).json({
-        message: "id_inventario debe ser numérico",
-      });
-    }
+    // Paso 2: eliminar el inventario
+    await queryRunner.manager
+      .getRepository(InventarioSchema)
+      .delete({ id_inventario });
 
-    // Validar que el inventario exista (con su cuadrilla y proyecto, para validar estados y pertenencia)
-    const inventario = await inventarioRepository.findOne({
-      where: { id_inventario: Number(id_inventario) },
-      relations: ["cuadrilla", "cuadrilla.proyecto"],
-    });
-    if (!inventario) {
-      return res.status(404).json({ message: "Inventario no encontrado" });
-    }
-
-    // Validar que el proyecto esté activo
-    if (inventario.cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se puede eliminar el inventario porque el proyecto no está activo",
-      });
-    }
-
-    // Validar que la cuadrilla esté activa
-    if (inventario.cuadrilla.estado !== "activa") {
-      return res.status(409).json({
-        message: "No se puede eliminar el inventario porque la cuadrilla no está activa",
-      });
-    }
-
-    // Validar quién realiza la petición: administrador (libre) o supervisor (debe pertenecer a la cuadrilla del inventario)
-    if (tipo_solicitante !== "administrador") {
-      if (tipo_solicitante !== "supervisor") {
-        return res.status(403).json({
-          message: "No tiene permisos para realizar esta acción",
-        });
-      }
-
-      const supervisorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla: inventario.cuadrilla.id_cuadrilla,
-        },
-      });
-
-      if (!supervisorPertenece) {
-        return res.status(403).json({
-          message: "El supervisor no pertenece a la cuadrilla del inventario",
-        });
-      }
-    }
-
-    // Validar que el inventario no tenga materiales asociados
-    const cantidadMateriales = await materialLimpiezaRepository.count({
-      where: { id_inventario: Number(id_inventario) },
-    });
-    if (cantidadMateriales > 0) {
-      return res.status(409).json({
-        message: "No se puede eliminar el inventario porque tiene materiales asociados",
-      });
-    }
-
-    // Eliminar el inventario (physical delete)
-    await inventarioRepository.remove(inventario);
+    await queryRunner.commitTransaction();
 
     return res.status(200).json({
-      message: "Inventario eliminado correctamente",
+      status:  "success",
+      message: "Inventario eliminado exitosamente.",
     });
+
   } catch (error) {
-    console.error("Error en eliminarInventario:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+    await queryRunner.rollbackTransaction();
+    console.error("[eliminarInventario]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+  } finally {
+    await queryRunner.release();
   }
-};
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/***
- * Obtiene todos los inventarios y materiales de limpieza de una cuadrilla (paginado por inventario)
- * Recibe: id_cuadrilla (param), page, limit (query params)
- * Retorna una lista de: { id_inventario, nombre_inventario, materiales: [...] }
- * Inventarios ordenados alfabéticamente por nombre_inventario,
- * y materiales de cada inventario ordenados alfabéticamente por nombre_material
- * Validaciones:
- * - El que realiza la peticion debe tener tipo_usuario = administrador,
- *   o tipo_usuario = supervisor (debe pertenecer a la cuadrilla),
- *   o tipo_usuario = trabajador (debe pertenecer a la cuadrilla y ser bodeguero, es_bodeguero = true)
- * - La cuadrilla debe existir
- * - El proyecto debe tener estado activo
- * - La cuadrilla debe tener estado activa
+/*
+ * Retorna todos los inventarios del proyecto supervisado por el usuario autenticado.
+ *
+ * Recibe:
+ *   query: { page (int, default 1), limit (int, default 10) }
+ *   token: { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 200:
+ *   {
+ *     status: "success",
+ *     data: [{ id_inventario, nombre_inventario }],
+ *     meta: { total, page, limit, totalPages }
+ *   }
  */
-export const getAllInventariosAndMaterialesFromCuadrilla = async (req, res) => {
+export async function getAllInventariosFromMyProyecto(req, res) {
   try {
-    const { id_cuadrilla } = req.params;
-    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
+    const { id_proyecto } = req.proyectoValidado;
 
-    if (isNaN(Number(id_cuadrilla))) {
-      return res.status(400).json({
-        message: "id_cuadrilla debe ser numérico",
-      });
-    }
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 10);
+    const skip  = (page - 1) * limit;
 
-    // Validar que la cuadrilla exista (con su proyecto, para validar estados)
-    const cuadrilla = await cuadrillaRepository.findOne({
-      where: { id_cuadrilla: Number(id_cuadrilla) },
-      relations: ["proyecto"],
+    const [inventarios, total] = await inventarioRepo.findAndCount({
+      where:  { id_proyecto },
+      select: ["id_inventario", "nombre_inventario"],
+      order:  { nombre_inventario: "ASC" },
+      skip,
+      take:   limit,
     });
-    if (!cuadrilla) {
-      return res.status(404).json({ message: "Cuadrilla no encontrada" });
-    }
-
-    // Validar que el proyecto esté activo
-    if (cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se pueden ver los inventarios porque el proyecto no está activo",
-      });
-    }
-
-    // Validar que la cuadrilla esté activa
-    if (cuadrilla.estado !== "activa") {
-      return res.status(409).json({
-        message: "No se pueden ver los inventarios porque la cuadrilla no está activa",
-      });
-    }
-
-    // Validar quién realiza la petición
-    if (tipo_solicitante === "administrador") {
-      // libre acceso
-    } else if (tipo_solicitante === "supervisor") {
-      const supervisorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla: Number(id_cuadrilla),
-        },
-      });
-
-      if (!supervisorPertenece) {
-        return res.status(403).json({
-          message: "El supervisor no pertenece a la cuadrilla indicada",
-        });
-      }
-    } else if (tipo_solicitante === "trabajador") {
-      const trabajadorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla: Number(id_cuadrilla),
-        },
-      });
-
-      if (!trabajadorPertenece || !trabajadorPertenece.es_bodeguero) {
-        return res.status(403).json({
-          message: "No tiene permisos para ver los inventarios de esta cuadrilla",
-        });
-      }
-    } else {
-      return res.status(403).json({
-        message: "No tiene permisos para realizar esta acción",
-      });
-    }
-
-    let { page = 1, limit = 10 } = req.query;
-
-    page = Number(page);
-    limit = Number(limit);
-
-    if (isNaN(page) || page < 1) page = 1;
-    if (isNaN(limit) || limit < 1) limit = 10;
-
-    // Obtener inventarios de la cuadrilla, paginados y ordenados alfabéticamente
-    const [inventarios, total] = await inventarioRepository.findAndCount({
-      where: { id_cuadrilla: Number(id_cuadrilla) },
-      order: { nombre_inventario: "ASC" },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    const idsInventarios = inventarios.map((inv) => inv.id_inventario);
-
-    // Obtener todos los materiales de los inventarios de la página actual
-    // en una sola consulta, ordenados alfabéticamente por nombre_material
-    let materiales = [];
-    if (idsInventarios.length > 0) {
-      materiales = await materialLimpiezaRepository.find({
-        where: { id_inventario: In(idsInventarios) },
-        order: { nombre_material: "ASC" },
-      });
-    }
-
-    // Agrupar materiales por id_inventario
-    const materialesPorInventario = {};
-    for (const material of materiales) {
-      if (!materialesPorInventario[material.id_inventario]) {
-        materialesPorInventario[material.id_inventario] = [];
-      }
-      materialesPorInventario[material.id_inventario].push(material);
-    }
-
-    // Armar la respuesta final
-    const data = inventarios.map((inventario) => ({
-      id_inventario: inventario.id_inventario,
-      nombre_inventario: inventario.nombre_inventario,
-      materiales: materialesPorInventario[inventario.id_inventario] || [],
-    }));
 
     return res.status(200).json({
-      data,
+      status: "success",
+      data:   inventarios,
       meta: {
         total,
         page,
@@ -377,459 +128,292 @@ export const getAllInventariosAndMaterialesFromCuadrilla = async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
+
   } catch (error) {
-    console.error("Error en getAllInventariosAndMaterialesFromCuadrilla:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+    console.error("[getAllInventariosFromMyProyecto]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
-};
+}
 
-
-
-
-
-
-
-
-/***
- * Crea un material de limpieza para un inventario
- * Recibe: id_inventario, nombre_material, tipo_material, stock_actual, stock_minimo (body)
- * Validaciones:
- * - El que realiza la peticion debe tener tipo_usuario = administrador,
- *   o tipo_usuario = supervisor (debe pertenecer a la cuadrilla),
- *   o tipo_usuario = trabajador (debe pertenecer a la cuadrilla y ser bodeguero, es_bodeguero = true)
- * - El inventario debe existir
- * - La cuadrilla debe existir
- * - El proyecto debe tener estado activo
- * - La cuadrilla debe tener estado activa
- * - No deben existir campos vacios
- * - No debe existir ya un material con el mismo nombre dentro del mismo inventario
- * - Los valores numéricos (stock_actual, stock_minimo) no pueden ser negativos
+/*
+ * Retorna los inventarios del proyecto supervisado que tengan al menos
+ * un material con stock_actual < stock_minimo.
+ *
+ * Recibe:
+ *   query: { page (int, default 1), limit (int, default 10) }
+ *   token: { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 200:
+ *   {
+ *     status: "success",
+ *     data: [{ id_inventario, nombre_inventario }],
+ *     meta: { total, page, limit, totalPages }
+ *   }
  */
-export const crearMaterialLimpiezaInventario = async (req, res) => {
+export async function getAllLowStockInventariosFromMyProyecto(req, res) {
   try {
-    const { id_inventario, nombre_material, tipo_material, stock_actual, stock_minimo } = req.body;
-    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
+    const { id_proyecto } = req.proyectoValidado;
 
-    // Validar que los campos no estén vacíos
-    if (
-      !id_inventario ||
-      !nombre_material ||
-      !tipo_material ||
-      stock_actual === undefined ||
-      stock_actual === null ||
-      stock_actual === "" ||
-      stock_minimo === undefined ||
-      stock_minimo === null ||
-      stock_minimo === ""
-    ) {
-      return res.status(400).json({
-        message:
-          "Los campos id_inventario, nombre_material, tipo_material, stock_actual y stock_minimo son obligatorios",
-      });
-    }
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 10);
+    const skip  = (page - 1) * limit;
 
-    if (
-      isNaN(Number(id_inventario)) ||
-      isNaN(Number(stock_actual)) ||
-      isNaN(Number(stock_minimo))
-    ) {
-      return res.status(400).json({
-        message: "id_inventario, stock_actual y stock_minimo deben ser numéricos",
-      });
-    }
+    const [inventarios, total] = await inventarioRepo
+      .createQueryBuilder("i")
+      .select(["i.id_inventario", "i.nombre_inventario"])
+      .innerJoin("i.materiales", "m")
+      .where("i.id_proyecto = :id_proyecto", { id_proyecto })
+      .andWhere("m.stock_actual < m.stock_minimo")
+      .groupBy("i.id_inventario")
+      .orderBy("i.nombre_inventario", "ASC")
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
 
-    // Validar que stock_actual y stock_minimo no sean negativos
-    if (Number(stock_actual) < 0 || Number(stock_minimo) < 0) {
-      return res.status(400).json({
-        message: "stock_actual y stock_minimo no pueden ser negativos",
-      });
-    }
-
-    // Validar que el inventario exista (con su cuadrilla y proyecto, para validar estados)
-    const inventario = await inventarioRepository.findOne({
-      where: { id_inventario: Number(id_inventario) },
-      relations: ["cuadrilla", "cuadrilla.proyecto"],
-    });
-    if (!inventario) {
-      return res.status(404).json({ message: "Inventario no encontrado" });
-    }
-
-    // Validar que la cuadrilla exista
-    if (!inventario.cuadrilla) {
-      return res.status(404).json({ message: "Cuadrilla no encontrada" });
-    }
-
-    // Validar que el proyecto esté activo
-    if (inventario.cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se puede crear el material porque el proyecto no está activo",
-      });
-    }
-
-    // Validar que la cuadrilla esté activa
-    if (inventario.cuadrilla.estado !== "activa") {
-      return res.status(409).json({
-        message: "No se puede crear el material porque la cuadrilla no está activa",
-      });
-    }
-
-    const id_cuadrilla = inventario.cuadrilla.id_cuadrilla;
-
-    // Validar quién realiza la petición
-    if (tipo_solicitante === "administrador") {
-      // libre acceso
-    } else if (tipo_solicitante === "supervisor") {
-      const supervisorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla,
-        },
-      });
-
-      if (!supervisorPertenece) {
-        return res.status(403).json({
-          message: "El supervisor no pertenece a la cuadrilla indicada",
-        });
-      }
-    } else if (tipo_solicitante === "trabajador") {
-      const trabajadorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla,
-        },
-      });
-
-      if (!trabajadorPertenece || !trabajadorPertenece.es_bodeguero) {
-        return res.status(403).json({
-          message: "No tiene permisos para crear materiales en este inventario",
-        });
-      }
-    } else {
-      return res.status(403).json({
-        message: "No tiene permisos para realizar esta acción",
-      });
-    }
-
-    // Validar que no exista ya un material con el mismo nombre en este inventario
-    const materialExistente = await materialLimpiezaRepository.findOne({
-      where: {
-        id_inventario: Number(id_inventario),
-        nombre_material,
+    return res.status(200).json({
+      status: "success",
+      data:   inventarios,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
     });
-    if (materialExistente) {
-      return res.status(409).json({
-        message: "Ya existe un material con ese nombre en este inventario",
+
+  } catch (error) {
+    console.error("[getAllLowStockInventariosFromMyProyecto]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+  }
+}
+
+/*
+ * Retorna todos los materiales de un inventario específico.
+ *
+ * Recibe:
+ *   params: { id_inventario (int) }
+ *   query:  { page (int, default 1), limit (int, default 10) }
+ *   token:  { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 200:
+ *   {
+ *     status: "success",
+ *     data: [
+ *       {
+ *         id_inventario,
+ *         id_material,
+ *         nombre_material,
+ *         tipo_material,
+ *         stock_actual,
+ *         stock_minimo
+ *       }
+ *     ],
+ *     meta: { total, page, limit, totalPages }
+ *   }
+ */
+export async function getAllMaterialesFromAnInventario(req, res) {
+  try {
+    const { id_inventario } = req.inventarioValidado;
+
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 10);
+    const skip  = (page - 1) * limit;
+
+    const [materiales, total] = await materialRepo.findAndCount({
+      where:  { id_inventario },
+      select: [
+        "id_inventario",
+        "id_material",
+        "nombre_material",
+        "tipo_material",
+        "stock_actual",
+        "stock_minimo",
+      ],
+      order: { nombre_material: "ASC" },
+      skip,
+      take:  limit,
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data:   materiales,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+
+  } catch (error) {
+    console.error("[getAllMaterialesFromAnInventario]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+  }
+}
+
+/*
+ * Actualiza los campos de un material de limpieza de un inventario.
+ *
+ * Recibe:
+ *   params: { id_material (int) }
+ *   body:   {
+ *     nombre_material (string, opcional),
+ *     tipo_material   (string, opcional),
+ *     stock_actual    (int,    opcional),
+ *     stock_minimo    (int,    opcional)
+ *   }
+ *   token: { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 200:
+ *   {
+ *     status:  "success",
+ *     message: "Material actualizado exitosamente.",
+ *     data: {
+ *       id_material,
+ *       id_inventario,
+ *       nombre_material,
+ *       tipo_material,
+ *       stock_actual,
+ *       stock_minimo
+ *     }
+ *   }
+ */
+export async function actualizarMaterialLimpiezaInventario(req, res) {
+  try {
+    const { id_material } = req.materialValidado;
+    const { nombre_material, tipo_material, stock_actual, stock_minimo } = req.body;
+
+    // Construir objeto solo con los campos enviados
+    const campos = {};
+
+    if (nombre_material !== undefined) campos.nombre_material = nombre_material;
+    if (tipo_material    !== undefined) campos.tipo_material   = tipo_material;
+
+    if (stock_actual !== undefined) {
+      if (isNaN(Number(stock_actual)) || Number(stock_actual) < 0) {
+        return res.status(400).json({
+          status:  "error",
+          message: "stock_actual debe ser un número entero mayor o igual a 0.",
+        });
+      }
+      campos.stock_actual = Number(stock_actual);
+    }
+
+    if (stock_minimo !== undefined && stock_minimo !== null) {
+      if (isNaN(Number(stock_minimo)) || Number(stock_minimo) < 0) {
+        return res.status(400).json({
+          status:  "error",
+          message: "stock_minimo debe ser un número entero mayor o igual a 0.",
+        });
+      }
+      campos.stock_minimo = Number(stock_minimo);
+    }
+
+    if (!Object.keys(campos).length) {
+      return res.status(400).json({
+        status:  "error",
+        message: "Debes enviar al menos un campo para actualizar.",
       });
     }
 
-    // Crear el material de limpieza
-    const nuevoMaterial = materialLimpiezaRepository.create({
-      id_inventario: Number(id_inventario),
+    await materialRepo.update({ id_material }, campos);
+
+    const materialActualizado = await materialRepo.findOne({
+      where: { id_material },
+    });
+
+    return res.status(200).json({
+      status:  "success",
+      message: "Material actualizado exitosamente.",
+      data:    materialActualizado,
+    });
+
+  } catch (error) {
+    console.error("[actualizarMaterialLimpiezaInventario]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+  }
+}
+
+/*
+ * Elimina físicamente un material de limpieza de un inventario.
+ *
+ * Recibe:
+ *   params: { id_material (int) }
+ *   token:  { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 200:
+ *   {
+ *     status:  "success",
+ *     message: "Material eliminado exitosamente."
+ *   }
+ */
+export async function eliminarMaterialLimpiezaInventario(req, res) {
+  try {
+    const { id_material } = req.materialValidado;
+
+    await materialRepo.delete({ id_material });
+
+    return res.status(200).json({
+      status:  "success",
+      message: "Material eliminado exitosamente.",
+    });
+
+  } catch (error) {
+    console.error("[eliminarMaterialLimpiezaInventario]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+  }
+}
+
+/*
+ * Crea un material de limpieza en un inventario existente.
+ *
+ * Recibe:
+ *   body:  {
+ *     id_inventario  (int),
+ *     nombre_material (string),
+ *     tipo_material   (string),
+ *     stock_actual    (int),
+ *     stock_minimo    (int)
+ *   }
+ *   token: { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 201:
+ *   {
+ *     status:  "success",
+ *     message: "Material creado exitosamente.",
+ *     data: {
+ *       id_material,
+ *       id_inventario,
+ *       nombre_material,
+ *       tipo_material,
+ *       stock_actual,
+ *       stock_minimo
+ *     }
+ *   }
+ */
+export async function crearMaterialLimpiezaInventario(req, res) {
+  try {
+    const { nombre_material, tipo_material, stock_actual, stock_minimo } = req.body;
+    const { id_inventario } = req.inventarioValidado;
+
+    const nuevoMaterial = materialRepo.create({
+      id_inventario,
       nombre_material,
       tipo_material,
-      stock_actual: Number(stock_actual),
-      stock_minimo: Number(stock_minimo),
+      stock_actual:  Number(stock_actual),
+      stock_minimo:  Number(stock_minimo),
     });
 
-    await materialLimpiezaRepository.save(nuevoMaterial);
+    const materialGuardado = await materialRepo.save(nuevoMaterial);
 
     return res.status(201).json({
-      message: "Material de limpieza creado correctamente",
-      data: nuevoMaterial,
+      status:  "success",
+      message: "Material creado exitosamente.",
+      data:    materialGuardado,
     });
+
   } catch (error) {
-    console.error("Error en crearMaterialLimpiezaInventario:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+    console.error("[crearMaterialLimpiezaInventario]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
-};
-
-
-
-
-
-
-
-
-
-
-/***
- * Actualiza un material de limpieza
- * Recibe: id_material (body, obligatorio), y opcionalmente uno o varios de:
- * nombre_material, tipo_material, stock_actual, stock_minimo
- * Validaciones:
- * - El que realiza la peticion debe tener tipo_usuario = administrador,
- *   o tipo_usuario = supervisor (debe pertenecer a la cuadrilla),
- *   o tipo_usuario = trabajador (debe pertenecer a la cuadrilla y ser bodeguero, es_bodeguero = true)
- * - El material_limpieza debe existir
- * - El proyecto debe tener estado activo
- * - La cuadrilla debe tener estado activa
- * - No deben existir campos vacios
- * - No deben existir dos material_limpieza con el mismo nombre en el mismo inventario
- * - Los valores numéricos no pueden ser negativos
- */
-export const actualizarMaterialLimpiezaInventario = async (req, res) => {
-  try {
-    const { id_material, nombre_material, tipo_material, stock_actual, stock_minimo } = req.body;
-    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
-
-    if (!id_material) {
-      return res.status(400).json({
-        message: "El campo id_material es obligatorio",
-      });
-    }
-
-    if (isNaN(Number(id_material))) {
-      return res.status(400).json({
-        message: "id_material debe ser numérico",
-      });
-    }
-
-    // Validar que al menos un campo actualizable haya sido enviado
-    if (
-      nombre_material === undefined &&
-      tipo_material === undefined &&
-      stock_actual === undefined &&
-      stock_minimo === undefined
-    ) {
-      return res.status(400).json({
-        message: "Debe enviar al menos un campo para actualizar",
-      });
-    }
-
-    // Validar que los campos enviados no estén vacíos (si vienen, no pueden ser "")
-    if (nombre_material !== undefined && !nombre_material) {
-      return res.status(400).json({ message: "nombre_material no puede estar vacío" });
-    }
-    if (tipo_material !== undefined && !tipo_material) {
-      return res.status(400).json({ message: "tipo_material no puede estar vacío" });
-    }
-    if (stock_actual !== undefined && (stock_actual === null || stock_actual === "")) {
-      return res.status(400).json({ message: "stock_actual no puede estar vacío" });
-    }
-    if (stock_minimo !== undefined && (stock_minimo === null || stock_minimo === "")) {
-      return res.status(400).json({ message: "stock_minimo no puede estar vacío" });
-    }
-
-    if (stock_actual !== undefined && isNaN(Number(stock_actual))) {
-      return res.status(400).json({ message: "stock_actual debe ser numérico" });
-    }
-    if (stock_minimo !== undefined && isNaN(Number(stock_minimo))) {
-      return res.status(400).json({ message: "stock_minimo debe ser numérico" });
-    }
-
-    // Validar que los valores numéricos no sean negativos
-    if (stock_actual !== undefined && Number(stock_actual) < 0) {
-      return res.status(400).json({ message: "stock_actual no puede ser negativo" });
-    }
-    if (stock_minimo !== undefined && Number(stock_minimo) < 0) {
-      return res.status(400).json({ message: "stock_minimo no puede ser negativo" });
-    }
-
-    // Validar que el material_limpieza exista (con su inventario, cuadrilla y proyecto, para validar estados y permisos)
-    const material = await materialLimpiezaRepository.findOne({
-      where: { id_material: Number(id_material) },
-      relations: ["inventario", "inventario.cuadrilla", "inventario.cuadrilla.proyecto"],
-    });
-    if (!material) {
-      return res.status(404).json({ message: "Material no encontrado" });
-    }
-
-    // Validar que el proyecto esté activo
-    if (material.inventario.cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se puede actualizar el material porque el proyecto no está activo",
-      });
-    }
-
-    // Validar que la cuadrilla esté activa
-    if (material.inventario.cuadrilla.estado !== "activa") {
-      return res.status(409).json({
-        message: "No se puede actualizar el material porque la cuadrilla no está activa",
-      });
-    }
-
-    const id_cuadrilla = material.inventario.cuadrilla.id_cuadrilla;
-
-    // Validar quién realiza la petición
-    if (tipo_solicitante === "administrador") {
-      // libre acceso
-    } else if (tipo_solicitante === "supervisor") {
-      const supervisorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla,
-        },
-      });
-
-      if (!supervisorPertenece) {
-        return res.status(403).json({
-          message: "El supervisor no pertenece a la cuadrilla indicada",
-        });
-      }
-    } else if (tipo_solicitante === "trabajador") {
-      const trabajadorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla,
-        },
-      });
-
-      if (!trabajadorPertenece || !trabajadorPertenece.es_bodeguero) {
-        return res.status(403).json({
-          message: "No tiene permisos para actualizar materiales en este inventario",
-        });
-      }
-    } else {
-      return res.status(403).json({
-        message: "No tiene permisos para realizar esta acción",
-      });
-    }
-
-    // Validar que no exista otro material con el mismo nombre en el mismo inventario
-    if (nombre_material !== undefined) {
-      const materialExistente = await materialLimpiezaRepository.findOne({
-        where: {
-          id_inventario: material.id_inventario,
-          nombre_material,
-        },
-      });
-      if (materialExistente && materialExistente.id_material !== material.id_material) {
-        return res.status(409).json({
-          message: "Ya existe otro material con ese nombre en este inventario",
-        });
-      }
-    }
-
-    // Aplicar solo los campos enviados
-    if (nombre_material !== undefined) material.nombre_material = nombre_material;
-    if (tipo_material !== undefined) material.tipo_material = tipo_material;
-    if (stock_actual !== undefined) material.stock_actual = Number(stock_actual);
-    if (stock_minimo !== undefined) material.stock_minimo = Number(stock_minimo);
-
-    await materialLimpiezaRepository.save(material);
-
-    return res.status(200).json({
-      message: "Material actualizado correctamente",
-      data: material,
-    });
-  } catch (error) {
-    console.error("Error en actualizarMaterialLimpiezaInventario:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-/***
- * Elimina un material de limpieza de un inventario (physical delete)
- * Recibe: id_material (body)
- * Validaciones:
- * - El que realiza la peticion debe tener tipo_usuario = administrador,
- *   o tipo_usuario = supervisor (debe pertenecer a la cuadrilla),
- *   o tipo_usuario = trabajador (debe pertenecer a la cuadrilla y ser bodeguero, es_bodeguero = true)
- * - El material_limpieza debe existir
- * - El proyecto debe tener estado activo
- * - La cuadrilla debe tener estado activa
- */
-export const eliminarMaterialLimpiezaInventario = async (req, res) => {
-  try {
-    const { id_material } = req.body;
-    const { id_trabajador: id_solicitante, tipo_usuario: tipo_solicitante } = req.user;
-
-    if (!id_material) {
-      return res.status(400).json({
-        message: "El campo id_material es obligatorio",
-      });
-    }
-
-    if (isNaN(Number(id_material))) {
-      return res.status(400).json({
-        message: "id_material debe ser numérico",
-      });
-    }
-
-    // Validar que el material_limpieza exista (con su inventario, cuadrilla y proyecto, para validar estados y permisos)
-    const material = await materialLimpiezaRepository.findOne({
-      where: { id_material: Number(id_material) },
-      relations: ["inventario", "inventario.cuadrilla", "inventario.cuadrilla.proyecto"],
-    });
-    if (!material) {
-      return res.status(404).json({ message: "Material no encontrado" });
-    }
-
-    // Validar que el proyecto esté activo
-    if (material.inventario.cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se puede eliminar el material porque el proyecto no está activo",
-      });
-    }
-
-    // Validar que la cuadrilla esté activa
-    if (material.inventario.cuadrilla.estado !== "activa") {
-      return res.status(409).json({
-        message: "No se puede eliminar el material porque la cuadrilla no está activa",
-      });
-    }
-
-    const id_cuadrilla = material.inventario.cuadrilla.id_cuadrilla;
-
-    // Validar quién realiza la petición
-    if (tipo_solicitante === "administrador") {
-      // libre acceso
-    } else if (tipo_solicitante === "supervisor") {
-      const supervisorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla,
-        },
-      });
-
-      if (!supervisorPertenece) {
-        return res.status(403).json({
-          message: "El supervisor no pertenece a la cuadrilla indicada",
-        });
-      }
-    } else if (tipo_solicitante === "trabajador") {
-      const trabajadorPertenece = await asignadoRepository.findOne({
-        where: {
-          id_trabajador: id_solicitante,
-          id_cuadrilla,
-        },
-      });
-
-      if (!trabajadorPertenece || !trabajadorPertenece.es_bodeguero) {
-        return res.status(403).json({
-          message: "No tiene permisos para eliminar materiales de este inventario",
-        });
-      }
-    } else {
-      return res.status(403).json({
-        message: "No tiene permisos para realizar esta acción",
-      });
-    }
-
-    // Eliminar el material (physical delete)
-    await materialLimpiezaRepository.remove(material);
-
-    return res.status(200).json({
-      message: "Material eliminado correctamente",
-    });
-  } catch (error) {
-    console.error("Error en eliminarMaterialLimpiezaInventario:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
-};
-
-
-
-
-
+}
