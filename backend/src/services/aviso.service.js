@@ -40,7 +40,10 @@ const assertSupervisorDelProyectoDeCuadrilla = (id_trabajador, proyecto) => {
 // ─── Servicios públicos ────────────────────────────────────────────────────────
 
 export const listarCuadrillas = () =>
-  cuadrillaRepository.find({ order: { nombre_cuadrilla: "ASC" } });
+  cuadrillaRepository.find({
+    where: { estado: "activa" },
+    order: { nombre_cuadrilla: "ASC" },
+  });
 
 export const listarTodosLosAvisos = () =>
   avisoRepository.find({ relations: ["cuadrilla"], order: { fecha_publicacion: "DESC" } });
