@@ -16,11 +16,16 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
-// Obtener todas las ausencias (Filtra por cuadrilla automáticamente en el backend)
+// Obtener todas las ausencias visibles para el usuario autenticado
+// (administrador: todas · supervisor: las de sus proyectos · trabajador: las suyas)
 export const getAusencias = () =>
   apiFetch('/api/ausencias');
 
-// Crear ausencia (Flujo normal del trabajador desde su panel)
+// Ver las ausencias de un trabajador específico (usado en "Mis Ausencias")
+export const getAusenciasPorTrabajador = (id) =>
+  apiFetch(`/api/ausencias/trabajador/${id}`);
+
+// Crear ausencia (Flujo normal del trabajador desde su panel — anticipada)
 export const crearAusencia = (datos) =>
   apiFetch('/api/ausencias', {
     method: 'POST',
@@ -35,16 +40,18 @@ export const crearAusenciaPorSupervisor = (datos) =>
   });
 
 // Justificar una inasistencia (El trabajador sube el motivo/documento)
+// Sincronizado con router.put('/:id/justificar', ...) en ausencia.routes.js
 export const justificarAusencia = (id, datos) =>
-  apiFetch(`/api/ausencias/justificar/${id}`, {
-    method: 'POST',
+  apiFetch(`/api/ausencias/${id}/justificar`, {
+    method: 'PUT',
     body: JSON.stringify(datos),
   });
 
 // Revisar ausencia (Aprobar / Rechazar por el Supervisor)
+// Sincronizado con router.put('/:id/revisar', ...) en ausencia.routes.js
 export const revisarAusencia = (id, datos) =>
-  apiFetch(`/api/ausencias/revisar/${id}`, { 
-    method: 'PATCH', // Sincronizado con router.patch en el backend
+  apiFetch(`/api/ausencias/${id}/revisar`, {
+    method: 'PUT',
     body: JSON.stringify(datos),
   });
 

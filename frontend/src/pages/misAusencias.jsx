@@ -6,33 +6,29 @@ import {
   Plus, X, Save, AlertCircle, ClipboardList,
   Trash2, Paperclip, FileText, AlertTriangle,
 } from 'lucide-react';
+import {
+  crearAusencia,
+  justificarAusencia as justificarAusenciaService,
+  eliminarAusencia as eliminarAusenciaService,
+  getAusenciasPorTrabajador,
+} from '../services/ausenciasService';
+import { getMiCuadrilla } from '../services/cuadrillasService';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
-async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...options,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || err.error || `Error ${res.status}`);
-  }
-  return res.json();
-}
-
 const EMPTY_FORM = { fecha_inicio: '', fecha_termino: '', motivo: '' };
-const FILTROS = ['Todas', 'Por Justificar', 'Pendiente', 'Aprobada', 'Rechazada'];
+const FILTROS = ['Todas', 'Por Justificar', 'Pendiente', 'Aprobado', 'Rechazado'];
 
 function MisAusencias({ usuario, onLogout }) {
   const [ausencias, setAusencias]         = useState([]);
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState(null);
   const [filtro, setFiltro]               = useState('Todas');
+
+  // Cuadrilla propia del trabajador (necesaria para crear una ausencia propia)
+  const [miCuadrilla, setMiCuadrilla]           = useState(null);
+  const [miCuadrillaLoading, setMiCuadrillaLoading] = useState(false);
+  const [miCuadrillaError, setMiCuadrillaError]     = useState(null);
 
   // Modal nueva solicitud
   const [showModal, setShowModal]         = useState(false);
@@ -60,7 +56,7 @@ function MisAusencias({ usuario, onLogout }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch(`/api/ausencias/trabajador/${idTrabajador}`);
+      const res = await getAusenciasPorTrabajador(idTrabajador);
       setAusencias(Array.isArray(res) ? res : res.data ?? []);
     } catch (e) {
       setError(e.message);
@@ -69,25 +65,36 @@ function MisAusencias({ usuario, onLogout }) {
     }
   };
 
-  useEffect(() => { fetchAusencias(); }, [idTrabajador]);
+  const fetchMiCuadrilla = async () => {
+    setMiCuadrillaLoading(true);
+    setMiCuadrillaError(null);
+    try {
+      const res = await getMiCuadrilla();
+      setMiCuadrilla(res?.data ?? null);
+    } catch (e) {
+      setMiCuadrilla(null);
+      setMiCuadrillaError(e.message || 'No se pudo determinar tu cuadrilla');
+    } finally {
+      setMiCuadrillaLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAusencias();
+    fetchMiCuadrilla();
+  }, [idTrabajador]);
 
   const filtered = filtro === 'Todas' ? ausencias : ausencias.filter((a) => a.estado === filtro);
 
   const estadoBadgeClass = (estado) => {
-    if (estado === 'Aprobada')       return 'badge-activo';
-    if (estado === 'Rechazada')      return 'badge-inactivo';
+    if (estado === 'Aprobado')    return 'badge-activo';
+    if (estado === 'Rechazado')  return 'badge-inactivo';
     if (estado === 'Por Justificar') return 'badge-por-justificar';
-    return 'badge-licencia';
+    return 'badge-licencia'; // Pendiente
   };
 
   const formatFecha = (f) =>
     f ? new Date(f).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-
-  const diasAusencia = (inicio, fin) => {
-    if (!inicio || !fin) return '—';
-    const diff = (new Date(fin) - new Date(inicio)) / (1000 * 60 * 60 * 24);
-    return diff >= 0 ? `${diff + 1} día${diff !== 0 ? 's' : ''}` : '—';
-  };
 
   const ausenciasPorJustificar = ausencias.filter((a) => a.estado === 'Por Justificar');
 
@@ -99,6 +106,7 @@ function MisAusencias({ usuario, onLogout }) {
   // ── Nueva solicitud ──────────────────────────────────────────────────────
   const abrirModal = () => {
     setFormData(EMPTY_FORM); setFormError(null); setArchivoPDF(null); setShowModal(true);
+    if (!miCuadrilla && !miCuadrillaLoading) fetchMiCuadrilla();
   };
   const handleChange = (e) => setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -112,28 +120,47 @@ function MisAusencias({ usuario, onLogout }) {
   };
 
   const subirPDF = async (idAusencia, archivo) => {
-    if (!archivo) return;
+    if (!archivo) return; // Si no hay archivo, no hay error
     const formDataPDF = new FormData();
     formDataPDF.append('archivo', archivo);
     const token = localStorage.getItem('token');
-    await fetch(`${API_BASE}/api/ausencias/${idAusencia}/documento`, {
+    
+    const res = await fetch(`${API_BASE}/api/ausencias/${idAusencia}/documento`, {
       method: 'POST',
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: formDataPDF,
-    }).catch(() => {}); // si el endpoint no existe, falla silenciosamente
+    });
+    
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Error al subir PDF: ${res.status}`);
+    }
+    
+    return res.json();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
+
+    if (!miCuadrilla?.id_cuadrilla) {
+      setFormError('No se pudo determinar tu cuadrilla. No es posible registrar la solicitud.');
+      return;
+    }
+
     setSaving(true);
     try {
-      const resAusencia = await apiFetch('/api/ausencias', {
-        method: 'POST',
-        body: JSON.stringify({ ...formData, id_trabajador: idTrabajador }),
+      const resAusencia = await crearAusencia({
+        ...formData,
+        id_trabajador: idTrabajador,
+        id_cuadrilla: miCuadrilla.id_cuadrilla,
       });
       const idAusencia = resAusencia?.id_ausencia ?? resAusencia?.data?.id_ausencia;
-      await subirPDF(idAusencia, archivoPDF);
+      
+      // Subir PDF si existe (y lanzar error si falla)
+      if (archivoPDF) {
+        await subirPDF(idAusencia, archivoPDF);
+      }
 
       setShowModal(false);
       setFormData(EMPTY_FORM);
@@ -169,11 +196,12 @@ function MisAusencias({ usuario, onLogout }) {
     setJustificarError(null);
     setSavingJustificar(true);
     try {
-      await apiFetch(`/api/ausencias/${justificarId}/justificar`, {
-        method: 'PUT',
-        body: JSON.stringify({ motivo: justificarMotivo }),
-      });
-      await subirPDF(justificarId, archivoJustificar);
+      await justificarAusenciaService(justificarId, { motivo: justificarMotivo });
+      
+      // Subir PDF si existe (y lanzar error si falla)
+      if (archivoJustificar) {
+        await subirPDF(justificarId, archivoJustificar);
+      }
 
       setShowJustificar(false);
       fetchAusencias();
@@ -187,7 +215,7 @@ function MisAusencias({ usuario, onLogout }) {
   // ── Eliminar ──────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
-      await apiFetch(`/api/ausencias/${id}`, { method: 'DELETE' });
+      await eliminarAusenciaService(id);
       setAusencias((prev) => prev.filter((a) => a.id_ausencia !== id));
     } catch (e) {
       setError(e.message);
@@ -208,10 +236,21 @@ function MisAusencias({ usuario, onLogout }) {
               <h1 className="vista-general-title">Mis Ausencias</h1>
               <p className="vista-general-subtitle">Historial y solicitudes de {usuario?.nombres} {usuario?.apellidos}</p>
             </div>
-            <button className="btn-nuevo-trabajador" onClick={abrirModal}>
+            <button
+              className="btn-nuevo-trabajador"
+              onClick={abrirModal}
+              disabled={miCuadrillaLoading}
+              title={miCuadrillaError ? 'No se pudo determinar tu cuadrilla' : undefined}
+            >
               <Plus size={16} /> Nueva Solicitud
             </button>
           </div>
+
+          {miCuadrillaError && (
+            <div className="tw-error-banner" style={{ marginBottom: '16px' }}>
+              <AlertCircle size={16} /> No pudimos determinar tu cuadrilla ({miCuadrillaError}). No podrás crear solicitudes nuevas hasta que estés asignado a una.
+            </div>
+          )}
 
           {/* Aviso de ausencias por justificar */}
           {ausenciasPorJustificar.length > 0 && (
@@ -226,7 +265,7 @@ function MisAusencias({ usuario, onLogout }) {
                   Tienes {ausenciasPorJustificar.length} ausencia{ausenciasPorJustificar.length !== 1 ? 's' : ''} por justificar
                 </p>
                 <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#c2410c' }}>
-                  Tu supervisor registró una inasistencia. Tienes 24 horas para justificarla.
+                  Tu supervisor registró una inasistencia.
                 </p>
               </div>
               <button
@@ -259,7 +298,7 @@ function MisAusencias({ usuario, onLogout }) {
               <table className="tw-table">
                 <thead>
                   <tr>
-                    <th>Fecha Inicio</th><th>Fecha Término</th><th>Duración</th>
+                    <th>Fecha</th>
                     <th>Motivo</th><th>Estado</th><th>Comentario</th><th>Doc.</th>
                     {hayAccionesVisibles && <th>Acciones</th>}
                   </tr>
@@ -270,22 +309,20 @@ function MisAusencias({ usuario, onLogout }) {
                     return (
                       <tr key={a.id_ausencia}>
                         <td>{formatFecha(a.fecha_inicio)}</td>
-                        <td>{formatFecha(a.fecha_termino)}</td>
-                        <td className="aus-duracion">{diasAusencia(a.fecha_inicio, a.fecha_termino)}</td>
                         <td className="aus-motivo">
                           {esPorJustificar
-                            ? <span style={{ color: '#ea580c', fontWeight: 600 }}>Pendiente de tu justificación</span>
-                            : (a.motivo ?? '—')}
+                            ? <span style={{ color: '#e9580a', fontWeight: 600 }}>Pendiente de tu justificación</span>
+                            : (a.justificacion?.motivo ?? '—')}
                         </td>
                         <td><span className={`tw-badge ${estadoBadgeClass(a.estado)}`}>{a.estado ?? '—'}</span></td>
                         <td className="aus-motivo">
-                          {a.comentario_revision
-                            ? <span title={a.comentario_revision}>{a.comentario_revision}</span>
+                          {a.justificacion?.comentario_revision
+                            ? <span title={a.justificacion.comentario_revision}>{a.justificacion.comentario_revision}</span>
                             : <span style={{ color: '#9ca3af' }}>Sin revisión</span>}
                         </td>
                         <td>
-                          {a.url_documento
-                            ? <a href={`${API_BASE}${a.url_documento}`} target="_blank" rel="noopener noreferrer"><FileText size={16} color="#4F46E5" /></a>
+                          {a.justificacion?.documento_respaldo
+                            ? <a href={`${API_BASE}${a.justificacion.documento_respaldo}`} target="_blank" rel="noopener noreferrer"><FileText size={16} color="#4F46E5" /></a>
                             : <span style={{ color: '#d1d5db' }}>—</span>}
                         </td>
                         {hayAccionesVisibles && (
@@ -371,7 +408,7 @@ function MisAusencias({ usuario, onLogout }) {
               </div>
               <div className="tw-modal-footer">
                 <button type="button" className="tw-btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>
-                <button type="submit" className="tw-btn-save" disabled={saving}>
+                <button type="submit" className="tw-btn-save" disabled={saving || !miCuadrilla?.id_cuadrilla}>
                   <Save size={14} /> {saving ? 'Enviando...' : 'Enviar Solicitud'}
                 </button>
               </div>

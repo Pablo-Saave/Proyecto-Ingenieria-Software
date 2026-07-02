@@ -7,11 +7,17 @@ const repo = AppDataSource.getRepository(AusenciaSchema);
 const repoJustificacion = AppDataSource.getRepository(JustificacionAusenciaSchema);
 
 // ── CREAR AUSENCIA (Flujo normal: El empleado avisa que faltará) ──────────────
+// El trabajador entrega el motivo al momento de crearla, así que se guarda de una
+// vez una JustificacionAusencia asociada (estado_revision "Pendiente"), para que
+// el resto del sistema pueda leer siempre el motivo desde `ausencia.justificacion.motivo`,
+// sea cual sea el flujo (anticipado por el trabajador o detectado por el supervisor).
 export const crearAusencia = async (req, res) => {
-  const { id_cuadrilla, id_trabajador, fecha_inicio, fecha_termino } = req.body;
+  const { id_cuadrilla, id_trabajador, fecha_inicio, fecha_termino, motivo } = req.body;
 
-  if (!id_cuadrilla || !id_trabajador) {
-    return res.status(400).json({ error: "Faltan parámetros requeridos (id_cuadrilla, id_trabajador)" });
+  if (!id_cuadrilla || !id_trabajador || !fecha_inicio || !fecha_termino || !motivo) {
+    return res.status(400).json({
+      error: "Faltan parámetros requeridos (id_cuadrilla, id_trabajador, fecha_inicio, fecha_termino, motivo)",
+    });
   }
 
   try {
@@ -23,15 +29,27 @@ export const crearAusencia = async (req, res) => {
       return res.status(403).json({ error: "El trabajador no pertenece a la cuadrilla" });
     }
 
-    const nueva = repo.create({
-      fecha_inicio,
-      fecha_termino,
-      estado: "Pendiente", // Al ser avisada con tiempo, nace como pendiente de aprobación
-      trabajador: { id_trabajador },
-      cuadrilla: { id_cuadrilla },
+    const resultado = await AppDataSource.transaction(async (transactionalEntityManager) => {
+      const nueva = repo.create({
+        fecha_inicio,
+        fecha_termino,
+        estado: "Pendiente", // Nace pendiente de aprobación por el supervisor
+        trabajador: { id_trabajador },
+        cuadrilla: { id_cuadrilla },
+      });
+      const ausenciaGuardada = await transactionalEntityManager.save(AusenciaSchema, nueva);
+
+      const justificacion = repoJustificacion.create({
+        id_ausencia: ausenciaGuardada.id_ausencia,
+        motivo,
+        estado_revision: "Pendiente",
+        fecha_registro: new Date(),
+      });
+      await transactionalEntityManager.save(JustificacionAusenciaSchema, justificacion);
+
+      return ausenciaGuardada;
     });
 
-    const resultado = await repo.save(nueva);
     res.json(resultado);
   } catch (error) {
     res.status(500).json({ error: "Error al crear ausencia" });
@@ -41,7 +59,7 @@ export const crearAusencia = async (req, res) => {
 // ── CREAR AUSENCIA POR SUPERVISOR (flujo espontáneo) ─────────────────────────
 export const crearAusenciaPorSupervisor = async (req, res) => {
   try {
-    const { fecha_inicio, fecha_termino, motivo, id_trabajador, id_cuadrilla } = req.body;
+    const { fecha_inicio, fecha_termino, id_trabajador, id_cuadrilla } = req.body;
 
     // REGLA: El usuario debe ser supervisor del proyecto al que pertenece la cuadrilla
     const cuadrilla = await AppDataSource.getRepository("Cuadrilla").findOne({
@@ -69,7 +87,10 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
     const nueva = repo.create({
       fecha_inicio,
       fecha_termino,
-      estado: "Pendiente",
+      // Nace "Por Justificar": el supervisor la detectó, pero es el trabajador
+      // quien debe entregar el motivo (ver justificarAusencia). No debe poder
+      // registrarse en otro estado desde este endpoint.
+      estado: "Por Justificar",
       trabajador: { id_trabajador },
       cuadrilla: { id_cuadrilla },
     });
@@ -87,27 +108,26 @@ export const justificarAusencia = async (req, res) => {
   try {
     const { motivo, documento_respaldo } = req.body;
     const id_ausencia = Number(req.params.id);
-
+ 
     const ausencia = await repo.findOne({
       where: { id_ausencia },
       relations: ["trabajador", "cuadrilla"],
     });
-
+ 
     if (!ausencia) {
       return res.status(404).json({ error: "Ausencia no encontrada" });
     }
-
-    const requiereJustificacion = ausencia.estado === "Por Justificar" || ausencia.estado === "Pendiente";
-
+ 
+    const requiereJustificacion = ausencia.estado === "Por Justificar";
+ 
     if (!requiereJustificacion) {
       return res.status(400).json({ error: "Esta ausencia no requiere justificación o ya está en proceso" });
     }
-
+ 
     if (req.user?.id_trabajador !== ausencia.trabajador?.id_trabajador) {
       return res.status(403).json({ error: "Solo puedes justificar tus propias ausencias" });
     }
-
-    // Usamos una transacción para guardar la justificación y cambiar el estado de la ausencia de golpe
+ 
     await AppDataSource.transaction(async (transactionalEntityManager) => {
       const nuevaJustificacion = repoJustificacion.create({
         id_ausencia,
@@ -117,33 +137,67 @@ export const justificarAusencia = async (req, res) => {
         fecha_registro: new Date(),
       });
       await transactionalEntityManager.save(JustificacionAusenciaSchema, nuevaJustificacion);
-
-      ausencia.estado = "Pendiente"; // Pasa a pendiente de revisión por el supervisor
+ 
+      // "Justificada" = el trabajador ya apeló, queda a la espera de que el
+      // supervisor la revise. NO es un estado final.
+      ausencia.estado = "Justificada";
       await transactionalEntityManager.save(AusenciaSchema, ausencia);
     });
-
+ 
     res.json({ message: "Justificación presentada correctamente y pendiente de revisión" });
   } catch (error) {
     res.status(500).json({ error: "Error al justificar ausencia" });
   }
 };
 
-// ── OBTENER TODAS LAS AUSENCIAS (Optimizado a nivel DB) ───────────────────────
+// ── OBTENER TODAS LAS AUSENCIAS ────────────────────────────────────────────
 export const obtenerAusencias = async (req, res) => {
   try {
-    const asignaciones = await AppDataSource.getRepository("Asignado").find({
-      where: { id_trabajador: req.user.id_trabajador },
-    });
+    const { id_trabajador, tipo_usuario } = req.user;
 
-    const idsCuadrillas = asignaciones.map(a => a.id_cuadrilla);
+    // Administrador: ve todas las ausencias del sistema
+    if (tipo_usuario === "administrador") {
+      const ausencias = await repo.find({
+        relations: ["trabajador", "cuadrilla", "justificacion", "justificacion.revisor"],
+      });
+      return res.json(ausencias);
+    }
+
+    // Supervisor: ve las ausencias de las cuadrillas de los proyectos que supervisa
+    // (fuente de verdad: Proyecto.id_supervisor, no la tabla Asignado)
+    if (tipo_usuario === "supervisor") {
+      const proyectos = await AppDataSource.getRepository("Proyecto").find({
+        where: { id_supervisor: id_trabajador },
+        select: ["id_proyecto"],
+      });
+      const idProyectos = proyectos.map((p) => p.id_proyecto);
+      if (!idProyectos.length) return res.json([]);
+
+      const cuadrillas = await AppDataSource.getRepository("Cuadrilla").find({
+        where: { id_proyecto: In(idProyectos) },
+        select: ["id_cuadrilla"],
+      });
+      const idsCuadrillas = cuadrillas.map((c) => c.id_cuadrilla);
+      if (!idsCuadrillas.length) return res.json([]);
+
+      const ausencias = await repo.find({
+        where: { cuadrilla: { id_cuadrilla: In(idsCuadrillas) } },
+        relations: ["trabajador", "cuadrilla", "justificacion", "justificacion.revisor"],
+      });
+      return res.json(ausencias);
+    }
+
+    // Trabajador: ve las ausencias de la(s) cuadrilla(s) a las que pertenece
+    const asignaciones = await AppDataSource.getRepository("Asignado").find({
+      where: { id_trabajador },
+    });
+    const idsCuadrillas = asignaciones.map((a) => a.id_cuadrilla);
     if (!idsCuadrillas.length) return res.json([]);
 
-    // FILTRADO DIRECTO EN LA BASE DE DATOS (Mucho más rápido)
     const ausencias = await repo.find({
       where: { cuadrilla: { id_cuadrilla: In(idsCuadrillas) } },
       relations: ["trabajador", "cuadrilla", "justificacion", "justificacion.revisor"],
     });
-
     res.json(ausencias);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener ausencias" });
@@ -153,14 +207,28 @@ export const obtenerAusencias = async (req, res) => {
 // ── ELIMINAR AUSENCIA ─────────────────────────────────────────────────────────
 export const eliminarAusencia = async (req, res) => {
   try {
-    const ausencia = await repo.findOne({ where: { id_ausencia: Number(req.params.id) } });
-
+    const ausencia = await repo.findOne({
+      where: { id_ausencia: Number(req.params.id) },
+      relations: ["justificacion"],
+    });
+ 
     if (!ausencia) return res.status(404).json({ error: 'Ausencia no encontrada' });
-    if (ausencia.estado !== 'Pendiente' && ausencia.estado !== 'Por Justificar') {
+ 
+    const esAdministrador = req.user?.tipo_usuario === 'administrador';
+ 
+    if (!esAdministrador && ausencia.estado !== 'Pendiente' && ausencia.estado !== 'Por Justificar') {
       return res.status(400).json({ error: 'No se puede eliminar una ausencia ya procesada o cerrada' });
     }
-
-    await repo.remove(ausencia);
+ 
+    // Se borra primero la justificación asociada (si existe) para evitar el
+    // conflicto de llave foránea al eliminar la ausencia madre.
+    await AppDataSource.transaction(async (transactionalEntityManager) => {
+      if (ausencia.justificacion) {
+        await transactionalEntityManager.remove(JustificacionAusenciaSchema, ausencia.justificacion);
+      }
+      await transactionalEntityManager.remove(AusenciaSchema, ausencia);
+    });
+ 
     res.json({ message: 'Ausencia eliminada correctamente' });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar ausencia' });
@@ -198,65 +266,60 @@ export const revisarAusencia = async (req, res) => {
   try {
     const { estado_aprobacion, comentario_revision } = req.body; // 'Aprobado' o 'Rechazado'
     const id_ausencia = Number(req.params.id);
-
-    // 1. Traemos la ausencia junto con su cuadrilla y su justificación actual
+ 
+    if (isNaN(id_ausencia)) {
+      return res.status(400).json({ error: "id de ausencia inválido" });
+    }
+ 
     const ausencia = await repo.findOne({
       where: { id_ausencia },
-      relations: ["trabajador", "cuadrilla", "justificacion"],
+      relations: ["trabajador", "cuadrilla", "cuadrilla.proyecto", "justificacion"],
     });
-
+ 
     if (!ausencia) {
       return res.status(404).json({ error: "Ausencia no encontrada" });
     }
-
-    const permiteRevision = ausencia.estado === "Pendiente" || ausencia.estado === "Por Justificar";
-
+ 
+    // Revisable en dos casos: el trabajador la pidió con anticipación (Pendiente),
+    // o el supervisor la registró y el trabajador ya apeló (Justificada).
+    const permiteRevision = ausencia.estado === "Pendiente" || ausencia.estado === "Justificada";
+ 
     if (!permiteRevision) {
       return res.status(400).json({ error: "La ausencia no está en un estado válido para revisión" });
     }
-
-    // REGLA: El supervisor no puede auto-revisarse si él fue el que faltó
+ 
     if (req.user?.id_trabajador === ausencia.trabajador?.id_trabajador) {
       return res.status(403).json({ error: "No puedes revisar tu propia solicitud de ausencia" });
     }
-
-    // REGLA CENTRAL: Quien revisa debe estar asignado a esa cuadrilla Y tener tipo_usuario 'supervisor'
-    const asignacionRevisor = await AppDataSource.getRepository("Asignado").findOne({
-      where: {
-        id_trabajador: req.user?.id_trabajador,
-        id_cuadrilla: ausencia.cuadrilla?.id_cuadrilla,
-      },
-      relations: ["trabajador"],
-    });
-
+ 
     const esRevisorValido =
       req.user?.tipo_usuario === "administrador" ||
-      asignacionRevisor?.trabajador?.tipo_usuario === "supervisor";
-
+      (req.user?.tipo_usuario === "supervisor" &&
+        ausencia.cuadrilla?.proyecto?.id_supervisor === req.user?.id_trabajador);
+ 
     if (!esRevisorValido) {
-      return res.status(403).json({ 
-        error: "No tienes permisos de supervisor en la cuadrilla de esta ausencia para poder revisarla." 
+      return res.status(403).json({
+        error: "No tienes permisos de supervisor en el proyecto de esta ausencia para poder revisarla.",
       });
     }
-
-    // 2. Guardado atómico con Transacción
+ 
     await AppDataSource.transaction(async (transactionalEntityManager) => {
       if (ausencia.justificacion) {
         ausencia.justificacion.estado_revision = estado_aprobacion;
         ausencia.justificacion.comentario_revision = comentario_revision;
         ausencia.justificacion.fecha_revision = new Date();
         ausencia.justificacion.revisor = { id_trabajador: req.user.id_trabajador };
-        
+ 
         await transactionalEntityManager.save(JustificacionAusenciaSchema, ausencia.justificacion);
       }
-
-      // Sincronizamos el estado en la ausencia madre
-      ausencia.estado = estado_aprobacion === "Aprobado" ? "Justificada" : "Injustificada";
+ 
+      // Estado final directo: "Aprobado" o "Rechazado".
+      ausencia.estado = estado_aprobacion;
       await transactionalEntityManager.save(AusenciaSchema, ausencia);
     });
-
+ 
     res.json({ message: `Ausencia revisada con éxito. Resultado: ${estado_aprobacion}` });
-
+ 
   } catch (error) {
     res.status(500).json({ error: "Error al revisar la ausencia" });
   }

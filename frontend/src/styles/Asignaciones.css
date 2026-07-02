@@ -1,0 +1,216 @@
+/* Asignaciones Page — mismo lenguaje visual que Contratos, sin métricas */
+
+.asignaciones-container { width: 100%; }
+
+.asignaciones-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+.asignaciones-header .vista-general-title { margin-bottom: 2px; }
+.asignaciones-header .vista-general-subtitle { margin: 0; }
+
+.btn-nueva-asignacion {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1.2rem;
+  background: #4466ff;
+  color: #fff;
+  border: none;
+  border-radius: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-nueva-asignacion:hover { background: #2244cc; }
+.btn-nueva-asignacion:disabled { background: #a9b7f2; cursor: not-allowed; }
+
+/* Selector de proyecto */
+.asig-project-select-wrap { margin-bottom: 1rem; max-width: 360px; }
+.asig-project-select-wrap label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+.asig-project-select {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.asig-project-select:focus { border-color: #4466ff; }
+
+/* Tarjeta info del proyecto (Proyecto / Supervisor / Prevencionista) */
+.asig-info-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.5rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.asig-info-block { flex: 1; min-width: 200px; }
+.asig-info-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 6px;
+}
+.asig-info-name { font-size: 1.05rem; font-weight: 800; color: #111827; margin: 0 0 6px; }
+.asig-info-value { font-size: 0.9rem; font-weight: 600; color: #111827; margin: 0; }
+.asig-info-empty { font-size: 0.85rem; color: #9ca3af; font-style: italic; margin: 0; }
+.asig-info-link {
+  margin-top: 8px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #4466ff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-block;
+}
+.asig-info-link:hover { text-decoration: underline; }
+
+/* Buscador (usa .search-box de contratos.css) */
+.asig-search-wrap { margin-bottom: 0.85rem; }
+
+/* Fila contador + acción secundaria */
+.asig-toolbar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.asig-count { font-size: 0.85rem; color: #6b7280; font-weight: 500; margin: 0; }
+
+/* Tabla */
+.asig-table-wrapper {
+  background: #fff;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+.asig-table { width: 100%; border-collapse: collapse; }
+.asig-table thead { background: #f9fafb; border-bottom: 2px solid #e5e7eb; }
+.asig-table th {
+  padding: 0.6rem 0.6rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.asig-table tbody tr { border-bottom: 1px solid #e5e7eb; transition: background-color 0.15s; }
+.asig-table tbody tr:hover { background-color: #f9fafb; }
+.asig-table td { padding: 0.6rem 0.65rem; font-size: 0.85rem; color: #1f2937; }
+
+.asig-row-cuadrilla { cursor: pointer; background: #fafbfe; }
+.asig-row-cuadrilla:hover { background-color: #f3f5fb !important; }
+.asig-row-trabajador { background: #fff; }
+.asig-row-trabajador:hover { background-color: #f9fafb; }
+.asig-row-trabajador td:first-child { border-right: none; }
+
+.asig-cell-cuadrilla, .asig-cell-trabajador { display: flex; align-items: center; gap: 0.75rem; }
+.asig-cell-trabajador { padding-left: 30px; }
+.asig-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.asig-avatar-cuadrilla { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.asig-avatar-trabajador { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+
+.asig-cell-title { font-weight: 600; color: #111827; font-size: 0.87rem; }
+.asig-cell-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
+.asig-empty-cell { color: #9ca3af; font-style: italic; font-size: 0.82rem; }
+
+/* Botón fantasma (Nueva cuadrilla / Filtrar) */
+.asig-btn-ghost {
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4466ff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+.asig-btn-ghost:hover { border-color: #4466ff; background: #f3f6ff; }
+.asig-btn-ghost:disabled { color: #9ca3af; border-color: #e2e8f0; cursor: not-allowed; background: #fff; }
+
+/* Estados vacíos */
+.asig-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 60px 20px;
+  color: #9ca3af;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+.asig-empty-state p { margin: 0; font-size: 0.9rem; }
+
+/* Loading */
+.asig-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 20px;
+  color: #6b7280;
+  font-size: 0.9rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .asignaciones-header { flex-direction: column; gap: 1rem; }
+  .btn-nueva-asignacion { width: 100%; justify-content: center; }
+  .asig-info-card { flex-direction: column; gap: 1rem; }
+  .asig-table-wrapper { overflow-x: auto; }
+  .asig-table { min-width: 640px; }
+  .asig-toolbar-row { flex-direction: column; align-items: stretch; }
+}

@@ -203,6 +203,11 @@
   background: #fef3c7;
   color: #92400e;
 }
+
+.badge-justificada {
+  background-color: #c0a8eb;
+  color: #4500c5;
+}
  
 /* Botones de acción */
 .tw-actions {

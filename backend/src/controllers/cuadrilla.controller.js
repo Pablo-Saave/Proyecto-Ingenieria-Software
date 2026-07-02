@@ -91,74 +91,41 @@ export const crearCuadrilla = async (req, res) => {
 
 
 
+// eliminar cuadrilla
 
-
-/***
- * Soft Delete - Cambia el estado de una cuadrilla a "inactiva"
- * Validaciones
- * - El que realiza la peticion debe tener tipo_usuario = administrador
- * - La cuadrilla debe existir
- * - El proyecto al cual pertenece la cuadrilla debe tener estado = activo
- * - La cuadrilla no debe estar inactiva
- */
-export const inactivarCuadrilla = async (req, res) => {
+export async function deleteCuadrilla(req, res) {
   try {
-    const { id_cuadrilla } = req.body;
-    const { tipo_usuario: tipo_solicitante } = req.user;
-
-    if (!id_cuadrilla) {
-      return res.status(400).json({
-        message: "El campo id_cuadrilla es obligatorio",
-      });
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "ID inválido" });
     }
 
-    if (isNaN(Number(id_cuadrilla))) {
-      return res.status(400).json({
-        message: "id_cuadrilla debe ser numérico",
-      });
-    }
+    const cuadrilla = await cuadrillaRepository.findOneBy({ id_cuadrilla: id });
 
-    // 1. Validar que quien realiza la petición sea administrador
-    if (tipo_solicitante !== "administrador") {
-      return res.status(403).json({
-        message: "No tiene permisos para realizar esta acción",
-      });
-    }
-
-    // 2. Validar que la cuadrilla exista (con su proyecto, para validar estado)
-    const cuadrilla = await cuadrillaRepository.findOne({
-      where: { id_cuadrilla: Number(id_cuadrilla) },
-      relations: ["proyecto"],
-    });
     if (!cuadrilla) {
-      return res.status(404).json({ message: "Cuadrilla no encontrada" });
-    }
-
-    // Validar que el proyecto al cual pertenece la cuadrilla esté activo
-    if (cuadrilla.proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se puede inactivar la cuadrilla porque su proyecto no está activo",
+      return res.status(404).json({
+        status: "error",
+        message: "Cuadrilla no encontrada",
       });
     }
 
-    // Validar que la cuadrilla no esté ya inactiva
-    if (cuadrilla.estado === "inactiva") {
-      return res.status(409).json({
-        message: "La cuadrilla ya se encuentra inactiva",
-      });
-    }
+    // eliminar relaciones primero
+    await asignadoRepository.delete({ id_cuadrilla: id });
 
-    // Cambiar estado a "inactiva"
-    cuadrilla.estado = "inactiva";
-    await cuadrillaRepository.save(cuadrilla);
+    // eliminar cuadrilla
+    await cuadrillaRepository.delete({ id_cuadrilla: id });
 
     return res.status(200).json({
-      message: "Cuadrilla inactivada correctamente",
-      data: cuadrilla,
+      status: "success",
+      message: "Cuadrilla eliminada correctamente",
     });
+
   } catch (error) {
-    console.error("Error en inactivarCuadrilla:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+    console.error(error);
+    return res.status(500).json({
+      status: "error",
+      message: "Error interno del servidor",
+    });
   }
 };
 
@@ -672,6 +639,45 @@ export const getAllCuadrillasAndWorkersByIdProyecto = async (req, res) => {
 
 
 
+
+
+
+
+
+
+/***
+ * Obtiene la cuadrilla activa a la que pertenece el trabajador autenticado.
+ * Uso: el propio trabajador necesita su id_cuadrilla para crear una ausencia propia.
+ * Validaciones:
+ * - El solicitante debe estar asignado a al menos una cuadrilla (tabla Asignado)
+ */
+export const getMiCuadrilla = async (req, res) => {
+  try {
+    const { id_trabajador } = req.user;
+
+    const asignado = await asignadoRepository.findOne({
+      where: { id_trabajador },
+      relations: ["cuadrilla"],
+      order: { fecha_asignacion: "DESC" },
+    });
+
+    if (!asignado) {
+      return res.status(404).json({
+        message: "No estás asignado a ninguna cuadrilla actualmente",
+      });
+    }
+
+    return res.status(200).json({
+      data: {
+        id_cuadrilla: asignado.cuadrilla.id_cuadrilla,
+        nombre_cuadrilla: asignado.cuadrilla.nombre_cuadrilla,
+      },
+    });
+  } catch (error) {
+    console.error("Error en getMiCuadrilla:", error);
+    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+  }
+};
 
 
 
@@ -1535,7 +1541,7 @@ export async function getMyCuadrillasAndIntegrantesFromToken(req, res) {
     const id_trabajador = req.user.id_trabajador;
 
     const proyectoRepo  = AppDataSource.getRepository(ProyectoSchema);
-    const cuadrillaRepo = AppDataSource.getRepository(CuadrillaSchema);
+    const cuadrillaRepository = AppDataSource.getRepository(CuadrillaSchema);
 
     // ── Paso 1: proyectos activos donde este trabajador es supervisor ─────────
     const proyectos = await proyectoRepo.find({
@@ -1554,7 +1560,7 @@ export async function getMyCuadrillasAndIntegrantesFromToken(req, res) {
     const idProyectos = proyectos.map((p) => p.id_proyecto);
 
     // ── Paso 2: cuadrillas de esos proyectos ──────────────────────────────────
-    const cuadrillas = await cuadrillaRepo.find({
+    const cuadrillas = await cuadrillaRepository.find({
       where: { id_proyecto: In(idProyectos) },
     });
 

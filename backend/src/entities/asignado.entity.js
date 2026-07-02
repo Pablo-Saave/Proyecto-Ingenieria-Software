@@ -47,6 +47,7 @@ export const AsignadoSchema = new EntitySchema({
       joinColumn: { name: "id_cuadrilla" },
       inverseSide: "asignados",
       nullable: false,
+      onDelete: "CASCADE"
     },
   },
 });
