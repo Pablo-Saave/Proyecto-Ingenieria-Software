@@ -15,11 +15,6 @@ const getAsignacionActiva = (id_trabajador) =>
     relations: ["cuadrilla"],
   });
 
-const supervisorPerteneceACuadrilla = (id_trabajador, id_cuadrilla) =>
-  asignadoRepository.findOne({
-    where: { id_trabajador, id_cuadrilla: Number(id_cuadrilla) },
-  });
-
 const getCuadrillaOperativa = async (id_cuadrilla) => {
   const cuadrilla = await cuadrillaRepository.findOne({
     where: { id_cuadrilla: Number(id_cuadrilla) },
@@ -33,9 +28,13 @@ const getCuadrillaOperativa = async (id_cuadrilla) => {
   return cuadrilla;
 };
 
-const assertSupervisorEnCuadrilla = async (id_trabajador, id_cuadrilla) => {
-  const pertenece = await supervisorPerteneceACuadrilla(id_trabajador, id_cuadrilla);
-  if (!pertenece) throw { status: 403, message: "No pertenece a esta cuadrilla" };
+// El supervisor tiene acceso a una cuadrilla si es el id_supervisor del
+// proyecto al que esa cuadrilla pertenece (ya no depende de una asignación
+// puntual del supervisor a una única cuadrilla).
+const assertSupervisorDelProyectoDeCuadrilla = (id_trabajador, proyecto) => {
+  if (!proyecto || proyecto.id_supervisor !== id_trabajador) {
+    throw { status: 403, message: "No es supervisor del proyecto al que pertenece esta cuadrilla" };
+  }
 };
 
 // ─── Servicios públicos ────────────────────────────────────────────────────────
@@ -60,11 +59,19 @@ export const listarAvisosMiUnidad = async (id_trabajador) => {
 };
 
 export const listarAvisosDeCuadrilla = async ({ id_cuadrilla, id_trabajador, tipo_usuario, page, limit }) => {
-  const cuadrilla = await cuadrillaRepository.findOne({ where: { id_cuadrilla: Number(id_cuadrilla) } });
+  const cuadrilla = await cuadrillaRepository.findOne({
+    where: { id_cuadrilla: Number(id_cuadrilla) },
+    relations: ["proyecto"],
+  });
   if (!cuadrilla) throw { status: 404, message: "Cuadrilla no encontrada" };
 
-  if (tipo_usuario !== "administrador") {
-    await assertSupervisorEnCuadrilla(id_trabajador, id_cuadrilla);
+  if (tipo_usuario === "supervisor") {
+    assertSupervisorDelProyectoDeCuadrilla(id_trabajador, cuadrilla.proyecto);
+  } else if (tipo_usuario === "trabajador") {
+    const asignacion = await getAsignacionActiva(id_trabajador);
+    if (!asignacion || Number(asignacion.id_cuadrilla) !== Number(id_cuadrilla)) {
+      throw { status: 403, message: "No pertenece a esta cuadrilla" };
+    }
   }
 
   const [avisos, total] = await avisoRepository.findAndCount({
@@ -78,19 +85,14 @@ export const listarAvisosDeCuadrilla = async ({ id_cuadrilla, id_trabajador, tip
 };
 
 export const crearAviso = async ({ id_cuadrilla, titulo, contenido, prioridad, id_solicitante, tipo_usuario }) => {
-  // Resolver cuadrilla del supervisor si no viene explícita
-  if (!id_cuadrilla && tipo_usuario === "supervisor") {
-    const asignacion = await getAsignacionActiva(id_solicitante);
-    if (!asignacion) throw { status: 404, message: "No tiene una cuadrilla activa asignada" };
-    id_cuadrilla = asignacion.id_cuadrilla;
-  }
-
   if (!id_cuadrilla) throw { status: 400, message: "id_cuadrilla es obligatorio" };
 
   const cuadrilla = await getCuadrillaOperativa(id_cuadrilla);
 
+  // El supervisor puede publicar en cualquier cuadrilla del proyecto que supervisa,
+  // no solo en una única cuadrilla fija.
   if (tipo_usuario === "supervisor") {
-    await assertSupervisorEnCuadrilla(id_solicitante, id_cuadrilla);
+    assertSupervisorDelProyectoDeCuadrilla(id_solicitante, cuadrilla.proyecto);
   }
 
   const autor = await trabajadorRepository.findOne({ where: { id_trabajador: id_solicitante } });
@@ -157,7 +159,7 @@ export const eliminarAviso = async ({ id_aviso, id_solicitante, tipo_usuario }) 
   await getCuadrillaOperativa(aviso.id_cuadrilla);
 
   if (tipo_usuario === "supervisor") {
-    await assertSupervisorEnCuadrilla(id_solicitante, aviso.cuadrilla.id_cuadrilla);
+    assertSupervisorDelProyectoDeCuadrilla(id_solicitante, aviso.cuadrilla.proyecto);
 
     if (aviso.id_autor !== id_solicitante)
       throw { status: 403, message: "Un supervisor solo puede eliminar sus propios avisos" };

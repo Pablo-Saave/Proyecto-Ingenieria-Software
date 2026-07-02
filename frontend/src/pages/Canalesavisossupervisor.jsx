@@ -1,5 +1,5 @@
 // pages/CanalesAvisosSupervisor.jsx
-// Puede ver y publicar avisos solo en su propia cuadrilla.
+// Puede ver y publicar avisos en cualquier cuadrilla activa del proyecto que supervisa.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -7,7 +7,7 @@ import '../styles/trabajadores.css';
 import '../styles/dashboard.css';
 import '../styles/Avisosfiltros.css';
 import { AlertCircle, Bell, Filter, MessageSquare, MoreVertical, Plus, Send, Tag, Trash2, X } from 'lucide-react';
-import { getAvisosMiUnidad, crearAviso, eliminarAviso } from '../services/avisosService';
+import { getAvisosDeCuadrilla, getMisCuadrillasSupervisor, crearAviso, eliminarAviso } from '../services/avisosService';
 
 const EMPTY_FORM = { titulo: '', contenido: '', prioridad: 'normal' };
 const PRIORIDAD_LABEL = { baja: 'Baja', normal: 'Normal', alta: 'Alta', urgente: 'Urgente' };
@@ -64,11 +64,19 @@ function SelectFiltro({ label, value, onChange, options }) {
   );
 }
 
-// ─── Barra de filtros (sin cuadrilla, es fija para el supervisor) ────────────
-function BarraFiltros({ filtros, setFiltros, filtrosActivos, onFiltrar }) {
+// ─── Barra de filtros (incluye selector de cuadrilla del proyecto) ──────────
+function BarraFiltros({ filtros, setFiltros, filtrosActivos, onFiltrar, cuadrillas, cuadrillaId, onCuadrillaChange }) {
   return (
     <div className="avisos-filters">
       <div className="avisos-filter-controls">
+        {cuadrillas.length > 0 && (
+          <SelectFiltro
+            label="Cuadrilla"
+            value={cuadrillaId ?? ''}
+            onChange={onCuadrillaChange}
+            options={cuadrillas.map((c) => ({ value: String(c.id_cuadrilla), label: c.nombre_cuadrilla }))}
+          />
+        )}
         <SelectFiltro
           label="Prioridad"
           value={filtros.prioridad}
@@ -246,9 +254,12 @@ function MenuAcciones({ onEliminar }) {
 }
 
 function CanalesAvisosSupervisor({ usuario, onLogout }) {
-  const [unidad,    setUnidad]    = useState(null);
+  const [cuadrillas, setCuadrillas] = useState([]);       // cuadrillas activas del proyecto supervisado
+  const [sinProyecto, setSinProyecto] = useState(false);  // supervisor sin proyecto asignado
+  const [cuadrillaId, setCuadrillaId] = useState(null);   // id_cuadrilla seleccionada
   const [avisos,    setAvisos]    = useState([]);
-  const [loading,   setLoading]   = useState(true);
+  const [loading,   setLoading]   = useState(true);       // carga inicial de cuadrillas
+  const [loadingAvisos, setLoadingAvisos] = useState(false); // carga de avisos de la cuadrilla elegida
   const [error,     setError]     = useState(null);
   const [form,      setForm]      = useState(EMPTY_FORM);
   const [saving,    setSaving]    = useState(false);
@@ -258,16 +269,49 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
   const [avisoDelete, setAvisoDelete] = useState(null);
   const [eliminando,  setEliminando]  = useState(false);
 
-  const cargar = () => {
+  const cuadrillaActual = useMemo(
+    () => cuadrillas.find((c) => String(c.id_cuadrilla) === String(cuadrillaId)) ?? null,
+    [cuadrillas, cuadrillaId]
+  );
+
+  // Carga el proyecto (implícito) y las cuadrillas activas que le pertenecen
+  const cargarCuadrillas = () => {
     setLoading(true);
     setError(null);
-    getAvisosMiUnidad()
-      .then(({ unidad, avisos }) => { setUnidad(unidad); setAvisos(avisos); })
-      .catch((e) => setError(e.message))
+    getMisCuadrillasSupervisor()
+      .then((data) => {
+        const activas = (data ?? []).filter((c) => c.estado === 'activa');
+        setCuadrillas(activas);
+        setSinProyecto(false);
+        setCuadrillaId((prev) => {
+          if (prev && activas.some((c) => String(c.id_cuadrilla) === String(prev))) return prev;
+          return activas[0]?.id_cuadrilla ?? null;
+        });
+        if (activas.length === 0) setAvisos([]);
+      })
+      .catch((e) => {
+        // Si el supervisor no tiene proyecto asignado, el backend responde 403
+        setSinProyecto(true);
+        setCuadrillas([]);
+        setCuadrillaId(null);
+        setAvisos([]);
+        setError(null);
+      })
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => { cargarCuadrillas(); }, []);
+
+  // Carga los avisos de la cuadrilla seleccionada dentro del proyecto
+  useEffect(() => {
+    if (!cuadrillaId) return;
+    setLoadingAvisos(true);
+    setError(null);
+    getAvisosDeCuadrilla(cuadrillaId)
+      .then(({ avisos }) => setAvisos(avisos))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoadingAvisos(false));
+  }, [cuadrillaId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -275,10 +319,14 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
       setError('Título y contenido son obligatorios.');
       return;
     }
+    if (!cuadrillaId) {
+      setError('Selecciona una cuadrilla para publicar el aviso.');
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
-      const nuevo = await crearAviso({ ...form, id_cuadrilla: unidad?.id_cuadrilla });
+      const nuevo = await crearAviso({ ...form, id_cuadrilla: cuadrillaId });
       setAvisos((prev) => [nuevo, ...prev]);
       setForm(EMPTY_FORM);
       setShowForm(false);
@@ -327,9 +375,9 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
           <div className="vista-general-header">
             <div>
               <h1 className="vista-general-title">Canales de Avisos</h1>
-              <p className="vista-general-subtitle">Gestiona las comunicaciones de tu cuadrilla</p>
+              <p className="vista-general-subtitle">Gestiona las comunicaciones de las cuadrillas de tu proyecto</p>
             </div>
-            {unidad && (
+            {cuadrillaId && (
               <button className="btn-nuevo-trabajador" onClick={() => setShowForm(true)}>
                 <Plus size={18} /> Nuevo aviso
               </button>
@@ -338,16 +386,19 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
 
           {error && <div className="tw-error-banner"><AlertCircle size={16} /> {error}</div>}
 
-          {unidad && (
+          {cuadrillas.length > 0 && (
             <BarraFiltros
               filtros={filtros}
               setFiltros={setFiltros}
               filtrosActivos={filtrosActivos}
               onFiltrar={() => setFiltrosActivos((p) => !p)}
+              cuadrillas={cuadrillas}
+              cuadrillaId={cuadrillaId}
+              onCuadrillaChange={(v) => setCuadrillaId(v)}
             />
           )}
 
-          {unidad && !loading && (
+          {cuadrillaId && !loadingAvisos && (
             <div className="avisos-count">
               {avisosFiltrados.length} aviso{avisosFiltrados.length !== 1 ? 's' : ''}
               {hayFiltrosActivos && filtros.prioridad !== 'todas' && ` · ${PRIORIDAD_OPCIONES.find(o => o.value === filtros.prioridad)?.label}`}
@@ -356,11 +407,17 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
           )}
 
           {loading ? (
-            <div className="tw-loading"><div className="tw-spinner" /> Cargando avisos...</div>
-          ) : !unidad ? (
+            <div className="tw-loading"><div className="tw-spinner" /> Cargando cuadrillas...</div>
+          ) : sinProyecto ? (
             <div className="tw-empty" style={{ padding: '60px 20px' }}>
-              <Tag size={40} /><p>No tienes una cuadrilla asignada. Contacta al Administrador.</p>
+              <Tag size={40} /><p>No tienes un proyecto asignado como supervisor. Contacta al Administrador.</p>
             </div>
+          ) : cuadrillas.length === 0 ? (
+            <div className="tw-empty" style={{ padding: '60px 20px' }}>
+              <Tag size={40} /><p>Tu proyecto no tiene cuadrillas activas todavía.</p>
+            </div>
+          ) : loadingAvisos ? (
+            <div className="tw-loading"><div className="tw-spinner" /> Cargando avisos...</div>
           ) : avisosFiltrados.length === 0 ? (
             <div className="tw-empty" style={{ padding: '60px 20px' }}>
               <Bell size={40} /><p>{hayFiltrosActivos ? 'No hay avisos que coincidan con los filtros.' : 'No hay avisos publicados aún. ¡Crea el primero!'}</p>
@@ -394,7 +451,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
                     {aviso.contenido}
                   </p>
                   <div style={{ marginTop: 12 }}>
-                    <span className="tw-etiqueta-badge">{aviso.cuadrilla?.nombre_cuadrilla ?? unidad.nombre_cuadrilla}</span>
+                    <span className="tw-etiqueta-badge">{aviso.cuadrilla?.nombre_cuadrilla ?? cuadrillaActual?.nombre_cuadrilla}</span>
                   </div>
                 </article>
               ))}
@@ -407,7 +464,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
         <ModalNuevoAviso
           form={form}
           setForm={setForm}
-          unidad={unidad}
+          unidad={cuadrillaActual}
           saving={saving}
           onClose={() => { setShowForm(false); setForm(EMPTY_FORM); }}
           onSubmit={handleSubmit}

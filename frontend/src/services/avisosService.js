@@ -22,6 +22,24 @@ export const getAvisosMiUnidad = async () => {
   return { unidad: res.unidad ?? null, avisos: res.data ?? [] };
 };
 
+// Solo Supervisor: avisos de una cuadrilla puntual del proyecto que supervisa
+export const getAvisosDeCuadrilla = async (id_cuadrilla, { page, limit } = {}) => {
+  const params = new URLSearchParams();
+  if (page)  params.set("page", page);
+  if (limit) params.set("limit", limit);
+  const qs = params.toString() ? `?${params.toString()}` : "";
+  const res = await apiFetch(`/api/avisos/cuadrilla/${id_cuadrilla}${qs}`);
+  return { avisos: res.data ?? [], meta: res.meta ?? {} };
+};
+
+// Solo Supervisor: proyecto(s) que supervisa junto a las cuadrillas de cada uno
+// (reutiliza el endpoint existente de cuadrillas, evitando depender de una
+// única cuadrilla fija asignada al supervisor)
+export const getMisCuadrillasSupervisor = async () => {
+  const res = await apiFetch("/api/cuadrilla/supervisor/misCuadrillasAndIntegrantes");
+  return res.data ?? [];
+};
+
 // Solo Admin: todos los avisos de todas las cuadrillas
 export const getTodosLosAvisos = async () => {
   const res = await apiFetch("/api/avisos/todas");
