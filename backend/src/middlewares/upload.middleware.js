@@ -10,7 +10,9 @@ const DIR = 'uploads/documentos';
 if (!fs.existsSync(DIR)) fs.mkdirSync(DIR, { recursive: true });
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, DIR),
+  destination: (req, file, cb) => {
+    cb(null, DIR);
+  },
   filename: (req, file, cb) => {
     // ausencia_3_1718234567890.pdf
     const nombre = `ausencia_${req.params.id}_${Date.now()}${path.extname(file.originalname)}`;

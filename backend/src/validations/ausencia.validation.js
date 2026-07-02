@@ -18,7 +18,7 @@ export const validarCrearAusencia = (req, res, next) => {
   next();
 };
 
-export const validarCrearAusenciaSupervisor = (req, res, next) => {
+export const validarCrearAusenciaSupervisor = (req, res, next) => { //CODIGO MUERTO: SUPERVISOR YA NO CREA AUSENCIAS, SOLO LAS REVISA. SE DEJA POR SI SE REQUIERE EN EL FUTURO
   const { fecha_inicio, fecha_termino, id_trabajador } = req.body;
 
   if (!fecha_inicio)
@@ -46,13 +46,13 @@ export const validarJustificarAusencia = (req, res, next) => {
 // El resvisor se toma de req.user en el controlador.
 
 export const validarRevisionAusencia = (req, res, next) => {
-  const { estado, comentario_revision } = req.body;
+  const { estado_aprobacion, comentario_revision } = req.body;
 
-  if (!estado) {
+  if (!estado_aprobacion) {
     return res.status(400).json({ error: "El estado es obligatorio" });
   }
 
-  if (estado !== "Aprobada" && estado !== "Rechazada") {
+  if (estado_aprobacion !== "Aprobado" && estado_aprobacion !== "Rechazado") {
     return res.status(400).json({ error: "Estado inválido" });
   }
 

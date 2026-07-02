@@ -36,7 +36,7 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
-const FILTROS = ['Todos', 'Pendiente', 'Por Justificar', 'Justificada', 'Injustificada'];
+const FILTROS = ['Todos', 'Pendiente', 'Por Justificar', 'Aprobado', 'Rechazado'];
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
@@ -137,8 +137,8 @@ function Ausencias({ usuario, onLogout }) {
   });
 
   const estadoBadgeClass = (estado) => {
-    if (estado === 'Justificada')   return 'badge-activo';
-    if (estado === 'Injustificada') return 'badge-inactivo';
+    if (estado === 'Aprobado')   return 'badge-activo';
+    if (estado === 'Rechazado') return 'badge-inactivo';
     if (estado === 'Por Justificar') return 'badge-por-justificar';
     return 'badge-licencia'; // Pendiente
   };
@@ -481,8 +481,8 @@ function Ausencias({ usuario, onLogout }) {
                 <div className="tw-field tw-field-full">
                   <label>Decisión *</label>
                   <select value={revisionEstado} onChange={(e) => setRevisionEstado(e.target.value)} required>
-                    <option value="Aprobado">✅ Aprobar justificación</option>
-                    <option value="Rechazado">❌ Rechazar (Injustificada)</option>
+                    <option value="Aprobado"> Aprobar </option>
+                    <option value="Rechazado"> Rechazar </option>
                   </select>
                 </div>
                 <div className="tw-field tw-field-full">

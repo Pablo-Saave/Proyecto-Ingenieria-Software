@@ -17,7 +17,7 @@ import { getMiCuadrilla } from '../services/cuadrillasService';
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 const EMPTY_FORM = { fecha_inicio: '', fecha_termino: '', motivo: '' };
-const FILTROS = ['Todas', 'Por Justificar', 'Pendiente', 'Justificada', 'Injustificada'];
+const FILTROS = ['Todas', 'Por Justificar', 'Pendiente', 'Aprobado', 'Rechazado'];
 
 function MisAusencias({ usuario, onLogout }) {
   const [ausencias, setAusencias]         = useState([]);
@@ -87,8 +87,8 @@ function MisAusencias({ usuario, onLogout }) {
   const filtered = filtro === 'Todas' ? ausencias : ausencias.filter((a) => a.estado === filtro);
 
   const estadoBadgeClass = (estado) => {
-    if (estado === 'Justificada')    return 'badge-activo';
-    if (estado === 'Injustificada')  return 'badge-inactivo';
+    if (estado === 'Aprobado')    return 'badge-activo';
+    if (estado === 'Rechazado')  return 'badge-inactivo';
     if (estado === 'Por Justificar') return 'badge-por-justificar';
     return 'badge-licencia'; // Pendiente
   };
@@ -120,15 +120,23 @@ function MisAusencias({ usuario, onLogout }) {
   };
 
   const subirPDF = async (idAusencia, archivo) => {
-    if (!archivo) return;
+    if (!archivo) return; // Si no hay archivo, no hay error
     const formDataPDF = new FormData();
     formDataPDF.append('archivo', archivo);
     const token = localStorage.getItem('token');
-    await fetch(`${API_BASE}/api/ausencias/${idAusencia}/documento`, {
+    
+    const res = await fetch(`${API_BASE}/api/ausencias/${idAusencia}/documento`, {
       method: 'POST',
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: formDataPDF,
-    }).catch(() => {}); // si el endpoint no existe, falla silenciosamente
+    });
+    
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Error al subir PDF: ${res.status}`);
+    }
+    
+    return res.json();
   };
 
   const handleSubmit = async (e) => {
@@ -148,7 +156,11 @@ function MisAusencias({ usuario, onLogout }) {
         id_cuadrilla: miCuadrilla.id_cuadrilla,
       });
       const idAusencia = resAusencia?.id_ausencia ?? resAusencia?.data?.id_ausencia;
-      await subirPDF(idAusencia, archivoPDF);
+      
+      // Subir PDF si existe (y lanzar error si falla)
+      if (archivoPDF) {
+        await subirPDF(idAusencia, archivoPDF);
+      }
 
       setShowModal(false);
       setFormData(EMPTY_FORM);
@@ -185,7 +197,11 @@ function MisAusencias({ usuario, onLogout }) {
     setSavingJustificar(true);
     try {
       await justificarAusenciaService(justificarId, { motivo: justificarMotivo });
-      await subirPDF(justificarId, archivoJustificar);
+      
+      // Subir PDF si existe (y lanzar error si falla)
+      if (archivoJustificar) {
+        await subirPDF(justificarId, archivoJustificar);
+      }
 
       setShowJustificar(false);
       fetchAusencias();
@@ -249,7 +265,7 @@ function MisAusencias({ usuario, onLogout }) {
                   Tienes {ausenciasPorJustificar.length} ausencia{ausenciasPorJustificar.length !== 1 ? 's' : ''} por justificar
                 </p>
                 <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#c2410c' }}>
-                  Tu supervisor registró una inasistencia. Tienes 24 horas para justificarla.
+                  Tu supervisor registró una inasistencia.
                 </p>
               </div>
               <button
@@ -295,7 +311,7 @@ function MisAusencias({ usuario, onLogout }) {
                         <td>{formatFecha(a.fecha_inicio)}</td>
                         <td className="aus-motivo">
                           {esPorJustificar
-                            ? <span style={{ color: '#ea580c', fontWeight: 600 }}>Pendiente de tu justificación</span>
+                            ? <span style={{ color: '#e9580a', fontWeight: 600 }}>Pendiente de tu justificación</span>
                             : (a.justificacion?.motivo ?? '—')}
                         </td>
                         <td><span className={`tw-badge ${estadoBadgeClass(a.estado)}`}>{a.estado ?? '—'}</span></td>

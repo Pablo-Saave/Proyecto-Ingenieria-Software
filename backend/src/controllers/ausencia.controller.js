@@ -207,12 +207,17 @@ export const obtenerAusencias = async (req, res) => {
 export const eliminarAusencia = async (req, res) => {
   try {
     const ausencia = await repo.findOne({ where: { id_ausencia: Number(req.params.id) } });
-
+ 
     if (!ausencia) return res.status(404).json({ error: 'Ausencia no encontrada' });
-    if (ausencia.estado !== 'Pendiente' && ausencia.estado !== 'Por Justificar') {
+ 
+    const esAdministrador = req.user?.tipo_usuario === 'administrador';
+ 
+    // El administrador puede eliminar cualquier ausencia, sin importar su estado.
+    // Cualquier otro rol solo puede eliminar ausencias que aún no fueron procesadas.
+    if (!esAdministrador && ausencia.estado !== 'Pendiente' && ausencia.estado !== 'Por Justificar') {
       return res.status(400).json({ error: 'No se puede eliminar una ausencia ya procesada o cerrada' });
     }
-
+ 
     await repo.remove(ausencia);
     res.json({ message: 'Ausencia eliminada correctamente' });
   } catch (error) {
@@ -302,7 +307,7 @@ export const revisarAusencia = async (req, res) => {
       }
 
       // Sincronizamos el estado en la ausencia madre
-      ausencia.estado = estado_aprobacion === "Aprobado" ? "Justificada" : "Injustificada";
+      ausencia.estado = estado_aprobacion === "Aprobado" ? "Aprobado" : "Rechazado";
       await transactionalEntityManager.save(AusenciaSchema, ausencia);
     });
 

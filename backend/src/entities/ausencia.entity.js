@@ -26,7 +26,7 @@ export const AusenciaSchema = new EntitySchema({
     },
     // El "estado" general de la ausencia depende de si se justifica o no
     estado: {
-      type: "varchar", // ej: "Pendiente", "Justificada", "Injustificada"
+      type: "varchar", // ej: "Pendiente", "Aprobada", "Por justificar", "Rechazada"
     },
   },
 
