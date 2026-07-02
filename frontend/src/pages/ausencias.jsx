@@ -36,7 +36,7 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
-const FILTROS = ['Todos', 'Pendiente', 'Por Justificar', 'Aprobado', 'Rechazado'];
+const FILTROS = ['Todos', 'Pendiente', 'Por Justificar', 'Justificada', 'Aprobado', 'Rechazado'];
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
@@ -140,6 +140,7 @@ function Ausencias({ usuario, onLogout }) {
     if (estado === 'Aprobado')   return 'badge-activo';
     if (estado === 'Rechazado') return 'badge-inactivo';
     if (estado === 'Por Justificar') return 'badge-por-justificar';
+    if (estado === 'Justificada') return 'badge-justificada';
     return 'badge-licencia'; // Pendiente
   };
 
@@ -301,9 +302,9 @@ function Ausencias({ usuario, onLogout }) {
                 <tbody>
                   {filtered.map((a) => {
                     const idT = a.trabajador?.id_trabajador ?? a.id_trabajador;
-                    const esPendiente     = a.estado === 'Pendiente';
+                    const esRevisable     = a.estado === 'Pendiente' || a.estado === 'Justificada';
                     const esPropia        = idT === usuario?.id_trabajador;
-                    const puedeRevisar    = esPendiente && !esPropia && usuario?.tipo_usuario === 'supervisor';
+                    const puedeRevisar    = esRevisable && !esPropia && usuario?.tipo_usuario === 'supervisor';                   
                     return (
                       <tr key={a.id_ausencia}>
                         <td>
@@ -339,7 +340,7 @@ function Ausencias({ usuario, onLogout }) {
                                   <CheckCircle size={14} />
                                 </button>
                               )}
-                              {esPendiente && esPropia && (
+                              {esRevisable && esPropia && (
                                 <span style={{ fontSize: '11px', color: '#9ca3af', fontStyle: 'italic' }}>
                                   Tu solicitud
                                 </span>
