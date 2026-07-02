@@ -213,8 +213,26 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
             {TIPOS_CONTRATO.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
 
-          <label>Estado *</label>
-          <select name="estado_contrato" value={form.estado_contrato} onChange={handleChange}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Estado *
+            {!contratoEdit && (
+              <span style={{
+                fontSize: '11px', color: '#6b7280',
+                background: '#f3f4f6', borderRadius: '4px',
+                padding: '2px 6px', fontWeight: 500,
+              }}>
+                Los contratos nuevos se crean como Activo
+              </span>
+            )}
+          </label>
+          <select
+            name="estado_contrato"
+            value={form.estado_contrato}
+            onChange={handleChange}
+            disabled={!contratoEdit}
+            title={!contratoEdit ? 'Los contratos nuevos siempre inician en estado Activo' : ''}
+            style={!contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+          >
             {ESTADOS_CONTRATO.map((e) => <option key={e} value={e}>{e}</option>)}
           </select>
 

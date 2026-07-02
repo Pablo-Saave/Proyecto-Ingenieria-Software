@@ -161,7 +161,8 @@
   background: #fff;
   border-radius: 0.5rem;
   border: 1px solid #e2e8f0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 .contrato-proyecto-page .contratos-table { width: 100%; border-collapse: collapse; }
 .contrato-proyecto-page .contratos-table thead { background: #f9fafb; border-bottom: 2px solid #e5e7eb; }
@@ -192,8 +193,7 @@
 }
 .contrato-proyecto-page .estado-activo     { background: #dcfce7; color: #166534; }
 .contrato-proyecto-page .estado-por-vencer { background: #fef3c7; color: #92400e; }
-.contrato-proyecto-page .estado-vencido    { background: #fee2e2; color: #991b1b; }
-.contrato-proyecto-page .estado-terminado  { background: #f3f4f6; color: #6b7280; }
+.contrato-proyecto-page .estado-inactivo   { background: #fee2e2; color: #991b1b; }
 
 .contrato-proyecto-page .dias-text { font-size: 0.75rem; font-weight: 600; color: #6b7280; white-space: nowrap; }
 
@@ -387,9 +387,9 @@
 /* Menú contextual */
 .contrato-proyecto-page .context-menu {
   position: absolute;
-  right: 0;
-  left: auto;
-  top: 100%;
+  left: 0px;
+  top: 55%;
+  transform: translateY(-50%);
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 0.3rem;
@@ -401,11 +401,11 @@
 .contrato-proyecto-page .context-menu button {
   display: block;
   width: 100%;
-  padding: 0.5rem 0.7rem;
+  padding: 0.35rem 0.7rem;
   text-align: left;
   background: none;
   border: none;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: #374264;
   cursor: pointer;
   transition: background 0.15s;

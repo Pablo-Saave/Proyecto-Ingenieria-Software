@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/contratoProyectos.css';
-import { Eye, MoreVertical, Plus, X, AlertTriangle, FilePlus } from 'lucide-react';
+import { Eye, MoreVertical, Plus, X, AlertTriangle, FilePlus, Download } from 'lucide-react';
+import { generarPDFContratoProyecto } from '../utils/generarPDFContratoProyecto';
 import {
   getContratosProyecto,
   getContratoProyectoDetalle,
@@ -16,8 +17,14 @@ import {
   validarFormContratoProyecto,
   validarFormAnexo,
   hoyLocal,
-  ESTADOS_CONTRATO_PROYECTO,
 } from '../services/contratoProyectoService';
+
+// Estados válidos para Contrato de Proyecto (alineados con Contratos normales)
+const ESTADOS_CONTRATO_PROYECTO = [
+  { value: 'activo',     label: 'Activo' },
+  { value: 'por_vencer', label: 'Por vencer' },
+  { value: 'inactivo',   label: 'Inactivo' },
+];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -41,8 +48,7 @@ function getEstadoLabel(value) {
 function getEstadoClass(estado) {
   if (estado === 'activo')     return 'estado-activo';
   if (estado === 'por_vencer') return 'estado-por-vencer';
-  if (estado === 'vencido')    return 'estado-vencido';
-  if (estado === 'terminado')  return 'estado-terminado';
+  if (estado === 'inactivo')   return 'estado-inactivo';
   return '';
 }
 
@@ -196,8 +202,26 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
             placeholder="Alcance y condiciones generales del contrato..."
           />
 
-          <label>Estado *</label>
-          <select name="estado_contrato" value={form.estado_contrato} onChange={handleChange}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Estado *
+            {!contratoEdit && (
+              <span style={{
+                fontSize: '11px', color: '#6b7280',
+                background: '#f3f4f6', borderRadius: '4px',
+                padding: '2px 6px', fontWeight: 500,
+              }}>
+                Los contratos nuevos se crean como Activo
+              </span>
+            )}
+          </label>
+          <select
+            name="estado_contrato"
+            value={form.estado_contrato}
+            onChange={handleChange}
+            disabled={!contratoEdit}
+            title={!contratoEdit ? 'Los contratos nuevos siempre inician en estado Activo' : ''}
+            style={!contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+          >
             {ESTADOS_CONTRATO_PROYECTO.map((e) => (
               <option key={e.value} value={e.value}>{e.label}</option>
             ))}
@@ -454,6 +478,13 @@ function DetalleModal({ contratoResumen, onClose, onCambio }) {
 
         <div className="modal-footer">
           <button className="btn-cancelar" onClick={onClose}>Cerrar</button>
+          {contrato && (
+            <button className="btn-guardar"
+              onClick={() => generarPDFContratoProyecto({ ...contrato, estadoLabel: getEstadoLabel(contrato.estado_contrato) })}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Download size={15} /> Descargar PDF
+            </button>
+          )}
         </div>
       </div>
 
