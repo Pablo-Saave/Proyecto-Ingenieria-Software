@@ -1,12 +1,21 @@
+import http from "http";
 import { app, initializeApp } from "./src/app.js";
 import { PORT } from "./src/config/configEnv.js";
+import { initSocket } from "./src/sockets/socket.js";
 
 async function startServer(port = Number(PORT)) {
   // Inicializar la aplicación y conectar a la base de datos
   await initializeApp();
 
-  const server = app.listen(port, () => {
+  // Socket.io necesita el servidor http "crudo", no la app de Express directamente,
+  // por eso envolvemos app en http.createServer() en vez de usar app.listen() como antes.
+  const httpServer = http.createServer(app);
+
+  initSocket(httpServer);
+
+  const server = httpServer.listen(port, () => {
     console.log(`\nServidor ejecutándose en http://localhost:${port}`);
+    console.log(`   Socket.io activo`);
     console.log(`   Presiona Ctrl+C para detener el servidor\n`);
   });
 

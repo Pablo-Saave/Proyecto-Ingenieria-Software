@@ -135,7 +135,7 @@ export function generarPDFContratoProyecto(contrato) {
     doc.setFontSize(10);
     doc.setTextColor(...GRIS_OSC);
     const lineas = doc.splitTextToSize(contrato.descripcion, ancho - 28);
-    doc.text(lineas, 14, y);
+    doc.text(lineas, 18, y);
     y += lineas.length * 6 + 4;
   }
 

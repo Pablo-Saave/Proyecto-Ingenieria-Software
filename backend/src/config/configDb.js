@@ -16,6 +16,7 @@ import { InventarioSchema } from "../entities/inventario.entity.js";
 import { JustificacionAusenciaSchema } from "../entities/justificacion_ausencia.entity.js";
 import { MaterialLimpiezaSchema } from "../entities/material_limpieza.entity.js";
 import { AnexoContratoProyectoSchema } from "../entities/anexo_contrato_proyecto.entity.js";
+import { NotificacionSchema } from "../entities/notificacion.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -39,7 +40,8 @@ export const AppDataSource = new DataSource({
     ProyectoSchema,
     ClienteSchema,
     AvisoSchema,
-    AnexoContratoProyectoSchema
+    AnexoContratoProyectoSchema,
+    NotificacionSchema
   ],
   synchronize: true,
   dropSchema: false,

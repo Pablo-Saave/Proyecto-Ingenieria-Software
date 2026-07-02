@@ -1,5 +1,6 @@
 // services/aviso.service.js
 import { AppDataSource } from "../config/configDb.js";
+import { crearNotificacionMasiva } from "./notificacion.service.js";
 
 const avisoRepository      = AppDataSource.getRepository("Aviso");
 const trabajadorRepository = AppDataSource.getRepository("Trabajador");
@@ -105,6 +106,22 @@ export const crearAviso = async ({ id_cuadrilla, titulo, contenido, prioridad, i
   });
 
   await avisoRepository.save(nuevoAviso);
+
+  // Notificar en tiempo real a todos los trabajadores de la cuadrilla (excepto quien publicó, no hace falta autonotificarse)
+  const miembros = await asignadoRepository.find({ where: { id_cuadrilla: Number(id_cuadrilla) } });
+  const destinatarios = miembros
+    .map((m) => m.id_trabajador)
+    .filter((id) => id !== id_solicitante);
+
+  if (destinatarios.length > 0) {
+    await crearNotificacionMasiva(destinatarios, {
+      tipo: "aviso",
+      titulo: "Nuevo aviso publicado",
+      mensaje: `${autor.nombres} ${autor.apellidos} publicó: "${titulo}"`,
+      referencia_tipo: "aviso",
+      referencia_id: nuevoAviso.id_aviso,
+    });
+  }
 
   return { ...nuevoAviso, cuadrilla };
 };

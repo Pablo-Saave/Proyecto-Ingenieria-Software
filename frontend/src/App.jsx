@@ -22,6 +22,7 @@ import CanalesAvisosTrabajador from './pages/CanalesAvisosTrabajador';
 import CambiarPassword from './pages/CambiarPassword';
 
 import { getUsuarioLocal, logoutClean } from './services/authService';
+import { NotificacionesProvider } from './context/NotificacionesContext';
 import './styles/globals.css';
 
 function ProtectedRoute({ isLoggedIn, children }) {
@@ -59,6 +60,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <NotificacionesProvider usuario={usuario}>
       <Routes>
         {/* Públicas */}
         <Route path="/"      element={isLoggedIn ? <HomeRol usuario={usuario} /> : <Landing onLoginSuccess={handleLoginSuccess} />} />
@@ -89,6 +91,7 @@ function App() {
         <Route path="/app/mis-contratos"   element={<ProtectedRoute isLoggedIn={isLoggedIn}><ContratosTrabajador {...pageProps} /></ProtectedRoute>} />
         <Route path="/app/avisos"          element={<ProtectedRoute isLoggedIn={isLoggedIn}><CanalesAvisosTrabajador {...pageProps} /></ProtectedRoute>} />
       </Routes>
+      </NotificacionesProvider>
     </BrowserRouter>
   );
 }

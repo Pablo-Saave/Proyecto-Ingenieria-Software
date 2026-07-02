@@ -625,12 +625,12 @@
 
 .contrato-card-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .contrato-card-info {
   min-width: 0;
-  padding: 10px 16px;
+  padding: 10px 12px;
   border-right: 1px solid #edf1f6;
 }
 
