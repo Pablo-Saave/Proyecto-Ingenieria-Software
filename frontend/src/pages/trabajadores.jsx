@@ -337,9 +337,16 @@ function Trabajadores({ usuario, onLogout }) {
                 </div>
 
                 <div className="tw-field" style={{ marginBottom: 0 }}>
-                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>Estado Laboral</label>
+                  <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6, textTransform: 'uppercase', color: '#6b7280' }}>
+                    Estado Laboral
+                  </label>
                   <select name="estado_laboral" value={formData.estado_laboral} onChange={handleChange}
-                    style={{ height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box' }}>
+                    disabled={modalMode === 'crear'}
+                    title={modalMode === 'crear' ? 'Los trabajadores nuevos siempre inician en estado Activo' : ''}
+                    style={{
+                      height: 36, fontSize: 13, padding: '0 8px', width: '100%', boxSizing: 'border-box',
+                      ...(modalMode === 'crear' ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}),
+                    }}>
                     <option value="Activo">Activo</option>
                     <option value="Inactivo">Inactivo</option>
                     <option value="Licencia">Con Licencia</option>
