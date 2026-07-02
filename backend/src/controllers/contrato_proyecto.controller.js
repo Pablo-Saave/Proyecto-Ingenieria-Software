@@ -7,7 +7,7 @@ import { ProyectoSchema } from "../entities/proyecto.entity.js";
 const contratoProyectoRepository = AppDataSource.getRepository(ContratoProyectoSchema);
 const proyectoRepository = AppDataSource.getRepository(ProyectoSchema);
 
-const ESTADOS_VALIDOS = ["activo", "por_vencer", "vencido", "terminado"];
+const ESTADOS_VALIDOS = ["activo", "por_vencer", "inactivo"];
 
 function esAdministrador(req) {
   return req.user?.tipo_usuario === "administrador";
