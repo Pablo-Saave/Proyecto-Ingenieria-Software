@@ -96,12 +96,6 @@ function MisAusencias({ usuario, onLogout }) {
   const formatFecha = (f) =>
     f ? new Date(f).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
-  const diasAusencia = (inicio, fin) => {
-    if (!inicio || !fin) return '—';
-    const diff = (new Date(fin) - new Date(inicio)) / (1000 * 60 * 60 * 24);
-    return diff >= 0 ? `${diff + 1} día${diff !== 0 ? 's' : ''}` : '—';
-  };
-
   const ausenciasPorJustificar = ausencias.filter((a) => a.estado === 'Por Justificar');
 
   // La columna Acciones solo se muestra si alguna fila visible tiene una acción posible
@@ -288,7 +282,7 @@ function MisAusencias({ usuario, onLogout }) {
               <table className="tw-table">
                 <thead>
                   <tr>
-                    <th>Fecha Inicio</th><th>Fecha Término</th><th>Duración</th>
+                    <th>Fecha</th>
                     <th>Motivo</th><th>Estado</th><th>Comentario</th><th>Doc.</th>
                     {hayAccionesVisibles && <th>Acciones</th>}
                   </tr>
@@ -299,8 +293,6 @@ function MisAusencias({ usuario, onLogout }) {
                     return (
                       <tr key={a.id_ausencia}>
                         <td>{formatFecha(a.fecha_inicio)}</td>
-                        <td>{formatFecha(a.fecha_termino)}</td>
-                        <td className="aus-duracion">{diasAusencia(a.fecha_inicio, a.fecha_termino)}</td>
                         <td className="aus-motivo">
                           {esPorJustificar
                             ? <span style={{ color: '#ea580c', fontWeight: 600 }}>Pendiente de tu justificación</span>

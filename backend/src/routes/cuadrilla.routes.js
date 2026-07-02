@@ -47,10 +47,11 @@ router.use(authMiddleware); // Esto valida el tipo de usuario //
 // Trabajador & Supervisor
 /* LISTO - VALIDACION ESTADO PROYECTO Y CUADRILLA */ router.get("/misCuadrillas/:id_proyecto" , getMyCuadrillasAndWorkersFromIdProyecto); // Token // - Dado un id_proyecto, ver cuadrillas a las que pertenece un id_trabajador. (dar id_proyecto desde url y id_trabajador mediante token, recibir lista con cuadrillas a las que pertenece)
 /* LISTO - VALIDACION ESTADO PROYECTO Y CUADRILLA */ router.get("/verIntegrantes/:id_cuadrilla", getIntegrantesOfCuadrilla); // - Retorna lista de integrantes (id_trabajador, nombres, apellidos, cargo_operativo, tipo_jornada, es_bodeguero, fecha_asignacion) de una cuadrilla especifica (Validacion 1: El que realiza la peticion debe ser administrador o pertenecer a la cuadrilla) (Validacion 2: La cuadrilla debe existir)
+router.get("/miCuadrilla", authMiddleware, getMiCuadrilla);
 /* LISTO - VALIDACION ESTADO PROYECTO Y CUADRILLA */ router.get("/:id_cuadrilla", getCuadrillaData); // Retorna la informacion de una cuadrilla (Recibe id_cuadrilla) (Validacion 1: El que realiza la peticion debe tener tipo_usuario = administrador o pertenecer a la cuadrilla que esta solicitando informacion) (Validacion 2: La cuadrilla id_cuadrilla debe existir)
 
 
 /* Para Kevin, ajustar luego */router.get("/supervisor/misCuadrillasAndIntegrantes", authMiddleware, getMyCuadrillasAndIntegrantesFromToken); // Retorna una lista de cuadrillas(todos sus atributos), y cada cuadrilla con una lista de sus integrantes, de cada integrante (id_trabajador, rut, nombres, apellidos, telefono, correo, direccion, fecha_nacimiento, fecha_ingreso, estado_laboral, cargo_operativo, tipo_jornada, fecha_asignacion). (Validacion 1: El id_trabajador entregado mediante el token, debe coincidir con el atributo id_supervisor del Proyecto)
-router.get("/miCuadrilla", authMiddleware, getMiCuadrilla);
+
 
 export default router;

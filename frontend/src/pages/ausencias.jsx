@@ -14,9 +14,8 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
-// Nota: esta llamada no tiene aún un home en cuadrillasService.js / ausenciasService.js.
-// Se recomienda moverla a cuadrillasService.js como `getMyCuadrillasAndIntegrantes()`
-// para que quede centralizada junto al resto de los endpoints de cuadrillas.
+// Nota: esta llamada no tiene aún un home en cuadrillasService.js.
+// Se recomienda moverla ahí como `getMyCuadrillasAndIntegrantes()`.
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
   const res = await fetch(`${API_BASE}${path}`, {
@@ -96,8 +95,6 @@ function Ausencias({ usuario, onLogout }) {
   };
 
   // ── Carga de cuadrillas del supervisor (para el modal de inasistencia) ───
-  // Fuente de verdad: Proyecto.id_supervisor (mismo criterio usado en Asignaciones),
-  // no la tabla Asignado.
   const fetchMisCuadrillas = async () => {
     setMisCuadrillasLoading(true);
     setMisCuadrillasError(null);
@@ -148,12 +145,6 @@ function Ausencias({ usuario, onLogout }) {
 
   const formatFecha = (f) =>
     f ? new Date(f).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-
-  const diasAusencia = (inicio, fin) => {
-    if (!inicio || !fin) return '—';
-    const diff = (new Date(fin) - new Date(inicio)) / (1000 * 60 * 60 * 24);
-    return diff >= 0 ? `${diff + 1} día${diff !== 0 ? 's' : ''}` : '—';
-  };
 
   // ── Registrar inasistencia ───────────────────────────────────────────────
   const openInasistencia = () => {
@@ -300,10 +291,8 @@ function Ausencias({ usuario, onLogout }) {
                   <tr>
                     <th>Trabajador</th>
                     <th>Cuadrilla</th>
-                    <th>Fecha Inicio</th>
-                    <th>Fecha Término</th>
-                    <th>Duración</th>
-                    <th>Justificación</th>
+                    <th>Fecha</th>
+                    <th>Motivo</th>
                     <th>Doc.</th>
                     <th>Estado</th>
                     {mostrarColumnaAcciones && <th>Acciones</th>}
@@ -329,8 +318,6 @@ function Ausencias({ usuario, onLogout }) {
                           {a.cuadrilla?.nombre_cuadrilla ?? `ID ${a.id_cuadrilla}`}
                         </td>
                         <td>{formatFecha(a.fecha_inicio)}</td>
-                        <td>{formatFecha(a.fecha_termino)}</td>
-                        <td className="aus-duracion">{diasAusencia(a.fecha_inicio, a.fecha_termino)}</td>
                         <td className="aus-motivo">
                           {a.justificacion?.motivo
                             ? a.justificacion.motivo

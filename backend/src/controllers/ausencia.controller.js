@@ -252,6 +252,10 @@ export const revisarAusencia = async (req, res) => {
     const { estado_aprobacion, comentario_revision } = req.body; // 'Aprobado' o 'Rechazado'
     const id_ausencia = Number(req.params.id);
 
+    if (isNaN(id_ausencia)) {
+      return res.status(400).json({ error: "id de ausencia inválido" });
+    }
+
     // 1. Traemos la ausencia junto con su cuadrilla, su proyecto y su justificación actual
     const ausencia = await repo.findOne({
       where: { id_ausencia },
