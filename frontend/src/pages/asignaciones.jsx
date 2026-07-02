@@ -444,13 +444,6 @@ function Asignaciones({ usuario, onLogout }) {
                               <td className="col-acciones" style={{ position: 'relative' }}>
                                 <button
                                   className="btn-accion"
-                                  title="Agregar trabajador"
-                                  onClick={(e) => { e.stopPropagation(); abrirModalOp(c.id_cuadrilla); }}
-                                >
-                                  <UserPlus size={16} />
-                                </button>
-                                <button
-                                  className="btn-accion"
                                   title="Más opciones"
                                   onClick={(e) => { e.stopPropagation(); setMenuAbierto(menuAbierto === c.id_cuadrilla ? null : c.id_cuadrilla); }}
                                 >
@@ -458,9 +451,6 @@ function Asignaciones({ usuario, onLogout }) {
                                 </button>
                                 {menuAbierto === c.id_cuadrilla && (
                                   <div className="context-menu" onMouseLeave={() => setMenuAbierto(null)}>
-                                    <button onClick={(e) => { e.stopPropagation(); abrirModalOp(c.id_cuadrilla); setMenuAbierto(null); }}>
-                                      Agregar trabajador
-                                    </button>
                                     <button
                                       className="ctx-danger"
                                       onClick={(e) => {
