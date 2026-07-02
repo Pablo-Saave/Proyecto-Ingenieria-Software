@@ -645,6 +645,45 @@ export const getAllCuadrillasAndWorkersByIdProyecto = async (req, res) => {
 
 
 
+/***
+ * Obtiene la cuadrilla activa a la que pertenece el trabajador autenticado.
+ * Uso: el propio trabajador necesita su id_cuadrilla para crear una ausencia propia.
+ * Validaciones:
+ * - El solicitante debe estar asignado a al menos una cuadrilla (tabla Asignado)
+ */
+export const getMiCuadrilla = async (req, res) => {
+  try {
+    const { id_trabajador } = req.user;
+
+    const asignado = await asignadoRepository.findOne({
+      where: { id_trabajador },
+      relations: ["cuadrilla"],
+      order: { fecha_asignacion: "DESC" },
+    });
+
+    if (!asignado) {
+      return res.status(404).json({
+        message: "No estás asignado a ninguna cuadrilla actualmente",
+      });
+    }
+
+    return res.status(200).json({
+      data: {
+        id_cuadrilla: asignado.cuadrilla.id_cuadrilla,
+        nombre_cuadrilla: asignado.cuadrilla.nombre_cuadrilla,
+      },
+    });
+  } catch (error) {
+    console.error("Error en getMiCuadrilla:", error);
+    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+  }
+};
+
+
+
+
+
+
 
 
 

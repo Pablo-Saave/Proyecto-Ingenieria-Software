@@ -9,6 +9,7 @@ import {
     eliminarSupervisorCuadrilla,
     agregarTrabajadorCuadrilla,
     eliminarTrabajadorCuadrilla,
+    getMiCuadrilla,
     getAllCuadrillasAndWorkersByIdProyecto,
     getMyCuadrillasAndWorkersFromIdProyecto,
     getIntegrantesOfCuadrilla,
@@ -50,6 +51,6 @@ router.use(authMiddleware); // Esto valida el tipo de usuario //
 
 
 /* Para Kevin, ajustar luego */router.get("/supervisor/misCuadrillasAndIntegrantes", authMiddleware, getMyCuadrillasAndIntegrantesFromToken); // Retorna una lista de cuadrillas(todos sus atributos), y cada cuadrilla con una lista de sus integrantes, de cada integrante (id_trabajador, rut, nombres, apellidos, telefono, correo, direccion, fecha_nacimiento, fecha_ingreso, estado_laboral, cargo_operativo, tipo_jornada, fecha_asignacion). (Validacion 1: El id_trabajador entregado mediante el token, debe coincidir con el atributo id_supervisor del Proyecto)
-
+router.get("/miCuadrilla", authMiddleware, getMiCuadrilla);
 
 export default router;

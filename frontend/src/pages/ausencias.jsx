@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search, UserX, CalendarOff, AlertCircle, ClipboardList,
-  CheckCircle, Trash2, X, ChevronDown,
+  CheckCircle, Trash2, X,
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import {
+  getAusencias,
+  crearAusenciaPorSupervisor,
+  revisarAusencia as revisarAusenciaService,
+  eliminarAusencia as eliminarAusenciaService,
+} from '../services/ausenciasService';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
+// Nota: esta llamada no tiene aún un home en cuadrillasService.js / ausenciasService.js.
+// Se recomienda moverla a cuadrillasService.js como `getMyCuadrillasAndIntegrantes()`
+// para que quede centralizada junto al resto de los endpoints de cuadrillas.
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
   const res = await fetch(`${API_BASE}${path}`, {
@@ -30,12 +39,13 @@ async function apiFetch(path, options = {}) {
 
 const FILTROS = ['Todos', 'Pendiente', 'Por Justificar', 'Justificada', 'Injustificada'];
 
-const EMPTY_INASISTENCIA = {
+const todayStr = () => new Date().toISOString().split('T')[0];
+
+const emptyInasistencia = () => ({
   id_trabajador: '',
   id_cuadrilla: '',
-  fecha_inicio: '',
-  fecha_termino: '',
-};
+  fecha: todayStr(),
+});
 
 function Ausencias({ usuario, onLogout }) {
   const [ausencias, setAusencias]     = useState([]);
@@ -45,12 +55,14 @@ function Ausencias({ usuario, onLogout }) {
   const [filterEstado, setFilterEstado] = useState('Todos');
 
   // Cuadrillas del supervisor (para el modal de inasistencia)
-  const [misCuadrillas, setMisCuadrillas] = useState([]);
-  const [cuadrillaSeleccionada, setCuadrillaSeleccionada] = useState(null);
+  const [misCuadrillas, setMisCuadrillas]           = useState([]);
+  const [misCuadrillasLoading, setMisCuadrillasLoading] = useState(false);
+  const [misCuadrillasError, setMisCuadrillasError]     = useState(null);
+  const [cuadrillaSeleccionada, setCuadrillaSeleccionada] = useState('');
 
   // Modal registrar inasistencia
   const [showModalInasist, setShowModalInasist]   = useState(false);
-  const [inasistForm, setInasistForm]             = useState(EMPTY_INASISTENCIA);
+  const [inasistForm, setInasistForm]             = useState(emptyInasistencia());
   const [inasistError, setInasistError]           = useState(null);
   const [savingInasist, setSavingInasist]         = useState(false);
 
@@ -74,7 +86,7 @@ function Ausencias({ usuario, onLogout }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch('/api/ausencias');
+      const res = await getAusencias();
       setAusencias(Array.isArray(res) ? res : res.data ?? []);
     } catch (e) {
       setError(e.message);
@@ -84,19 +96,25 @@ function Ausencias({ usuario, onLogout }) {
   };
 
   // ── Carga de cuadrillas del supervisor (para el modal de inasistencia) ───
+  // Fuente de verdad: Proyecto.id_supervisor (mismo criterio usado en Asignaciones),
+  // no la tabla Asignado.
   const fetchMisCuadrillas = async () => {
+    setMisCuadrillasLoading(true);
+    setMisCuadrillasError(null);
     try {
       const res = await apiFetch('/api/cuadrilla/supervisor/misCuadrillasAndIntegrantes');
       setMisCuadrillas(Array.isArray(res) ? res : res.data ?? []);
     } catch (e) {
-      // Si falla silenciosamente, el modal igual puede funcionar con input manual
       setMisCuadrillas([]);
+      setMisCuadrillasError(e.message || 'No se pudieron cargar tus cuadrillas');
+    } finally {
+      setMisCuadrillasLoading(false);
     }
   };
 
   useEffect(() => {
     fetchAusencias();
-    if (usuario?.tipo_usuario === 'supervisor' || usuario?.tipo_usuario === 'administrador') {
+    if (usuario?.tipo_usuario === 'supervisor') {
       fetchMisCuadrillas();
     }
   }, []);
@@ -109,8 +127,7 @@ function Ausencias({ usuario, onLogout }) {
   };
 
   const trabajadoresDeCuadrilla = cuadrillaSeleccionada
-    ? (misCuadrillas.find((c) => c.id_cuadrilla === Number(cuadrillaSeleccionada))?.integrantes ?? [])
-        .filter((i) => i.tipo_usuario === 'trabajador' || !i.tipo_usuario)
+    ? misCuadrillas.find((c) => c.id_cuadrilla === Number(cuadrillaSeleccionada))?.integrantes ?? []
     : [];
 
   const filtered = ausencias.filter((a) => {
@@ -140,10 +157,13 @@ function Ausencias({ usuario, onLogout }) {
 
   // ── Registrar inasistencia ───────────────────────────────────────────────
   const openInasistencia = () => {
-    setInasistForm(EMPTY_INASISTENCIA);
+    setInasistForm(emptyInasistencia());
     setCuadrillaSeleccionada('');
     setInasistError(null);
     setShowModalInasist(true);
+    if (misCuadrillas.length === 0 && !misCuadrillasLoading) {
+      fetchMisCuadrillas();
+    }
   };
   const closeInasistencia = () => { setShowModalInasist(false); setInasistError(null); };
   const handleInasistChange = (e) =>
@@ -160,14 +180,12 @@ function Ausencias({ usuario, onLogout }) {
     setInasistError(null);
     setSavingInasist(true);
     try {
-      await apiFetch('/api/ausencias/supervisor', {
-        method: 'POST',
-        body: JSON.stringify({
-          fecha_inicio:   inasistForm.fecha_inicio,
-          fecha_termino:  inasistForm.fecha_termino,
-          id_trabajador:  Number(inasistForm.id_trabajador),
-          id_cuadrilla:   Number(inasistForm.id_cuadrilla),
-        }),
+      await crearAusenciaPorSupervisor({
+        // Se detecta "hoy": una sola fecha cubre inicio y término.
+        fecha_inicio:  inasistForm.fecha,
+        fecha_termino: inasistForm.fecha,
+        id_trabajador: Number(inasistForm.id_trabajador),
+        id_cuadrilla:  Number(inasistForm.id_cuadrilla),
       });
       closeInasistencia();
       fetchAusencias();
@@ -193,12 +211,9 @@ function Ausencias({ usuario, onLogout }) {
     setRevisionError(null);
     setSavingRevision(true);
     try {
-      await apiFetch(`/api/ausencias/${revisionId}/revisar`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          estado_aprobacion:    revisionEstado,
-          comentario_revision:  revisionComentario,
-        }),
+      await revisarAusenciaService(revisionId, {
+        estado_aprobacion:   revisionEstado,
+        comentario_revision: revisionComentario,
       });
       closeRevision();
       fetchAusencias();
@@ -212,7 +227,7 @@ function Ausencias({ usuario, onLogout }) {
   // ── Eliminar ─────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
-      await apiFetch(`/api/ausencias/${id}`, { method: 'DELETE' });
+      await eliminarAusenciaService(id);
       setAusencias((prev) => prev.filter((a) => a.id_ausencia !== id));
     } catch (e) {
       setError(e.message);
@@ -372,6 +387,11 @@ function Ausencias({ usuario, onLogout }) {
               El trabajador tendrá la opción de justificar esta inasistencia desde su cuenta.
             </p>
             {inasistError && <div className="tw-form-error"><AlertCircle size={14} /> {inasistError}</div>}
+            {misCuadrillasError && (
+              <div className="tw-form-error">
+                <AlertCircle size={14} /> No se pudieron cargar tus cuadrillas: {misCuadrillasError}
+              </div>
+            )}
             <form className="tw-form" onSubmit={handleSubmitInasist}>
               <div className="tw-form-grid">
 
@@ -382,14 +402,22 @@ function Ausencias({ usuario, onLogout }) {
                     value={cuadrillaSeleccionada}
                     onChange={handleCuadrillaChange}
                     required
+                    disabled={misCuadrillasLoading}
                   >
-                    <option value="">— Seleccionar cuadrilla —</option>
+                    <option value="">
+                      {misCuadrillasLoading ? 'Cargando cuadrillas...' : '— Seleccionar cuadrilla —'}
+                    </option>
                     {misCuadrillas.map((c) => (
                       <option key={c.id_cuadrilla} value={c.id_cuadrilla}>
                         {c.nombre_cuadrilla}
                       </option>
                     ))}
                   </select>
+                  {!misCuadrillasLoading && !misCuadrillasError && misCuadrillas.length === 0 && (
+                    <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                      No tienes cuadrillas activas asignadas como supervisor.
+                    </p>
+                  )}
                 </div>
 
                 {/* Selector de trabajador — filtrado por cuadrilla seleccionada */}
@@ -411,15 +439,23 @@ function Ausencias({ usuario, onLogout }) {
                       </option>
                     ))}
                   </select>
+                  {cuadrillaSeleccionada && trabajadoresDeCuadrilla.length === 0 && (
+                    <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                      Esta cuadrilla no tiene trabajadores asignados.
+                    </p>
+                  )}
                 </div>
 
-                <div className="tw-field">
-                  <label>Fecha Inicio *</label>
-                  <input name="fecha_inicio" type="date" value={inasistForm.fecha_inicio} onChange={handleInasistChange} required />
-                </div>
-                <div className="tw-field">
-                  <label>Fecha Término *</label>
-                  <input name="fecha_termino" type="date" value={inasistForm.fecha_termino} onChange={handleInasistChange} required />
+                {/* Fecha única — la inasistencia se detecta el mismo día */}
+                <div className="tw-field tw-field-full">
+                  <label>Fecha *</label>
+                  <input
+                    name="fecha"
+                    type="date"
+                    value={inasistForm.fecha}
+                    onChange={handleInasistChange}
+                    required
+                  />
                 </div>
 
                 {/* Motivo fijo — no editable, gris */}

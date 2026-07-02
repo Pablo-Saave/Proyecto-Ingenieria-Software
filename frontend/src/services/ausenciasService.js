@@ -51,3 +51,11 @@ export const revisarAusencia = (id, datos) =>
 // Eliminar ausencia
 export const eliminarAusencia = (id) =>
   apiFetch(`/api/ausencias/${id}`, { method: 'DELETE' });
+
+// Ver mis propias ausencias (vista "Mis Ausencias")
+export const getAusenciasPorTrabajador = (id) =>
+  apiFetch(`/api/ausencias/trabajador/${id}`);
+
+// La cuadrilla propia del trabajador autenticado (necesaria para crear una ausencia propia)
+export const getMiCuadrilla = () =>
+  apiFetch('/api/cuadrilla/miCuadrilla');
