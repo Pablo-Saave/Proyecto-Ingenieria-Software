@@ -15,6 +15,7 @@ const MENU_POR_ROL = {
     { id: 'pagos',        label: 'Pagos',           icon: DollarSign,      path: '/admin/pagos' },
     { id: 'asignaciones', label: 'Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
     { id: 'avisos',       label: 'Canales de Avisos', icon: Bell,          path: '/admin/avisos' },
+    { id: 'proyectos',    label: 'Proyectos',       icon: Building2,       path: '/admin/proyectos'}
   ],
   supervisor: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
