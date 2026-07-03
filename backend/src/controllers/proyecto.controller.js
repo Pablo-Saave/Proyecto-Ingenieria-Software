@@ -402,3 +402,69 @@ export async function removerSupervisorDeProyecto(req, res) {
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * Retorna el proyecto al cual el supervisor autenticado pertenece.
+ *
+ * Recibe:
+ *   token: { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 200:
+ *   {
+ *     data: {
+ *       id_proyecto,
+ *       id_cliente,
+ *       id_supervisor,
+ *       nombre_proyecto,
+ *       tipo_instalacion,
+ *       direccion,
+ *       nivel_exigencia,
+ *       cantidad_personal_requerido,
+ *       fecha_creacion,
+ *       estado
+ *     }
+ *   }
+ */
+export async function getMiProyectoBySupervisor(req, res) {
+  try {
+    // ── Validación 1: solo supervisor ─────────────────────────────────────────
+    if (req.user?.tipo_usuario !== "supervisor") {
+      return res.status(403).json({
+        status:  "error",
+        message: "Solo un supervisor puede consultar su proyecto asignado.",
+      });
+    }
+
+    // ── Validación 2: debe existir un proyecto con este supervisor ────────────
+    const proyecto = await proyectoRepo.findOne({
+      where: { id_supervisor: req.user.id_trabajador },
+    });
+
+    if (!proyecto) {
+      return res.status(404).json({
+        status:  "error",
+        message: "No se encontró un proyecto asociado a tu usuario como supervisor.",
+      });
+    }
+
+    return res.status(200).json({ data: proyecto });
+
+  } catch (error) {
+    console.error("[getMiProyectoBySupervisor]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+  }
+}

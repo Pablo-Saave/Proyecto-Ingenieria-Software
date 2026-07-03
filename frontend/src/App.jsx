@@ -26,6 +26,7 @@ import Proyectos  from './pages/Proyectos';
 import { getUsuarioLocal, logoutClean } from './services/authService';
 import { NotificacionesProvider } from './context/NotificacionesContext';
 import './styles/globals.css';
+import Inventarios from './pages/Inventario';
 
 function ProtectedRoute({ isLoggedIn, children }) {
   return isLoggedIn ? children : <Navigate to="/login" replace />;
@@ -86,6 +87,7 @@ function App() {
         {/* Solo Supervisor */}
         <Route path="/supervisor/contratos" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><ContratosSupervisor {...pageProps} /></RolRoute>} />
         <Route path="/supervisor/avisos"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><CanalesAvisosSupervisor {...pageProps} /></RolRoute>} />
+        <Route path="/supervisor/inventario"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}> <Inventarios {...pageProps} ></Inventarios> </RolRoute>} />
 
         {/* Todos los roles */}
         <Route path="/app/dashboard"       element={<ProtectedRoute isLoggedIn={isLoggedIn}><DashboardPersonal {...pageProps} /></ProtectedRoute>} />
