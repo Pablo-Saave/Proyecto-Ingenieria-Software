@@ -20,7 +20,8 @@ import {
   reactivarProyecto,
   getAllProyectos,
   cambiarSupervisorProyecto,
-  removerSupervisorDeProyecto
+  removerSupervisorDeProyecto,
+  getMiProyectoBySupervisor
 } from "../controllers/proyecto.controller.js";
 
 
@@ -38,9 +39,7 @@ router.patch("/:id_proyecto", validarActualizarProyecto, actualizarProyecto); //
 router.delete("/supervisor/:id_proyecto", validarRemoverSupervisorDeProyecto, removerSupervisorDeProyecto); // Elimina el supervisor de un proyecto inactivo (Recibe token de autenticacion) (Validacion 1: El que realiza la consulta debe tener tipo_usuario = administrador) (Validacion 2: El proyecto debe existir) (Validacion 3: El proyecto debe tener estado = inactivo) (Validacion 4: El campo no puede estar vacio) (Validacion 5: El id_supervisor del proyecto debe ser distinto de null)
 
 
-// Trabajador & Supervisor
-//router.get("/misProyectos", getMyProyectosByToken); // Obtiene una lista paginada de los proyectos a los que pertenece un trabajador, en base a un id_trabajador proveido en el token.
-//router.get("/:id", getProyectData); // Informacion detallada del proyecto al clikearlo (Validar que pertenezca al proyecto || Sea Admin)
-
+// Supervisor
+router.get("/supervisor/miProyecto/", authMiddleware, getMiProyectoBySupervisor); // Obtiene informacion del proyecto al cual el supervisor pertenece (Recibe {"data": {toda la tupla de proyecto} }) (Validacion 1: El que realiza la consulta debe tener tipo_usuario = supervisor) (Validacion 2: El id_trabajador del que realiza la consulta debe estar presente en el atributo id_supervisor de algun proyecto)
 
 export default router;
