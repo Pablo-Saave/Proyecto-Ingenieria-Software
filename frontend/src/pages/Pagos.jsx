@@ -305,6 +305,17 @@ export const Pagos = ({ usuario, onLogout }) => {
   /* ─── JSX ───────────────────────────────────────────────────────────── */
   return (
     <AdminLayout usuario={usuario} onLogout={onLogout}>
+      {/* Encabezado de sección */}
+      <div className="pag-vista-header">
+        <div>
+          <h1 className="vista-general-title">Pagos</h1>
+          <p className="vista-general-subtitle">Gestiona las remuneraciones del sistema.</p>
+        </div>
+        <button className="btn-nueva-remuneracion" onClick={abrirCrear}>
+          <Plus size={16} /> Nueva Remuneración
+        </button>
+      </div>
+
       {/* Toolbar */}
       <div className="pag-toolbar">
         <div className="pag-search-wrapper">
@@ -324,9 +335,6 @@ export const Pagos = ({ usuario, onLogout }) => {
         )}
         <button className="pag-btn-save" onClick={buscarPorRut} disabled={buscando}>
           <Search size={14} /> {buscando ? "Buscando…" : "Buscar"}
-        </button>
-        <button className="btn-nueva-remuneracion" onClick={abrirCrear}>
-          <Plus size={14} /> Nueva Remuneración
         </button>
       </div>
 

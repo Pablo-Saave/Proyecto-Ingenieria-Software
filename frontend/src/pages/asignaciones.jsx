@@ -406,7 +406,7 @@ function Asignaciones({ usuario, onLogout }) {
                     <thead>
                       <tr>
                         <th>CUADRILLA</th>
-                        <th>TRABAJADOR</th>
+                        <th>TRABAJADORES</th>
                         <th>FECHA ASIGNACIÓN</th>
                         <th>ESTADO</th>
                         <th>ACCIONES</th>
@@ -416,6 +416,13 @@ function Asignaciones({ usuario, onLogout }) {
                       {cuadrillasVisibles.map((c) => {
                         const expanded    = isExpanded(c.id_cuadrilla);
                         const integrantes = c.integrantes ?? [];
+                        const fechasAsignacion = integrantes
+                          .map((i) => i.fecha_asignacion)
+                          .filter(Boolean)
+                          .map((f) => new Date(f));
+                        const primeraFechaAsignacion = fechasAsignacion.length
+                          ? new Date(Math.min(...fechasAsignacion))
+                          : null;
                         return (
                           <React.Fragment key={c.id_cuadrilla}>
                             {/* ── Fila de la cuadrilla ─────────────────────── */}
@@ -434,8 +441,12 @@ function Asignaciones({ usuario, onLogout }) {
                                   </div>
                                 </div>
                               </td>
-                              <td className="asig-empty-cell">—</td>
-                              <td className="asig-empty-cell">—</td>
+                              <td className={integrantes.length ? '' : 'asig-empty-cell'}>
+                                {integrantes.length || '—'}
+                              </td>
+                              <td className={primeraFechaAsignacion ? '' : 'asig-empty-cell'}>
+                                {primeraFechaAsignacion ? formatFecha(primeraFechaAsignacion) : '—'}
+                              </td>
                               <td>
                                 <span className={`estado-badge ${getEstadoClass(c.estado)}`}>
                                   {c.estado === 'activa' ? 'Activa' : 'Inactiva'}
@@ -483,7 +494,7 @@ function Asignaciones({ usuario, onLogout }) {
                                     </div>
                                     <div>
                                       <div className="asig-cell-title">{i.nombres} {i.apellidos}</div>
-                                      <div className="asig-cell-sub">{i.rut ?? '—'}</div>
+                                      <div className="asig-cell-sub">{i.rut}</div>
                                     </div>
                                   </div>
                                 </td>

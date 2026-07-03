@@ -1,3 +1,11 @@
+/* ─── Encabezado de sección ───────────────────────────────────────────── */
+.pag-vista-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
 /* ─── Toolbar (búsqueda + filtros) ─────────────────────────────────────── */
 .pag-toolbar {
   display: flex;
@@ -461,7 +469,7 @@
   padding: 9px 18px;
   border-radius: 8px;
   border: none;
-  background: #4F46E5;
+  background: #4466ff;
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -470,7 +478,7 @@
 }
 
 .pag-btn-save:hover:not(:disabled) {
-  background: #4338ca;
+  background: #2244cc;
 }
 
 .pag-btn-save:disabled {
@@ -509,16 +517,18 @@
 .btn-nueva-remuneracion {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 7px 14px;
+  gap: 0.4rem;
+  padding: 0.45rem 1.2rem;
   background: #4466ff;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 11px;
+  border-radius: 0.4rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-nueva-remuneracion:hover {

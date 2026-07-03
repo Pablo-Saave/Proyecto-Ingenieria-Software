@@ -429,7 +429,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: #4F46E5;
+  background: #4466ff;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -441,7 +441,7 @@
 }
 
 .proy-btn-primary:hover:not(:disabled) {
-  background: #4338ca;
+  background: #3653d9;
 }
 
 .proy-btn-primary:disabled {
