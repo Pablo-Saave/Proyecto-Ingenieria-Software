@@ -9,7 +9,7 @@ const MENU_POR_ROL = {
     { id: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, path: '/admin' },
     { id: 'trabajadores', label: 'Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
     { id: 'clientes',     label: 'Clientes',        icon: Building2,       path: '/admin/clientes' },
-    { id: 'ausencias',    label: 'Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
+    { id: 'ausencias',    label: 'Gestión de ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
     { id: 'contratos',    label: 'Contratos laborales',       icon: FileText,        path: '/admin/contratos' },
     { id: 'contratos-proyecto', label: 'Contratos de Proyecto', icon: ClipboardList, path: '/admin/contratos-proyecto' },
     { id: 'pagos',        label: 'Pagos',           icon: DollarSign,      path: '/admin/pagos' },
@@ -18,10 +18,9 @@ const MENU_POR_ROL = {
   ],
   supervisor: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
-    { id: 'mis-ausencias',    label: 'Mis Ausencias',     icon: CalendarOff,     path: '/app/mis-ausencias' },
     { id: 'mis-asignaciones', label: 'Mis Asignaciones',  icon: Briefcase,       path: '/app/mis-asignaciones' },
     { id: 'mis-contratos',    label: 'Mis Contratos',     icon: FileText,        path: '/app/mis-contratos' },
-    { id: 'ausencias',        label: 'Ausencias',         icon: Clock,           path: '/admin/ausencias' },
+    { id: 'ausencias',        label: 'Gestión de ausencias',         icon: Clock,           path: '/admin/ausencias' },
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/supervisor/avisos' },
   ],
   trabajador: [

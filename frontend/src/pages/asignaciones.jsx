@@ -11,8 +11,6 @@ import {
 import {
   crearCuadrilla,
   getAllCuadrillasAndWorkersByIdProyecto,
-  agregarSupervisorCuadrilla, //SE DEBE ELIMINAR POR REGLA DE NEGOCIO
-  eliminarSupervisorCuadrilla, //SE DEBE ELIMINAR POR REGLA DE NEGOCIO
   agregarTrabajadorCuadrilla,
   eliminarTrabajadorCuadrilla,
 } from '../services/cuadrillasService';

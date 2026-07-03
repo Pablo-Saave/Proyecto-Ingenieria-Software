@@ -4,6 +4,7 @@ import "reflect-metadata";
 import { connectDB } from "./config/configDb.js";
 import clienteRoutes from "./routes/cliente.routes.js";
 import ausenciaRoutes from "./routes/ausencia.routes.js";
+import asignacionRoutes from "./routes/asignacion.routes.js";
 import contratoRoutes from "./routes/contrato.routes.js";
 import trabajadorRoutes from "./routes/trabajador.routes.js";
 import proyectoRoutes from "./routes/proyecto.routes.js";
@@ -46,6 +47,7 @@ export async function initializeApp() {
 
 app.use("/api/clientes",       clienteRoutes);
 app.use("/api/ausencias",      ausenciaRoutes);
+app.use("/api/asignaciones",   asignacionRoutes);
 app.use("/api/contratos",      contratoRoutes);
 app.use("/api/trabajadores",   trabajadorRoutes);
 app.use("/api/proyectos",      proyectoRoutes);
