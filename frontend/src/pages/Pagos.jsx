@@ -15,10 +15,15 @@ import {
 } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 import "../styles/Pagos.css";
+import {
+  getRemuneracionesPaginadas,
+  getRemuneracionPorRut,
+  crearRemuneracion as crearRemuneracionService,
+  actualizarRemuneracion as actualizarRemuneracionService,
+  eliminarRemuneracion as eliminarRemuneracionService,
+} from "../services/remuneracionesService";
 
 /* ─── Constantes ─────────────────────────────────────────────────────────── */
-const BASE_URL = "http://localhost:3000/api/remuneraciones"; // ajusta al prefijo de tu API
-
 const ESTADO_OPTIONS = ["pagado", "pendiente", "atrasado"];
 
 const EMPTY_FORM = {
@@ -81,9 +86,7 @@ export const Pagos = ({ usuario, onLogout }) => {
     setResultadoRut(null);
     setRutBusqueda("");
     try {
-      const res  = await fetch(`${BASE_URL}/paginadas/?page=${p}&limit=${LIMIT}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al cargar");
+      const data = await getRemuneracionesPaginadas(p, LIMIT);
       setRemuneraciones(data.data);
       setTotal(data.total);
       setTotalPages(data.totalPages);
@@ -107,13 +110,7 @@ export const Pagos = ({ usuario, onLogout }) => {
     setRemuneraciones([]);
     setResultadoRut(null);
     try {
-      const res  = await fetch(`${BASE_URL}/get`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rut }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "No encontrado");
+      const data = await getRemuneracionPorRut(rut);
       setResultadoRut(data);
       setRemuneraciones([data]);
       setTotal(1);
@@ -147,20 +144,14 @@ export const Pagos = ({ usuario, onLogout }) => {
     setSaving(true);
     setFormError("");
     try {
-      const res = await fetch(`${BASE_URL}/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fecha_pago:  form.fecha_pago,
-          estado_pago: form.estado_pago,
-          rut:         form.rut,
-          sueldo:      parseInt(form.sueldo),
-          bono:        parseInt(form.bono || 0),
-          descuento:   parseInt(form.descuento || 0),
-        }),
+      await crearRemuneracionService({
+        fecha_pago:  form.fecha_pago,
+        estado_pago: form.estado_pago,
+        rut:         form.rut,
+        sueldo:      parseInt(form.sueldo),
+        bono:        parseInt(form.bono || 0),
+        descuento:   parseInt(form.descuento || 0),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al crear");
       setModalCrear(false);
       cargarPaginadas(page);
     } catch (e) {
@@ -196,13 +187,7 @@ export const Pagos = ({ usuario, onLogout }) => {
         descuento:   form.descuento !== "" ? parseInt(form.descuento) : undefined,
         estado_pago: form.estado_pago || undefined,
       };
-      const res = await fetch(`${BASE_URL}/${remuneracionActual.id_remuneracion}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al actualizar");
+      await actualizarRemuneracionService(remuneracionActual.id_remuneracion, body);
       setModalEditar(false);
       cargarPaginadas(page);
     } catch (e) {
@@ -221,13 +206,7 @@ export const Pagos = ({ usuario, onLogout }) => {
   const eliminarRemuneracion = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${BASE_URL}/${remuneracionActual.id_remuneracion}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Error al eliminar");
-      }
+      await eliminarRemuneracionService(remuneracionActual.id_remuneracion);
       setModalEliminar(false);
       const nuevaPag = remuneraciones.length === 1 && page > 1 ? page - 1 : page;
       cargarPaginadas(nuevaPag);

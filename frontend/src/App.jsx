@@ -12,6 +12,8 @@ import Trabajadores           from './pages/trabajadores';
 import Clientes               from './pages/Clientes'; // Administrador
 import Ausencias              from './pages/ausencias';
 import { Pagos }              from './pages/Pagos';
+import PagosSupervisor        from './pages/PagosSupervisor'; // Supervisor
+import PagosTrabajador        from './pages/PagosTrabajador'; // Trabajador
 import Asignaciones           from './pages/asignaciones';
 import MisAusencias           from './pages/misAusencias';
 import MisAsignaciones        from './pages/misAsignaciones';
@@ -86,6 +88,7 @@ function App() {
 
         {/* Solo Supervisor */}
         <Route path="/supervisor/contratos" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><ContratosSupervisor {...pageProps} /></RolRoute>} />
+        <Route path="/supervisor/pagos"      element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><PagosSupervisor {...pageProps} /></RolRoute>} />
         <Route path="/supervisor/avisos"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><CanalesAvisosSupervisor {...pageProps} /></RolRoute>} />
         <Route path="/supervisor/inventario"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}> <Inventarios {...pageProps} ></Inventarios> </RolRoute>} />
 
@@ -94,6 +97,7 @@ function App() {
         <Route path="/app/mis-ausencias"   element={<ProtectedRoute isLoggedIn={isLoggedIn}><MisAusencias {...pageProps} /></ProtectedRoute>} />
         <Route path="/app/mis-asignaciones" element={<ProtectedRoute isLoggedIn={isLoggedIn}><MisAsignaciones {...pageProps} /></ProtectedRoute>} />
         <Route path="/app/mis-contratos"   element={<ProtectedRoute isLoggedIn={isLoggedIn}><ContratosTrabajador {...pageProps} /></ProtectedRoute>} />
+        <Route path="/app/mis-pagos"       element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['trabajador']}><PagosTrabajador {...pageProps} /></RolRoute>} />
         <Route path="/app/avisos"          element={<ProtectedRoute isLoggedIn={isLoggedIn}><CanalesAvisosTrabajador {...pageProps} /></ProtectedRoute>} />
       </Routes>
       </NotificacionesProvider>

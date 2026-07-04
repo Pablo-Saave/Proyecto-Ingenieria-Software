@@ -21,6 +21,7 @@ const MENU_POR_ROL = {
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
     { id: 'mis-asignaciones', label: 'Mis Asignaciones',  icon: Briefcase,       path: '/app/mis-asignaciones' },
     { id: 'mis-contratos',    label: 'Mis Contratos',     icon: FileText,        path: '/app/mis-contratos' },
+    { id: 'pagos',            label: 'Mis Pagos',         icon: DollarSign,      path: '/supervisor/pagos' },
     { id: 'ausencias',        label: 'Gestión de Ausencias',         icon: Clock,           path: '/admin/ausencias' },
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/supervisor/avisos' },
     { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'}
@@ -30,6 +31,7 @@ const MENU_POR_ROL = {
     { id: 'mis-ausencias',    label: 'Mis Ausencias',     icon: CalendarOff,     path: '/app/mis-ausencias' },
     { id: 'mis-asignaciones', label: 'Mis Asignaciones',  icon: Briefcase,       path: '/app/mis-asignaciones' },
     { id: 'mis-contratos',    label: 'Mis Contratos',     icon: FileText,        path: '/app/mis-contratos' },
+    { id: 'pagos',            label: 'Mis Pagos',         icon: DollarSign,      path: '/app/mis-pagos' },
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/app/avisos' },
   ],
 };

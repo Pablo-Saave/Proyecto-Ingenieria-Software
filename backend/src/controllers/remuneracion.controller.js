@@ -225,3 +225,32 @@ export const getRemuneracion = async (req, res) => {
     });
   }
 };
+
+/* Obtiene la remuneración del propio usuario autenticado (Supervisor / Trabajador) */
+/* No recibe rut ni id por parámetro: usa el id_trabajador del token JWT */
+export const getMiRemuneracion = async (req, res) => {
+  try {
+    const { id_trabajador } = req.user;
+
+    const remuneracion = await remuneracionRepo
+      .createQueryBuilder("remuneracion")
+      .leftJoinAndSelect("remuneracion.trabajador", "trabajador")
+      .where("trabajador.id_trabajador = :id_trabajador", { id_trabajador })
+      .getOne();
+
+    if (!remuneracion) {
+      return res.status(404).json({
+        message: "Aún no tienes una remuneración registrada",
+      });
+    }
+
+    return res.status(200).json(remuneracion);
+
+  } catch (error) {
+    console.error("Error al obtener mi remuneración:", error);
+
+    return res.status(500).json({
+      message: "Error interno al obtener tu remuneración",
+    });
+  }
+};
