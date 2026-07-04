@@ -288,7 +288,7 @@ export const Pagos = ({ usuario, onLogout }) => {
       {/* Encabezado */}
       <div className="pag-header">
         <div>
-          <h1 className="vista-general-title">Pagos</h1>
+          <h1 className="vista-general-title">Remuneraciones</h1>
           <p className="vista-general-subtitle">
             Administra las remuneraciones, bonos, descuentos y estado de pago de los trabajadores.
           </p>

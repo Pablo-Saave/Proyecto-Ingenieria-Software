@@ -153,7 +153,7 @@ function PagosTrabajador({ usuario, onLogout }) {
           <div className="pagos-container">
             <div className="pag-header">
               <div>
-                <h1 className="vista-general-title">Mis Pagos</h1>
+                <h1 className="vista-general-title">Mis Remuneraciones</h1>
                 <p className="vista-general-subtitle">Consulta tu remuneración registrada.</p>
               </div>
             </div>
