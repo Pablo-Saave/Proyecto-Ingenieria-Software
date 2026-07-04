@@ -19,6 +19,7 @@ import DashboardPersonal      from './pages/miDashboard';
 import CanalesAvisosAdmin     from './pages/CanalesAvisosAdmin';
 import CanalesAvisosSupervisor from './pages/CanalesAvisosSupervisor';
 import CanalesAvisosTrabajador from './pages/CanalesAvisosTrabajador';
+import AccidentesModuloTrabajador from './pages/AccidentesModuloTrabajador';
 import CambiarPassword from './pages/CambiarPassword';
 import Proyectos  from './pages/Proyectos';
 
@@ -88,6 +89,9 @@ function App() {
         <Route path="/supervisor/contratos" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><ContratosSupervisor {...pageProps} /></RolRoute>} />
         <Route path="/supervisor/avisos"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><CanalesAvisosSupervisor {...pageProps} /></RolRoute>} />
         <Route path="/supervisor/inventario"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}> <Inventarios {...pageProps} ></Inventarios> </RolRoute>} />
+
+        {/* Solo Trabajador */}
+        <Route path="/app/mis-accidentes"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['trabajador']} > <AccidentesModuloTrabajador {...pageProps} >a</AccidentesModuloTrabajador> </RolRoute>} />
 
         {/* Todos los roles */}
         <Route path="/app/dashboard"       element={<ProtectedRoute isLoggedIn={isLoggedIn}><DashboardPersonal {...pageProps} /></ProtectedRoute>} />

@@ -19,6 +19,7 @@ export const ContratoProyectoSchema = new EntitySchema({
 
     descripcion: {
       type: "varchar",
+      nullable: false
     },
 
     fecha_inicio: {
@@ -33,7 +34,7 @@ export const ContratoProyectoSchema = new EntitySchema({
 
     fecha_extension: {
       type: "date",
-      nullable: false,
+      nullable: true,
     },
 
     estado_contrato: {
