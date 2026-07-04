@@ -15,7 +15,7 @@
 
 .inv-tope-proyecto {
   font-weight: 500;
-  color: #4F46E5;
+  color: #4466ff;
 }
 
 .inv-tope-subtitle {
@@ -63,13 +63,13 @@
 }
 
 .inv-filter-btn:hover {
-  border-color: #4F46E5;
-  color: #4F46E5;
+  border-color: #4466ff;
+  color: #4466ff;
 }
 
 .inv-filter-btn.active {
-  background: #4F46E5;
-  border-color: #4F46E5;
+  background: #4466ff;
+  border-color: #4466ff;
   color: #fff;
   font-weight: 600;
 }
@@ -100,12 +100,12 @@
 }
 
 .inv-list-item.selected {
-  background: #EEF2FF;
-  border-left: 3px solid #4F46E5;
+  background: #EAEFFF;
+  border-left: 3px solid #4466ff;
 }
 
 .inv-list-item.selected .inv-item-name {
-  color: #4F46E5;
+  color: #4466ff;
   font-weight: 600;
 }
 
@@ -293,8 +293,8 @@
 }
 
 .inv-adj-btn:hover:not(:disabled) {
-  background: #4F46E5;
-  border-color: #4F46E5;
+  background: #4466ff;
+  border-color: #4466ff;
   color: #fff;
 }
 
@@ -322,8 +322,8 @@
 }
 
 .inv-stock-input:focus {
-  border-color: #4F46E5;
-  box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
+  border-color: #4466ff;
+  box-shadow: 0 0 0 2px rgba(68,102,255,0.1);
 }
 
 .inv-stock-input.error {
@@ -382,12 +382,12 @@
 }
 
 .inv-action-btn.edit {
-  color: #4F46E5;
+  color: #4466ff;
 }
 
 .inv-action-btn.edit:hover {
-  background: #EEF2FF;
-  border-color: #4F46E5;
+  background: #EAEFFF;
+  border-color: #4466ff;
 }
 
 .inv-action-btn.delete {
@@ -505,8 +505,8 @@
 }
 
 .inv-page-btn:hover:not(:disabled) {
-  border-color: #4F46E5;
-  color: #4F46E5;
+  border-color: #4466ff;
+  color: #4466ff;
 }
 
 .inv-page-btn:disabled {
@@ -515,8 +515,8 @@
 }
 
 .inv-page-btn.current {
-  background: #4F46E5;
-  border-color: #4F46E5;
+  background: #4466ff;
+  border-color: #4466ff;
   color: #fff;
   font-weight: 600;
 }
@@ -527,7 +527,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: #4F46E5;
+  background: #4466ff;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -539,7 +539,7 @@
 }
 
 .inv-btn-primary:hover:not(:disabled) {
-  background: #4338ca;
+  background: #2244cc;
 }
 
 .inv-btn-primary:disabled {
@@ -559,8 +559,8 @@
 }
 
 .inv-btn-secondary:hover {
-  border-color: #4F46E5;
-  color: #4F46E5;
+  border-color: #4466ff;
+  color: #4466ff;
 }
 
 .inv-btn-danger {
@@ -597,7 +597,7 @@
   width: 24px;
   height: 24px;
   border: 3px solid #e5e7eb;
-  border-top-color: #4F46E5;
+  border-top-color: #4466ff;
   border-radius: 50%;
   animation: invSpin 0.7s linear infinite;
 }
@@ -755,8 +755,8 @@
 }
 
 .inv-field input:focus {
-  border-color: #4F46E5;
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+  border-color: #4466ff;
+  box-shadow: 0 0 0 3px rgba(68,102,255,0.1);
 }
 
 .inv-field input::placeholder {

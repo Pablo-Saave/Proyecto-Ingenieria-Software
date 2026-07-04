@@ -221,7 +221,7 @@ function Trabajadores({ usuario, onLogout }) {
                 <thead>
                   <tr>
                     <th>Nombre</th>
-                    <th>RUT</th>
+                    <th>Tipo de Usuario</th>
                     <th>Correo</th>
                     <th>Telefono</th>
                     <th>Estado</th>
@@ -236,12 +236,15 @@ function Trabajadores({ usuario, onLogout }) {
                           <div className="tw-avatar">
                             {getIniciales(t.nombres, t.apellidos) || '?'}
                           </div>
-                          <div className="tw-fullname">
-                            {t.nombres} {t.apellidos}
+                          <div>
+                            <div className="tw-fullname">
+                              {t.nombres} {t.apellidos}
+                            </div>
+                            <div className="tw-rut-sub">{t.rut ?? '-'}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="tw-rut">{t.rut ?? '-'}</td>
+                      <td className="tw-tipo-usuario">{t.tipo_usuario ?? '-'}</td>
                       <td className="tw-email">{t.correo ?? '-'}</td>
                       <td>{t.telefono ?? '-'}</td>
                       <td>
