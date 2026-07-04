@@ -305,15 +305,15 @@ export const Pagos = ({ usuario, onLogout }) => {
   /* ─── JSX ───────────────────────────────────────────────────────────── */
   return (
     <AdminLayout usuario={usuario} onLogout={onLogout}>
-      {/* Encabezado de sección */}
-      <div className="pag-vista-header">
+
+      {/* Encabezado */}
+      <div className="pag-header">
         <div>
           <h1 className="vista-general-title">Pagos</h1>
-          <p className="vista-general-subtitle">Gestiona las remuneraciones del sistema.</p>
+          <p className="vista-general-subtitle">
+            Administra las remuneraciones, bonos, descuentos y estado de pago de los trabajadores.
+          </p>
         </div>
-        <button className="btn-nueva-remuneracion" onClick={abrirCrear}>
-          <Plus size={16} /> Nueva Remuneración
-        </button>
       </div>
 
       {/* Toolbar */}

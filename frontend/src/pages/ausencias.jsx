@@ -15,7 +15,6 @@ import {
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 // Nota: esta llamada no tiene aún un home en cuadrillasService.js.
-// Se recomienda moverla ahí como `getMyCuadrillasAndIntegrantes()`.
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
   const res = await fetch(`${API_BASE}${path}`, {

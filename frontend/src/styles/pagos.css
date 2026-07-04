@@ -91,6 +91,10 @@
   font-size: 14px;
 }
 
+.pag-header {
+  margin-bottom: 24px;
+}
+
 .pag-table thead tr {
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
