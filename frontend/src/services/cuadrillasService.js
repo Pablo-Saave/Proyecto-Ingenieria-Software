@@ -111,6 +111,10 @@ export const getCuadrillaData = (id_cuadrilla) =>
 export const getMiCuadrilla = () =>
   apiFetch('/api/cuadrilla/miCuadrilla');
 
+// Ver todas las cuadrillas (con sus integrantes) de los proyectos que superviso (vista "Mis Asignaciones" del supervisor)
+export const getMyCuadrillasAndIntegrantesFromToken = () =>
+  apiFetch('/api/cuadrilla/supervisor/misCuadrillasAndIntegrantes');
+
 // Ver mis propias ausencias (vista "Mis Ausencias")
 export const getAusenciasPorTrabajador = (id) =>
   apiFetch(`/api/ausencias/trabajador/${id}`);

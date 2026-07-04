@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   Briefcase, MapPin, Users, Calendar, ClipboardList,
-  AlertCircle, Info, Clock,
+  AlertCircle, Info, Clock, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { getMisAsignaciones } from '../services/asignacionesService';
+import { getMyCuadrillasAndIntegrantesFromToken, getIntegrantesOfCuadrilla } from '../services/cuadrillasService';
+import '../styles/Asignaciones.css';
 
 const estadoBadgeClass = (estado) => {
   if (estado === 'activo') return 'badge-activo';
@@ -15,10 +17,24 @@ const estadoBadgeClass = (estado) => {
 const formatFecha = (f) =>
   f ? new Date(f).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
+function getIniciales(nombres = '', apellidos = '') {
+  const n = String(nombres || '').trim();
+  const a = String(apellidos || '').trim();
+  return ((n[0] || '') + (a[0] || '')).toUpperCase();
+}
+
 function MisAsignaciones({ usuario, onLogout }) {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
+
+  const [cuadrillas, setCuadrillas]               = useState([]);
+  const [loadingCuadrillas, setLoadingCuadrillas]   = useState(false);
+  const [errorCuadrillas, setErrorCuadrillas]       = useState(null);
+  const [expandidas, setExpandidas]                 = useState({});
+
+  const toggleExpandida = (id_cuadrilla) =>
+    setExpandidas((prev) => ({ ...prev, [id_cuadrilla]: !prev[id_cuadrilla] }));
 
   const fetchAsignaciones = async () => {
     setLoading(true);
@@ -43,6 +59,55 @@ function MisAsignaciones({ usuario, onLogout }) {
   const proyectosActuales = esSupervisor
     ? (data?.actual ?? [])
     : (data?.actual ? [data.actual] : []);
+
+  useEffect(() => {
+    if (!esSupervisor) return;
+
+    const fetchCuadrillas = async () => {
+      setLoadingCuadrillas(true);
+      setErrorCuadrillas(null);
+      try {
+        const res = await getMyCuadrillasAndIntegrantesFromToken();
+        setCuadrillas(res?.data ?? []);
+      } catch (e) {
+        // Si no supervisa ningún proyecto activo, el backend responde 403 —
+        // lo tratamos como "sin cuadrillas" en vez de mostrar un error.
+        setCuadrillas([]);
+        setErrorCuadrillas(e.message);
+      } finally {
+        setLoadingCuadrillas(false);
+      }
+    };
+
+    fetchCuadrillas();
+  }, [esSupervisor]);
+
+  // ── Integrantes de mi propia cuadrilla (solo trabajador) ──────────────────
+  const [integrantesMiCuadrilla, setIntegrantesMiCuadrilla] = useState([]);
+  const [loadingIntegrantes, setLoadingIntegrantes]         = useState(false);
+  const [errorIntegrantes, setErrorIntegrantes]             = useState(null);
+  const [miCuadrillaAbierta, setMiCuadrillaAbierta]         = useState(false);
+
+  const miCuadrillaActual = esTrabajador ? proyectosActuales[0] : null;
+
+  useEffect(() => {
+    if (!esTrabajador || !miCuadrillaActual?.id_cuadrilla) return;
+
+    const fetchIntegrantes = async () => {
+      setLoadingIntegrantes(true);
+      setErrorIntegrantes(null);
+      try {
+        const res = await getIntegrantesOfCuadrilla(miCuadrillaActual.id_cuadrilla);
+        setIntegrantesMiCuadrilla(res?.data ?? []);
+      } catch (e) {
+        setErrorIntegrantes(e.message);
+      } finally {
+        setLoadingIntegrantes(false);
+      }
+    };
+
+    fetchIntegrantes();
+  }, [esTrabajador, miCuadrillaActual?.id_cuadrilla]);
 
   return (
     <div className="dashboard-wrapper">
@@ -159,6 +224,164 @@ function MisAsignaciones({ usuario, onLogout }) {
                   </div>
                 )}
               </div>
+
+              {/* ── Mi cuadrilla (solo trabajador) ──────────────────────────── */}
+              {esTrabajador && miCuadrillaActual && (
+                <div style={{ marginBottom: '28px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                    Mi cuadrilla
+                  </h2>
+
+                  {loadingIntegrantes ? (
+                    <div className="tw-table-card">
+                      <div className="tw-loading"><div className="tw-spinner" /> Cargando integrantes...</div>
+                    </div>
+                  ) : errorIntegrantes ? (
+                    <div className="tw-error-banner"><AlertCircle size={16} /> {errorIntegrantes}</div>
+                  ) : (
+                    <div className="asig-table-wrapper">
+                      <table className="asig-table">
+                        <thead>
+                          <tr>
+                            <th>Cuadrilla</th>
+                            <th>Trabajadores</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="asig-row-cuadrilla" onClick={() => setMiCuadrillaAbierta((v) => !v)}>
+                            <td>
+                              <div className="asig-cell-cuadrilla">
+                                {miCuadrillaAbierta ? <ChevronDown size={16} color="#6b7280" /> : <ChevronRight size={16} color="#6b7280" />}
+                                <div className="asig-avatar asig-avatar-cuadrilla">
+                                  {getIniciales(miCuadrillaActual.nombre_cuadrilla, '')}
+                                </div>
+                                <div className="asig-cell-title">{miCuadrillaActual.nombre_cuadrilla}</div>
+                              </div>
+                            </td>
+                            <td>{integrantesMiCuadrilla.length}</td>
+                          </tr>
+
+                          {miCuadrillaAbierta && (
+                            integrantesMiCuadrilla.length === 0 ? (
+                              <tr className="asig-row-trabajador">
+                                <td></td>
+                                <td className="asig-empty-cell">Sin trabajadores asignados</td>
+                              </tr>
+                            ) : (
+                              integrantesMiCuadrilla.map((t) => (
+                                <tr key={t.id_trabajador} className="asig-row-trabajador">
+                                  <td></td>
+                                  <td>
+                                    <div className="asig-cell-trabajador">
+                                      <div className="asig-avatar asig-avatar-trabajador">
+                                        {getIniciales(t.nombres, t.apellidos)}
+                                      </div>
+                                      <div>
+                                        <div className="asig-cell-title">{t.nombres} {t.apellidos}</div>
+                                        <div className="asig-cell-sub">
+                                          {t.cargo_operativo || 'Sin cargo'} · {t.tipo_jornada}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Cuadrillas de tu proyecto (solo supervisor) ─────────────── */}
+              {esSupervisor && (
+                <div style={{ marginBottom: '28px' }}>
+                  <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                    Cuadrillas de tu proyecto
+                  </h2>
+
+                  {loadingCuadrillas ? (
+                    <div className="tw-table-card">
+                      <div className="tw-loading"><div className="tw-spinner" /> Cargando cuadrillas...</div>
+                    </div>
+                  ) : cuadrillas.length === 0 ? (
+                    <div className="tw-table-card">
+                      <div className="tw-empty">
+                        <Users size={40} />
+                        <p>
+                          {errorCuadrillas
+                            ? 'No tienes cuadrillas para mostrar.'
+                            : 'Tu proyecto todavía no tiene cuadrillas creadas.'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="asig-table-wrapper">
+                      <table className="asig-table">
+                        <thead>
+                          <tr>
+                            <th>Cuadrilla</th>
+                            <th>Trabajadores</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {cuadrillas.map((c) => {
+                            const abierta = !!expandidas[c.id_cuadrilla];
+                            return (
+                              <React.Fragment key={c.id_cuadrilla}>
+                                <tr className="asig-row-cuadrilla" onClick={() => toggleExpandida(c.id_cuadrilla)}>
+                                  <td>
+                                    <div className="asig-cell-cuadrilla">
+                                      {abierta ? <ChevronDown size={16} color="#6b7280" /> : <ChevronRight size={16} color="#6b7280" />}
+                                      <div className="asig-avatar asig-avatar-cuadrilla">
+                                        {getIniciales(c.nombre_cuadrilla, '')}
+                                      </div>
+                                      <div>
+                                        <div className="asig-cell-title">{c.nombre_cuadrilla}</div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td>{c.integrantes.length}</td>
+                                </tr>
+
+                                {abierta && (
+                                  c.integrantes.length === 0 ? (
+                                    <tr className="asig-row-trabajador">
+                                      <td></td>
+                                      <td className="asig-empty-cell">Sin trabajadores asignados</td>
+                                    </tr>
+                                  ) : (
+                                    c.integrantes.map((t) => (
+                                      <tr key={t.id_trabajador} className="asig-row-trabajador">
+                                        <td></td>
+                                        <td>
+                                          <div className="asig-cell-trabajador">
+                                            <div className="asig-avatar asig-avatar-trabajador">
+                                              {getIniciales(t.nombres, t.apellidos)}
+                                            </div>
+                                            <div>
+                                              <div className="asig-cell-title">{t.nombres} {t.apellidos}</div>
+                                              <div className="asig-cell-sub">
+                                                {t.cargo_operativo || 'Sin cargo'} · {t.tipo_jornada}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    ))
+                                  )
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* ── Historial ────────────────────────────────────────────── */}
               <div>
