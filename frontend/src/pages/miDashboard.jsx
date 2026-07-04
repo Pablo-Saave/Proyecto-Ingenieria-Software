@@ -108,7 +108,7 @@ function Dashboard({ usuario, onLogout }) {
         getMisAsignaciones(),
         ausenciaPromise,
         usuario?.id_trabajador ? getMisContratos(usuario.id_trabajador) : Promise.resolve(null),
-        usuario?.rut ? getMiRemuneracion(usuario.rut) : Promise.resolve(null),
+        getMiRemuneracion(),
         avisosPromise,
       ]);
 
@@ -130,7 +130,14 @@ function Dashboard({ usuario, onLogout }) {
 
       if (rRemun.status === 'fulfilled' && rRemun.value) {
         setRemuneracion(rRemun.value);
-      } else if (rRemun.status === 'rejected') nuevosErrores.remuneracion = rRemun.reason?.message;
+      } else if (rRemun.status === 'rejected') {
+        // El 404 "aún no tienes remuneración registrada" es un estado normal
+        // (trabajador nuevo sin pagos aún), no un error real de carga.
+        const msg = rRemun.reason?.message ?? '';
+        if (!msg.toLowerCase().includes('aún no tienes')) {
+          nuevosErrores.remuneracion = msg;
+        }
+      }
 
       if (rAvisos.status === 'fulfilled') {
         setAvisos(rAvisos.value ?? []);
@@ -141,7 +148,7 @@ function Dashboard({ usuario, onLogout }) {
     };
 
     cargarTodo();
-  }, [usuario?.id_trabajador, usuario?.rut]);
+  }, [usuario?.id_trabajador]);
 
   // Para trabajador: sus propias ausencias más recientes.
   // Para supervisor: las que están a la espera de su revisión.

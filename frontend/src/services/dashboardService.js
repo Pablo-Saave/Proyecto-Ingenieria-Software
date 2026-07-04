@@ -27,12 +27,10 @@ async function apiFetch(path, options = {}) {
 export const getMisContratos = (id_trabajador) =>
   apiFetch(`/api/contratos/mis-contratos/${id_trabajador}`);
 
-// POST porque el controlador getRemuneracion lee "rut" desde req.body.
-export const getMiRemuneracion = (rut) =>
-  apiFetch('/api/remuneraciones/get', {
-    method: 'POST',
-    body: JSON.stringify({ rut })
-  });
+// GET /api/remuneraciones/mi-pago -> objeto de remuneración del usuario autenticado
+// (usa el id_trabajador del JWT, no necesita rut)
+export const getMiRemuneracion = () =>
+  apiFetch('/api/remuneraciones/mi-pago');
 
   // GET /api/contratos -> { status, data: [...] }
 export const getTodosLosContratos = () => 
@@ -49,4 +47,3 @@ export const getTrabajadoresSinCuadrilla = () =>
 // Proyectos activos
 export const getResumenProyectos = () => 
   apiFetch('/api/proyectos?limit=1000');
-
