@@ -23,10 +23,16 @@ export async function getContratoById(req, res) {
     const repo = getRepo();
     const contrato = await repo.findOne({
       where: { id_contrato: parseInt(req.params.id) },
-      relations: ["trabajador"],
+      relations: ["trabajador", "anexos"],
     });
     if (!contrato)
       return res.status(404).json({ status: "error", message: "Contrato no encontrado" });
+
+    // Igual que en contrato_proyecto: mas reciente primero
+    contrato.anexos = (contrato.anexos || []).sort(
+      (a, b) => new Date(b.fecha_anexo) - new Date(a.fecha_anexo)
+    );
+
     res.json({ status: "success", data: contrato });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });

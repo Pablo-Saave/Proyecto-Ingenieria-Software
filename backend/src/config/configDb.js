@@ -16,6 +16,7 @@ import { InventarioSchema } from "../entities/inventario.entity.js";
 import { JustificacionAusenciaSchema } from "../entities/justificacion_ausencia.entity.js";
 import { MaterialLimpiezaSchema } from "../entities/material_limpieza.entity.js";
 import { AnexoContratoProyectoSchema } from "../entities/anexo_contrato_proyecto.entity.js";
+import { AnexoContratoSchema } from "../entities/anexo_contrato.entity.js";
 import { NotificacionSchema } from "../entities/notificacion.entity.js";
 
 export const AppDataSource = new DataSource({
@@ -41,6 +42,7 @@ export const AppDataSource = new DataSource({
     ClienteSchema,
     AvisoSchema,
     AnexoContratoProyectoSchema,
+    AnexoContratoSchema,
     NotificacionSchema
   ],
   synchronize: true,

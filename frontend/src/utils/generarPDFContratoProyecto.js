@@ -154,20 +154,28 @@ export function generarPDFContratoProyecto(contrato) {
         doc.addPage();
         y = 20;
       }
+      const INDENT_X = 18; // misma columna x que usan TODOS los títulos/etiquetas del documento (fila() usa x+4=18)
+
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
       doc.setTextColor(...GRIS_OSC);
-      doc.text(`${formatearFecha(a.fecha_anexo)} - ${a.motivo || ''}`, 14, y);
+      doc.text(`${formatearFecha(a.fecha_anexo)} - ${a.motivo || ''}`, INDENT_X, y);
       y += 6;
 
       if (a.descripcion_modificacion) {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(...GRIS_MED);
-        const lineasAnexo = doc.splitTextToSize(a.descripcion_modificacion, ancho - 28);
-        doc.text(lineasAnexo, 14, y);
+        const lineasAnexo = doc.splitTextToSize(a.descripcion_modificacion, ancho - 28 - (INDENT_X - 14));
+        doc.text(lineasAnexo, INDENT_X, y);
         y += lineasAnexo.length * 5 + 2;
       }
+
+      if (a.monto_nuevo !== undefined && a.monto_nuevo !== null && a.monto_nuevo !== '') {
+        fila(doc, 14, y, ancho, 'Monto', formatearMonto(a.monto_nuevo), GRIS_OSC, GRIS_MED);
+        y += 6;
+      }
+
       y += 4;
     });
   }

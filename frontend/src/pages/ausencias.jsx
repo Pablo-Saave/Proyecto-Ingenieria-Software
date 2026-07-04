@@ -238,7 +238,7 @@ function Ausencias({ usuario, onLogout }) {
           {/* Encabezado */}
           <div className="vista-general-header">
             <div>
-              <h1 className="vista-general-title">Ausencias</h1>
+              <h1 className="vista-general-title">Gestión de Ausencias</h1>
               <p className="vista-general-subtitle">Registro de inasistencias y justificaciones</p>
             </div>
             {puedeRegistrarInasistencia && (
