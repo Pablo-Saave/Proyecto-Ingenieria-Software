@@ -314,6 +314,9 @@ export const Pagos = ({ usuario, onLogout }) => {
             Administra las remuneraciones, bonos, descuentos y estado de pago de los trabajadores.
           </p>
         </div>
+        <button className="btn-nueva-remuneracion" onClick={abrirCrear}>
+          <Plus size={16} /> Nueva Remuneración
+        </button>
       </div>
 
       {/* Toolbar */}
