@@ -9,6 +9,10 @@ const proyectoRepository = AppDataSource.getRepository(ProyectoSchema);
 
 const ESTADOS_VALIDOS = ["activo", "por_vencer", "inactivo"];
 
+// Campos que SÍ se pueden editar directamente en un contrato existente.
+// Fechas y monto requieren crear un anexo (mismo patrón que ContratoTrabajador).
+const CAMPOS_SOLO_VIA_ANEXO = ["fecha_inicio", "fecha_termino", "monto"];
+
 function esAdministrador(req) {
   return req.user?.tipo_usuario === "administrador";
 }
@@ -249,12 +253,15 @@ export const crearContratoProyecto = async (req, res) => {
 
 /***
  * Actualiza un contrato de proyecto existente.
- * Solo actualiza los campos que vengan en el body.
+ * SOLO permite modificar descripcion y estado_contrato: fecha_inicio,
+ * fecha_termino y monto quedan bloqueados para la edición directa (deben
+ * cambiarse creando un anexo, igual que en ContratoTrabajador). Si el
+ * frontend reenvía esos campos con el mismo valor que ya tenían, se
+ * ignoran silenciosamente; si intenta cambiarlos de verdad, se rechaza.
  * Validaciones:
  * - El que hace la peticion debe tener tipo_usuario = administrador
  * - El contrato debe existir
  * - La peticion debe contener al menos un campo a actualizar
- * - Si se envian ambas fechas (o una junto a la existente), fecha_termino > fecha_inicio
  */
 export const actualizarContratoProyecto = async (req, res) => {
   try {
@@ -269,25 +276,43 @@ export const actualizarContratoProyecto = async (req, res) => {
       return res.status(400).json({ message: "id debe ser numérico" });
     }
 
-    const {
-      descripcion,
-      fecha_inicio,
-      fecha_termino,
-      fecha_extension,
-      estado_contrato,
-      monto,
-    } = req.body;
+    const contrato = await contratoProyectoRepository.findOne({
+      where: { id_contrato_proyecto: Number(id) },
+    });
+    if (!contrato) {
+      return res.status(404).json({ message: "Contrato de proyecto no encontrado" });
+    }
 
-    if (
-      descripcion === undefined &&
-      fecha_inicio === undefined &&
-      fecha_termino === undefined &&
-      fecha_extension === undefined &&
-      estado_contrato === undefined &&
-      monto === undefined
-    ) {
+    const errores = [];
+    for (const campo of CAMPOS_SOLO_VIA_ANEXO) {
+      if (req.body[campo] === undefined) continue;
+
+      const valorNuevo = req.body[campo];
+      const valorActual = contrato[campo];
+      const sonIguales =
+        valorNuevo === valorActual ||
+        (valorNuevo == null && valorActual == null) ||
+        String(valorNuevo) === String(valorActual);
+
+      if (sonIguales) {
+        delete req.body[campo];
+        continue;
+      }
+
+      errores.push(
+        `No se puede modificar "${campo}" desde la edición directa. Para cambiar fechas o monto debes crear un anexo.`
+      );
+    }
+
+    if (errores.length) {
+      return res.status(400).json({ message: errores.join(" ") });
+    }
+
+    const { descripcion, estado_contrato } = req.body;
+
+    if (descripcion === undefined && estado_contrato === undefined) {
       return res.status(400).json({
-        message: "Debe enviar al menos un campo para actualizar",
+        message: "Debe enviar al menos un campo para actualizar (descripcion o estado_contrato)",
       });
     }
 
@@ -297,33 +322,8 @@ export const actualizarContratoProyecto = async (req, res) => {
       });
     }
 
-    if (monto !== undefined && monto !== null && monto !== '' && Number.isNaN(Number(monto))) {
-      return res.status(400).json({
-        message: "monto debe ser numérico",
-      });
-    }
-
-    const contrato = await contratoProyectoRepository.findOne({
-      where: { id_contrato_proyecto: Number(id) },
-    });
-    if (!contrato) {
-      return res.status(404).json({ message: "Contrato de proyecto no encontrado" });
-    }
-
-    const nuevaFechaInicio = fecha_inicio !== undefined ? fecha_inicio : contrato.fecha_inicio;
-    const nuevaFechaTermino = fecha_termino !== undefined ? fecha_termino : contrato.fecha_termino;
-    if (new Date(nuevaFechaTermino) <= new Date(nuevaFechaInicio)) {
-      return res.status(400).json({
-        message: "fecha_termino debe ser posterior a fecha_inicio",
-      });
-    }
-
     if (descripcion !== undefined) contrato.descripcion = descripcion;
-    if (fecha_inicio !== undefined) contrato.fecha_inicio = fecha_inicio;
-    if (fecha_termino !== undefined) contrato.fecha_termino = fecha_termino;
-    if (fecha_extension !== undefined) contrato.fecha_extension = fecha_extension;
     if (estado_contrato !== undefined) contrato.estado_contrato = estado_contrato;
-    if (monto !== undefined) contrato.monto = Number(monto);
 
     await contratoProyectoRepository.save(contrato);
 

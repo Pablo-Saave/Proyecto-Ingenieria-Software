@@ -132,12 +132,11 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
     setErrores([]);
     try {
       if (contratoEdit) {
+        // En edición solo se pueden tocar descripción y estado; fechas y monto
+        // se cambian creando un anexo.
         await updateContratoProyecto(contratoEdit.id_contrato_proyecto, {
           descripcion:     form.descripcion,
           estado_contrato: form.estado_contrato,
-          fecha_inicio:    form.fecha_inicio,
-          fecha_termino:   form.fecha_termino,
-          monto:           form.monto === '' ? null : Number(form.monto),
         });
       } else {
         await createContratoProyecto({
@@ -233,6 +232,9 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
             name="fecha_inicio"
             value={form.fecha_inicio}
             onChange={handleChange}
+            disabled={!!contratoEdit}
+            title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}
+            style={contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
 
           <label>Fecha de término *</label>
@@ -242,6 +244,9 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
             value={form.fecha_termino}
             min={form.fecha_inicio || hoy}
             onChange={handleChange}
+            disabled={!!contratoEdit}
+            title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}
+            style={contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
 
           <label>Monto del contrato *</label>
@@ -253,6 +258,9 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
             min="0"
             step="1"
             placeholder="Ej: 4500000"
+            disabled={!!contratoEdit}
+            title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}
+            style={contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
         </div>
 
