@@ -14,13 +14,13 @@
 .btn-nuevo-contrato {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 1.2rem;
+  gap: 6px;
+  padding: 8px 16px;
   background: #4466ff;
   color: #fff;
   border: none;
-  border-radius: 0.4rem;
-  font-size: 0.75rem;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
