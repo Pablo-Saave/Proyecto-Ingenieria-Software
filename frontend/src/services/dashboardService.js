@@ -48,5 +48,5 @@ export const getTrabajadoresSinCuadrilla = () =>
  
 // Proyectos activos
 export const getResumenProyectos = () => 
-  apiFetch('/api/contratos-proyecto?limit=1000');
+  apiFetch('/api/proyectos?limit=1000');
 
