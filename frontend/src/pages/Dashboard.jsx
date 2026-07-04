@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  FileSignature, Users, Wallet, Briefcase, AlertCircle, Info, ArrowRight,
+  FileSignature, Users, Wallet, Briefcase, AlertTriangle, Info, Folder,
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -12,79 +13,50 @@ import {
 } from '../services/dashboardService';
 
 const DIAS_ALERTA_CONTRATO = 30;
-
-const formatFecha = (f) =>
-  f ? new Date(f).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-
-const diasRestantes = (fecha) => {
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  const term = new Date(fecha);
-  return Math.round((term - hoy) / (1000 * 60 * 60 * 24));
+const HOY = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
 };
 
-// ── Tarjeta contador (fila superior) ────────────────────────────────────────
-function StatCard({ icon: Icon, label, value, tone = 'default' }) {
-  const tones = {
-    default: { bg: '#eef2ff', color: '#4F46E5' },
-    warning: { bg: '#fff7ed', color: '#ea580c' },
-    danger:  { bg: '#fef2f2', color: '#dc2626' },
-  };
-  const t = tones[tone];
+const diasRestantes = (fecha) => {
+  const term = new Date(fecha);
+  return Math.round((term - HOY()) / (1000 * 60 * 60 * 24));
+};
+
+const formatTiempo = (dias) => {
+  if (dias < 0) return `Vencido hace ${Math.abs(dias)}d`;
+  if (dias === 0) return 'Vence hoy';
+  return `Vence en ${dias}d`;
+};
+
+// ── Tarjeta de métrica (fila superior) ──────────────────────────────────────
+function MetricCard({ icon: Icon, title, value, subtitle, badge }) {
   return (
-    <div style={{
-      background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px',
-      padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '14px',
-    }}>
-      <div style={{
-        width: '40px', height: '40px', borderRadius: '10px', background: t.bg,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      }}>
-        <Icon size={19} color={t.color} />
+    <div className="metric-card">
+      <div className="metric-header">
+        <p className="metric-title">{title}</p>
+        <Icon className="metric-icon" />
       </div>
-      <div>
-        <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: '12.5px', color: '#6b7280', marginTop: '3px' }}>{label}</div>
-      </div>
+      <div className="metric-value">{value}</div>
+      {subtitle && <p className="metric-subtitle">{subtitle}</p>}
+      {badge && <span className={`metric-badge badge-${badge.tone}`}>{badge.text}</span>}
     </div>
   );
 }
 
-// ── Panel de lista (parte inferior) ─────────────────────────────────────────
-function ListPanel({ icon: Icon, title, linkTo, emptyText, children, count }) {
+// ── Tarjeta de alerta individual ─────────────────────────────────────────────
+function AlertCard({ tone = 'default', icon: Icon, title, description, timestamp }) {
   return (
-    <div style={{
-      background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px',
-      padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '14px',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '34px', height: '34px', borderRadius: '9px', background: '#eef2ff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Icon size={17} color="#4F46E5" />
-          </div>
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#111827' }}>
-            {title}{typeof count === 'number' ? ` (${count})` : ''}
-          </h3>
-        </div>
-        {linkTo && (
-          <a href={linkTo} style={{
-            fontSize: '12px', color: '#4F46E5', fontWeight: 600,
-            display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none',
-          }}>
-            Ver más <ArrowRight size={12} />
-          </a>
-        )}
+    <div className={`alert-card alert-${tone}`}>
+      <div className="alert-icon">
+        <Icon size={13} />
       </div>
-      {React.Children.count(children) === 0 ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#9ca3af', fontSize: '13px' }}>
-          <Info size={14} /> {emptyText}
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>{children}</div>
-      )}
+      <div className="alert-content">
+        <p className="alert-title">{title}</p>
+        <p className="alert-description">{description}</p>
+      </div>
+      <span className="alert-timestamp">{timestamp}</span>
     </div>
   );
 }
@@ -145,6 +117,42 @@ function AdminDashboard({ usuario, onLogout }) {
     cargarTodo();
   }, []);
 
+  // ── Alertas combinadas (contratos por vencer + sin cuadrilla + pagos) ──────
+  const alertas = [
+    ...contratosPorVencer.slice(0, 3).map((c) => ({
+      key: `contrato-${c.id_contrato}`,
+      tone: diasRestantes(c.fecha_termino) <= 7 ? 'warning' : 'default',
+      icon: FileSignature,
+      title: 'Renovación de contrato',
+      description: `${c.trabajador?.nombres ?? ''} ${c.trabajador?.apellidos ?? ''} finaliza su contrato pronto.`,
+      timestamp: formatTiempo(diasRestantes(c.fecha_termino)),
+    })),
+    ...sinCuadrilla.slice(0, 2).map((t) => ({
+      key: `cuadrilla-${t.id_trabajador}`,
+      tone: 'default',
+      icon: Users,
+      title: 'Sin cuadrilla asignada',
+      description: `${t.nombres} ${t.apellidos} no tiene una cuadrilla asignada.`,
+      timestamp: '',
+    })),
+    ...remuneracionesPendientes.slice(0, 2).map((r) => ({
+      key: `pago-${r.id_remuneracion}`,
+      tone: 'warning',
+      icon: Wallet,
+      title: 'Pago pendiente',
+      description: `${r.trabajador?.nombres ?? ''} ${r.trabajador?.apellidos ?? ''} tiene un pago pendiente.`,
+      timestamp: '',
+    })),
+  ].slice(0, 5);
+
+  // ── Donut de proyectos ──────────────────────────────────────────────────────
+  const totalProyectos = proyectos.activos + proyectos.inactivos;
+  const pctActivos = totalProyectos > 0 ? Math.round((proyectos.activos / totalProyectos) * 100) : 0;
+  const pctInactivos = totalProyectos > 0 ? 100 - pctActivos : 0;
+  const RADIO = 46;
+  const CIRC = 2 * Math.PI * RADIO;
+  const activosOffset = totalProyectos > 0 ? CIRC - (proyectos.activos / totalProyectos) * CIRC : CIRC;
+
   return (
     <div className="dashboard-wrapper">
       <Sidebar usuario={usuario} />
@@ -160,112 +168,122 @@ function AdminDashboard({ usuario, onLogout }) {
           </div>
 
           {loading ? (
-            <div className="tw-table-card">
-              <div className="tw-loading"><div className="tw-spinner" /> Cargando panel administrativo...</div>
+            <div className="dashboard-loading">
+              <div className="tw-spinner" /> Cargando panel administrativo...
             </div>
           ) : (
             <>
-              {/* ── Contadores ────────────────────────────────────────────── */}
-              <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: '14px', marginBottom: '22px',
-              }}>
-                <StatCard
+              {/* ── Métricas ──────────────────────────────────────────────── */}
+              <div className="metrics-grid">
+                <MetricCard
                   icon={FileSignature}
-                  label="Contratos por vencer"
+                  title="Contratos por vencer"
                   value={errores.contratos ? '—' : contratosPorVencer.length}
-                  tone={contratosPorVencer.length > 0 ? 'warning' : 'default'}
+                  subtitle="Próximos 30 días"
+                  badge={contratosPorVencer.length > 0 ? { tone: 'warning', text: 'Requiere acción' } : null}
                 />
-                <StatCard
+                <MetricCard
                   icon={Users}
-                  label="Trabajadores sin cuadrilla"
+                  title="Trabajadores sin cuadrilla"
                   value={errores.sinCuadrilla ? '—' : sinCuadrilla.length}
-                  tone={sinCuadrilla.length > 0 ? 'warning' : 'default'}
+                  subtitle="Sin asignar"
+                  badge={sinCuadrilla.length > 0 ? { tone: 'warning', text: 'Requiere acción' } : null}
                 />
-                <StatCard
+                <MetricCard
                   icon={Wallet}
-                  label="Pagos pendientes"
+                  title="Pagos pendientes"
                   value={errores.remuneraciones ? '—' : remuneracionesPendientes.length}
-                  tone={remuneracionesPendientes.length > 0 ? 'danger' : 'default'}
+                  subtitle="Este período"
+                  badge={remuneracionesPendientes.length === 0 ? { tone: 'success', text: 'Al día' } : null}
                 />
-                <StatCard
+                <MetricCard
                   icon={Briefcase}
-                  label="Proyectos activos"
+                  title="Proyectos activos"
                   value={errores.proyectos ? '—' : proyectos.activos}
+                  subtitle={`${proyectos.inactivos} inactivos`}
                 />
               </div>
 
               {errores.proyectos && (
                 <div className="tw-error-banner" style={{ marginBottom: '16px' }}>
-                  <AlertCircle size={16} /> No se pudo cargar el resumen de proyectos: {errores.proyectos}
+                  <AlertTriangle size={16} /> No se pudo cargar el resumen de proyectos: {errores.proyectos}
                 </div>
               )}
 
-              {/* ── Paneles de detalle ────────────────────────────────────── */}
-              <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '18px',
-              }}>
+              {/* ── Alertas y Proyectos ───────────────────────────────────── */}
+              <div className="alerts-coverage-wrapper">
 
-                <ListPanel
-                  icon={FileSignature}
-                  title="Contratos próximos a vencer"
-                  emptyText="No hay contratos venciendo en los próximos 30 días"
-                >
-                  {errores.contratos ? null : contratosPorVencer.slice(0, 5).map((c) => {
-                    const dias = diasRestantes(c.fecha_termino);
-                    return (
-                      <div key={c.id_contrato} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
-                        <span style={{ color: '#374151' }}>
-                          {c.trabajador?.nombres} {c.trabajador?.apellidos}
-                        </span>
-                        <span className={`tw-badge ${dias < 0 ? 'badge-inactivo' : 'badge-por-justificar'}`} style={{ fontSize: '11px' }}>
-                          {dias < 0 ? `Vencido hace ${Math.abs(dias)}d` : `${dias}d restantes`}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </ListPanel>
-
-                <ListPanel
-                  icon={Users}
-                  title="Trabajadores sin cuadrilla"
-                  emptyText="Todos los trabajadores están asignados a una cuadrilla"
-                >
-                  {errores.sinCuadrilla ? null : sinCuadrilla.slice(0, 5).map((t) => (
-                    <div key={t.id_trabajador} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
-                      <span style={{ color: '#374151' }}>{t.nombres} {t.apellidos}</span>
-                      <span style={{ color: '#9ca3af', fontSize: '12px' }}>{t.rut}</span>
+                <div className="alerts-section">
+                  <div className="section-header">
+                    <h3 className="section-title">Alertas y Acciones</h3>
+                    {alertas.length > 0 && <button className="see-all-link">Ver todas</button>}
+                  </div>
+                  {alertas.length === 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '11px', padding: '8px 0' }}>
+                      <Info size={13} /> No hay alertas activas por el momento
                     </div>
-                  ))}
-                </ListPanel>
-
-                <ListPanel
-                  icon={Wallet}
-                  title="Pagos pendientes"
-                  emptyText="No hay pagos pendientes"
-                >
-                  {errores.remuneraciones ? null : remuneracionesPendientes.slice(0, 5).map((r) => (
-                    <div key={r.id_remuneracion} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
-                      <span style={{ color: '#374151' }}>
-                        {r.trabajador?.nombres} {r.trabajador?.apellidos}
-                      </span>
-                      <span className="tw-badge badge-licencia" style={{ fontSize: '11px' }}>Pendiente</span>
-                    </div>
-                  ))}
-                </ListPanel>
-
-                <ListPanel
-                  icon={Briefcase}
-                  title="Proyectos"
-                  emptyText="Sin datos de proyectos"
-                >
-                  {errores.proyectos ? null : (
-                    <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: '#374151' }}>
-                      <span><strong style={{ color: '#111827' }}>{proyectos.activos}</strong> activos</span>
-                      <span><strong style={{ color: '#111827' }}>{proyectos.inactivos}</strong> inactivos</span>
+                  ) : (
+                    <div className="alerts-grid">
+                      {alertas.map((a) => (
+                        <AlertCard key={a.key} tone={a.tone} icon={a.icon} title={a.title} description={a.description} timestamp={a.timestamp} />
+                      ))}
                     </div>
                   )}
-                </ListPanel>
+                </div>
+
+                <div className="coverage-section">
+                  <div className="section-header">
+                    <h3 className="section-title">
+                      Proyectos
+                      <span className="badge-live">En vivo</span>
+                    </h3>
+                  </div>
+
+                  {errores.proyectos ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '11px', padding: '8px 0' }}>
+                      <Info size={13} /> Sin datos de proyectos
+                    </div>
+                  ) : (
+                    <>
+                      <div className="proyectos-donut-wrapper">
+                        <div className="proyectos-donut">
+                          <svg width="110" height="110" viewBox="0 0 110 110">
+                            <circle cx="55" cy="55" r={RADIO} fill="none" stroke="var(--border-color)" strokeWidth="12" />
+                            <circle
+                              cx="55" cy="55" r={RADIO} fill="none"
+                              stroke="var(--primary-color)" strokeWidth="12"
+                              strokeDasharray={CIRC}
+                              strokeDashoffset={activosOffset}
+                              strokeLinecap="round"
+                              transform="rotate(-90 55 55)"
+                            />
+                          </svg>
+                          <div className="proyectos-donut-value">
+                            <div className="proyectos-donut-number">{proyectos.activos}</div>
+                            <div className="proyectos-donut-label">Activos</div>
+                          </div>
+                        </div>
+                        <div className="proyectos-legend">
+                          <div className="proyectos-legend-row">
+                            <span className="proyectos-legend-dot" style={{ background: 'var(--primary-color)' }} />
+                            <span className="proyectos-legend-name">Activos</span>
+                            <span className="proyectos-legend-count">{proyectos.activos}</span>
+                            <span className="proyectos-legend-pct">{pctActivos}%</span>
+                          </div>
+                          <div className="proyectos-legend-row">
+                            <span className="proyectos-legend-dot" style={{ background: 'var(--border-color)' }} />
+                            <span className="proyectos-legend-name">Inactivos</span>
+                            <span className="proyectos-legend-count">{proyectos.inactivos}</span>
+                            <span className="proyectos-legend-pct">{pctInactivos}%</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Link to="/admin/proyectos" className="btn-ver-proyectos">
+                        <Folder size={12} /> Ver todos los proyectos
+                      </Link>
+                    </>
+                  )}
+                </div>
 
               </div>
             </>

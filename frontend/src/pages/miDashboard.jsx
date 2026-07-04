@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Briefcase, CalendarOff, FileSignature, Wallet, Megaphone,
-  AlertCircle, MapPin, Users, ArrowRight, Info,
+  MapPin, Users, Info,
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -23,41 +24,25 @@ const estadoBadgeClass = (estado) => {
   return 'badge-licencia';
 };
 
-// ── Tarjeta contenedora reutilizable ────────────────────────────────────────
-function DashboardCard({ icon: Icon, title, linkTo, children }) {
+// ── Tarjeta de métrica (fila superior, igual que en el dashboard admin) ────
+function MetricCard({ icon: Icon, title, value, subtitle, badge }) {
   return (
-    <div style={{
-      background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px',
-      padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '14px',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '34px', height: '34px', borderRadius: '9px', background: '#eef2ff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Icon size={17} color="#4F46E5" />
-          </div>
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#111827' }}>{title}</h3>
-        </div>
-        {linkTo && (
-          <a href={linkTo} style={{
-            fontSize: '12px', color: '#4F46E5', fontWeight: 600,
-            display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none',
-          }}>
-            Ver más <ArrowRight size={12} />
-          </a>
-        )}
+    <div className="metric-card">
+      <div className="metric-header">
+        <p className="metric-title">{title}</p>
+        <Icon className="metric-icon" />
       </div>
-      {children}
+      <div className="metric-value">{value}</div>
+      {subtitle && <p className="metric-subtitle">{subtitle}</p>}
+      {badge && <span className={`metric-badge badge-${badge.tone}`}>{badge.text}</span>}
     </div>
   );
 }
 
 function EmptyMini({ text }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#9ca3af', fontSize: '13px' }}>
-      <Info size={14} /> {text}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '11px', padding: '8px 0' }}>
+      <Info size={13} /> {text}
     </div>
   );
 }
@@ -183,176 +168,157 @@ function Dashboard({ usuario, onLogout }) {
             </div>
           </div>
 
-          {/* ── Encabezado de perfil ──────────────────────────────────────── */}
-          <div style={{
-            background: 'linear-gradient(135deg, #4F46E5, #6366F1)',
-            borderRadius: '14px',
-            padding: '22px 26px',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '18px',
-            marginBottom: '22px',
-          }}>
-            <div style={{
-              width: '58px', height: '58px', borderRadius: '50%',
-              background: 'rgba(255,255,255,0.2)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-              fontSize: '20px', fontWeight: 700, flexShrink: 0,
-            }}>
-              {(usuario?.nombres?.[0] ?? '?').toUpperCase()}{(usuario?.apellidos?.[0] ?? '').toUpperCase()}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
-                {usuario?.nombres} {usuario?.apellidos}
-              </h2>
-              <p style={{ margin: '2px 0 10px', fontSize: '13px', opacity: 0.9 }}>
-                {esSupervisor ? 'Supervisor' : 'Trabajador'}
-                {!esSupervisor && asignacion?.cargo_operativo ? ` · ${asignacion.cargo_operativo}` : ''}
-              </p>
-              <div style={{
-                display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '12.5px', opacity: 0.95,
-              }}>
-                <span>RUT: {usuario?.rut ?? '—'}</span>
-                <span>{usuario?.correo ?? '—'}</span>
-                <span>{usuario?.telefono ?? '—'}</span>
-              </div>
-            </div>
-          </div>
-
           {loading ? (
-            <div className="tw-table-card">
-              <div className="tw-loading"><div className="tw-spinner" /> Cargando tu dashboard...</div>
+            <div className="dashboard-loading">
+              <div className="tw-spinner" /> Cargando tu dashboard...
             </div>
           ) : (
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px',
-            }}>
+            <>
+              {/* ── Métricas ──────────────────────────────────────────────── */}
+              <div className="metrics-grid">
+                <MetricCard
+                  icon={Briefcase}
+                  title={esSupervisor ? 'Mis Proyectos' : 'Mis Asignaciones'}
+                  value={errores.asignacion ? '—' : (asignacion ? 1 : 0)}
+                  subtitle={asignacion ? 'Asignación activa' : 'Sin asignación'}
+                />
+                <MetricCard
+                  icon={CalendarOff}
+                  title={esSupervisor ? 'Ausencias por revisar' : 'Mis Ausencias'}
+                  value={errores.ausencias ? '—' : ausenciasRelevantes.length}
+                  subtitle={ausenciasRelevantes.length === 0 ? 'Sin pendientes' : 'Requiere atención'}
+                  badge={esSupervisor && ausenciasRelevantes.length > 0 ? { tone: 'warning', text: 'Por revisar' } : null}
+                />
+                <MetricCard
+                  icon={FileSignature}
+                  title="Mi Contrato"
+                  value={errores.contrato ? '—' : (contrato ? (contrato.tipo_contrato || 'Contrato') : 'Sin contrato')}
+                  subtitle={contrato ? `Desde ${formatFecha(contrato.fecha_inicio)}` : ''}
+                  badge={contrato ? { tone: contrato.estado_contrato === 'Activo' ? 'success' : 'warning', text: contrato.estado_contrato } : null}
+                />
+                <MetricCard
+                  icon={Wallet}
+                  title="Mi Pago"
+                  value={errores.remuneracion ? '—' : (remuneracion
+                    ? formatMonto(Number(remuneracion.sueldo ?? 0) + Number(remuneracion.bono ?? 0) - Number(remuneracion.descuento ?? 0))
+                    : 0)}
+                  subtitle={remuneracion ? remuneracion.estado_pago : 'Sin pagos disponibles'}
+                />
+              </div>
 
-              {/* ── Asignación actual ─────────────────────────────────────── */}
-              <DashboardCard icon={Briefcase} title="Mi Asignación" linkTo={rutas.asignaciones}>
-                {errores.asignacion ? (
-                  <EmptyMini text="No se pudo cargar" />
-                ) : !asignacion ? (
-                  <EmptyMini text={esSupervisor ? 'Sin proyectos activos asignados' : 'Sin cuadrilla asignada'} />
-                ) : (
-                  <div style={{ fontSize: '13px', color: '#4b5563', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <strong style={{ color: '#111827', fontSize: '14px' }}>
-                      {esSupervisor ? asignacion.nombre_proyecto : asignacion.proyecto?.nombre_proyecto}
-                    </strong>
-                    {!esSupervisor && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Users size={12} /> {asignacion.nombre_cuadrilla}
-                      </span>
-                    )}
-                    {(esSupervisor ? asignacion.direccion : asignacion.proyecto?.direccion) && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <MapPin size={12} /> {esSupervisor ? asignacion.direccion : asignacion.proyecto?.direccion}
-                      </span>
-                    )}
+              {/* ── Mi Asignación y Avisos, uno al lado del otro ───────────── */}
+              <div className="alerts-coverage-wrapper">
+
+                <div className="coverage-section" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="section-header">
+                    <h3 className="section-title">
+                      <Briefcase size={13} /> {esSupervisor ? 'Mi Asignación Actual' : 'Mi Asignación'}
+                    </h3>
+                    <Link className="coverage-map-link" to={rutas.asignaciones}>Ver detalles →</Link>
                   </div>
-                )}
-              </DashboardCard>
 
-              {/* ── Ausencias ─────────────────────────────────────────────── */}
-              <DashboardCard
-                icon={CalendarOff}
-                title={esSupervisor ? 'Ausencias por revisar' : 'Mis Ausencias'}
-                linkTo={rutas.ausencias}
-              >
-                {errores.ausencias ? (
-                  <EmptyMini text="No se pudo cargar" />
-                ) : ausenciasRecientes.length === 0 ? (
-                  <EmptyMini text={esSupervisor ? 'Nada pendiente de revisión' : 'Sin ausencias registradas'} />
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {errores.asignacion ? (
+                    <EmptyMini text="No se pudo cargar" />
+                  ) : !asignacion ? (
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                      <EmptyMini text={esSupervisor ? 'Sin proyectos activos asignados' : 'Sin cuadrilla asignada'} />
+                    </div>
+                  ) : (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '14px', padding: '10px 4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div style={{
+                          width: '52px', height: '52px', borderRadius: '14px', background: 'var(--secondary-color)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        }}>
+                          <Briefcase size={24} color="var(--primary-color)" />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <strong style={{ fontSize: '16px', color: '#000' }}>
+                              {esSupervisor ? asignacion.nombre_proyecto : asignacion.proyecto?.nombre_proyecto}
+                            </strong>
+                            <span className="metric-badge badge-success">Activo</span>
+                          </div>
+                          {!esSupervisor && (
+                            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Users size={13} /> {asignacion.nombre_cuadrilla}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {(esSupervisor ? asignacion.direccion : asignacion.proyecto?.direccion) && (
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px',
+                          color: 'var(--text-secondary)', background: 'var(--secondary-color)',
+                          borderRadius: '8px', padding: '9px 12px',
+                        }}>
+                          <MapPin size={14} color="var(--primary-color)" />
+                          {esSupervisor ? asignacion.direccion : asignacion.proyecto?.direccion}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="alerts-section">
+                  <div className="section-header">
+                    <h3 className="section-title">
+                      <Megaphone size={13} /> Avisos Recientes
+                    </h3>
+                    <Link className="see-all-link" to={rutas.avisos}>Ver todos</Link>
+                  </div>
+
+                  {errores.avisos ? (
+                    <EmptyMini text="No se pudo cargar" />
+                  ) : avisos.length === 0 ? (
+                    <EmptyMini text="Sin avisos recientes" />
+                  ) : (
+                    <div className="alerts-grid">
+                      {avisos.slice(0, 3).map((av) => (
+                        <div key={av.id_aviso} className={`alert-card ${av.prioridad === 'urgente' ? 'alert-warning' : 'alert-default'}`}>
+                          <div className="alert-icon">
+                            <Megaphone size={12} />
+                          </div>
+                          <div className="alert-content">
+                            <p className="alert-title">{av.titulo}</p>
+                            <p className="alert-description">{formatFecha(av.fecha_publicacion)}</p>
+                          </div>
+                          {av.prioridad === 'urgente' && (
+                            <span className="alert-timestamp" style={{ color: 'var(--warning-color)', fontWeight: 600 }}>Urgente</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+              {/* ── Ausencias recientes ───────────────────────────────────── */}
+              {ausenciasRecientes.length > 0 && (
+                <div className="coverage-section" style={{ marginTop: '10px' }}>
+                  <div className="section-header">
+                    <h3 className="section-title">
+                      <CalendarOff size={13} /> {esSupervisor ? 'Ausencias por revisar' : 'Mis Ausencias Recientes'}
+                    </h3>
+                    <Link className="coverage-map-link" to={rutas.ausencias}>Ver más →</Link>
+                  </div>
+                  <div className="coverage-list">
                     {ausenciasRecientes.map((a) => (
-                      <div key={a.id_ausencia} style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px',
-                      }}>
-                        <span style={{ color: '#4b5563' }}>
+                      <div key={a.id_ausencia} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '10px', color: '#000' }}>
                           {esSupervisor ? `${a.trabajador?.nombres ?? 'Trabajador'} — ` : ''}{formatFecha(a.fecha_inicio)}
                         </span>
-                        <span className={`tw-badge ${estadoBadgeClass(a.estado)}`} style={{ fontSize: '11px' }}>
+                        <span className={`tw-badge ${estadoBadgeClass(a.estado)}`} style={{ fontSize: '9px' }}>
                           {a.estado}
                         </span>
                       </div>
                     ))}
                   </div>
-                )}
-              </DashboardCard>
-
-              {/* ── Contrato ──────────────────────────────────────────────── */}
-              <DashboardCard icon={FileSignature} title="Mi Contrato" linkTo={rutas.contratos}>
-                {errores.contrato ? (
-                  <EmptyMini text="No se pudo cargar" />
-                ) : !contrato ? (
-                  <EmptyMini text="Sin contrato registrado" />
-                ) : (
-                  <div style={{ fontSize: '13px', color: '#4b5563', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{contrato.tipo_contrato}</span>
-                      <span className={`tw-badge ${estadoBadgeClass(contrato.estado_contrato)}`} style={{ fontSize: '11px' }}>
-                        {contrato.estado_contrato}
-                      </span>
-                    </div>
-                    <span>Desde {formatFecha(contrato.fecha_inicio)}
-                      {contrato.fecha_termino ? ` hasta ${formatFecha(contrato.fecha_termino)}` : ' (indefinido)'}
-                    </span>
-                  </div>
-                )}
-              </DashboardCard>
-
-              {/* ── Pago ──────────────────────────────────────────────────── */}
-              <DashboardCard icon={Wallet} title="Mi Pago">
-                {errores.remuneracion ? (
-                  <EmptyMini text="No se pudo cargar" />
-                ) : !remuneracion ? (
-                  <EmptyMini text="Sin información de remuneración" />
-                ) : (
-                  <div style={{ fontSize: '13px', color: '#4b5563', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <strong style={{ color: '#111827', fontSize: '15px' }}>
-                        {formatMonto(
-                          Number(remuneracion.sueldo ?? 0) + Number(remuneracion.bono ?? 0) - Number(remuneracion.descuento ?? 0)
-                        )}
-                      </strong>
-                      <span className={`tw-badge ${estadoBadgeClass(remuneracion.estado_pago)}`} style={{ fontSize: '11px' }}>
-                        {remuneracion.estado_pago}
-                      </span>
-                    </div>
-                    <span>Sueldo {formatMonto(remuneracion.sueldo)} · Bono {formatMonto(remuneracion.bono)} · Descuento {formatMonto(remuneracion.descuento)}</span>
-                    <span>Fecha de pago: {formatFecha(remuneracion.fecha_pago)}</span>
-                  </div>
-                )}
-              </DashboardCard>
-
-              {/* ── Avisos ────────────────────────────────────────────────── */}
-              <DashboardCard icon={Megaphone} title="Avisos" linkTo={rutas.avisos}>
-                {errores.avisos ? (
-                  <EmptyMini text="No se pudo cargar" />
-                ) : avisos.length === 0 ? (
-                  <EmptyMini text="Sin avisos recientes" />
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {avisos.slice(0, 3).map((av) => (
-                      <div key={av.id_aviso}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <strong style={{ fontSize: '13px', color: '#111827' }}>{av.titulo}</strong>
-                          {av.prioridad === 'urgente' && (
-                            <span className="tw-badge badge-inactivo" style={{ fontSize: '10px' }}>urgente</span>
-                          )}
-                        </div>
-                        <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6b7280' }}>
-                          {formatFecha(av.fecha_publicacion)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </DashboardCard>
-
-            </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
