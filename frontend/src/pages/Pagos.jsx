@@ -336,9 +336,6 @@ export const Pagos = ({ usuario, onLogout }) => {
         <button className="pag-btn-save" onClick={buscarPorRut} disabled={buscando}>
           <Search size={14} /> {buscando ? "Buscando…" : "Buscar"}
         </button>
-        <button className="btn-nueva-remuneracion" onClick={abrirCrear}>
-          <Plus size={14} /> Nueva Remuneración
-        </button>
       </div>
 
       {/* Contador */}

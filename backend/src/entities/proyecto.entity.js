@@ -18,7 +18,7 @@ export const ProyectoSchema = new EntitySchema({
 
     id_supervisor: {
       type: "int",
-      nullable: false,
+      nullable: true,
     },
 
     nombre_proyecto: {

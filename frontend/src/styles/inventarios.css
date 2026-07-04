@@ -1,0 +1,764 @@
+/* ─── Tope ──────────────────────────────────────────────────────────────── */
+.inv-tope {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.inv-tope-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 2px;
+}
+
+.inv-tope-proyecto {
+  font-weight: 500;
+  color: #4F46E5;
+}
+
+.inv-tope-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ─── Grid principal ────────────────────────────────────────────────────── */
+.inv-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ─── Panel izquierdo ───────────────────────────────────────────────────── */
+.inv-left {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.inv-toolbar {
+  display: flex;
+  gap: 6px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.inv-filter-btn {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.inv-filter-btn:hover {
+  border-color: #4F46E5;
+  color: #4F46E5;
+}
+
+.inv-filter-btn.active {
+  background: #4F46E5;
+  border-color: #4F46E5;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ─── Lista inventarios ─────────────────────────────────────────────────── */
+.inv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.inv-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.inv-list-item:last-child {
+  border-bottom: none;
+}
+
+.inv-list-item:hover {
+  background: #f9fafb;
+}
+
+.inv-list-item.selected {
+  background: #EEF2FF;
+  border-left: 3px solid #4F46E5;
+}
+
+.inv-list-item.selected .inv-item-name {
+  color: #4F46E5;
+  font-weight: 600;
+}
+
+.inv-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.inv-arrow {
+  color: #9ca3af;
+  font-size: 16px;
+}
+
+/* ─── Panel derecho ─────────────────────────────────────────────────────── */
+.inv-right {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  min-height: 460px;
+}
+
+.inv-right-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 460px;
+  gap: 10px;
+  color: #9ca3af;
+}
+
+.inv-right-empty p {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ─── Detalle inventario ────────────────────────────────────────────────── */
+.inv-detail {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inv-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.inv-detail-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.inv-mat-subheader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inv-mat-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+/* ─── Tabla materiales ──────────────────────────────────────────────────── */
+.inv-mat-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.inv-mat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.inv-mat-table thead tr {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.inv-mat-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.inv-mat-table td {
+  padding: 11px 12px;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.inv-mat-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ─── Fila con stock bajo ───────────────────────────────────────────────── */
+.inv-row-low-stock td {
+  background: #fff5f5;
+}
+
+.inv-row-low-stock .inv-mat-name {
+  font-weight: 600;
+  color: #991b1b;
+}
+
+/* ─── Columnas tabla ────────────────────────────────────────────────────── */
+.inv-mat-name {
+  font-weight: 500;
+  color: #111827;
+  min-width: 130px;
+}
+
+.inv-mat-tipo {
+  color: #6b7280;
+  min-width: 90px;
+}
+
+.inv-mat-minimo {
+  color: #6b7280;
+}
+
+/* ─── Badge stock ───────────────────────────────────────────────────────── */
+.inv-stock-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.inv-stock-badge.low {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ─── Controles ajuste stock (+ -) ─────────────────────────────────────── */
+.inv-adjust-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.inv-adj-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+  line-height: 1;
+}
+
+.inv-adj-btn:hover:not(:disabled) {
+  background: #4F46E5;
+  border-color: #4F46E5;
+  color: #fff;
+}
+
+.inv-adj-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Input establecer stock ────────────────────────────────────────────── */
+.inv-stock-input-group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.inv-stock-input {
+  width: 90px;
+  padding: 5px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.inv-stock-input:focus {
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
+}
+
+.inv-stock-input.error {
+  border-color: #dc2626;
+}
+
+.inv-stock-input::placeholder {
+  color: #bcc3d9;
+  font-size: 11px;
+}
+
+.inv-stock-confirm-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.inv-stock-confirm-btn:hover:not(:disabled) {
+  background: #059669;
+  border-color: #059669;
+  color: #fff;
+}
+
+.inv-stock-confirm-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Acciones por fila ─────────────────────────────────────────────────── */
+.inv-mat-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.inv-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all 0.12s;
+}
+
+.inv-action-btn.edit {
+  color: #4F46E5;
+}
+
+.inv-action-btn.edit:hover {
+  background: #EEF2FF;
+  border-color: #4F46E5;
+}
+
+.inv-action-btn.delete {
+  color: #dc2626;
+}
+
+.inv-action-btn.delete:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+/* ─── Confirmación inline ───────────────────────────────────────────────── */
+.inv-confirm-row td {
+  padding: 0;
+  background: #fef2f2;
+}
+
+.inv-confirm-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #7f1d1d;
+  flex-wrap: wrap;
+}
+
+.inv-confirm-panel.inline {
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid #fecaca;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.inv-confirm-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.inv-btn-danger-sm {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #dc2626;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.inv-btn-danger-sm:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.inv-btn-danger-sm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inv-btn-cancel-sm {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.inv-btn-cancel-sm:hover {
+  background: #f9fafb;
+}
+
+/* ─── Paginación ────────────────────────────────────────────────────────── */
+.inv-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.inv-page-info {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.inv-page-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inv-page-btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.inv-page-btn:hover:not(:disabled) {
+  border-color: #4F46E5;
+  color: #4F46E5;
+}
+
+.inv-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.inv-page-btn.current {
+  background: #4F46E5;
+  border-color: #4F46E5;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ─── Botones principales ───────────────────────────────────────────────── */
+.inv-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #4F46E5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.inv-btn-primary:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.inv-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inv-btn-secondary {
+  padding: 8px 16px;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.inv-btn-secondary:hover {
+  border-color: #4F46E5;
+  color: #4F46E5;
+}
+
+.inv-btn-danger {
+  padding: 8px 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.inv-btn-danger:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* ─── Loading / Empty ───────────────────────────────────────────────────── */
+.inv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 20px;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.inv-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #4F46E5;
+  border-radius: 50%;
+  animation: invSpin 0.7s linear infinite;
+}
+
+@keyframes invSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Banners de error ──────────────────────────────────────────────────── */
+.inv-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.inv-action-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.inv-form-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* ─── Modales ───────────────────────────────────────────────────────────── */
+.inv-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+}
+
+.inv-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  overflow: hidden;
+  animation: invModalIn 0.2s ease;
+}
+
+.inv-modal-sm {
+  max-width: 360px;
+}
+
+@keyframes invModalIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.inv-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.inv-modal-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.inv-modal-close {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: background 0.15s;
+}
+
+.inv-modal-close:hover {
+  background: #e5e7eb;
+}
+
+.inv-modal-body {
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inv-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 22px 18px;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* ─── Formulario ────────────────────────────────────────────────────────── */
+.inv-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.inv-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.inv-field-full {
+  grid-column: span 2;
+}
+
+.inv-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inv-field input {
+  padding: 9px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.inv-field input:focus {
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+}
+
+.inv-field input::placeholder {
+  color: #bcc3d9;
+}

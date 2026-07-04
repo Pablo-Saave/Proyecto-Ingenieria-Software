@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/sidebar.css';
-import { LayoutDashboard, Users, Clock, FileText, DollarSign, CalendarOff, Briefcase, Bell, ClipboardList, Building2 } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, FileText, DollarSign, CalendarOff, Briefcase, Bell, ClipboardList, Building2, List } from 'lucide-react';
 
 // Menu por tipo de usuario
 const MENU_POR_ROL = {
@@ -15,6 +15,7 @@ const MENU_POR_ROL = {
     { id: 'pagos',        label: 'Pagos',           icon: DollarSign,      path: '/admin/pagos' },
     { id: 'asignaciones', label: 'Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
     { id: 'avisos',       label: 'Canales de Avisos', icon: Bell,          path: '/admin/avisos' },
+    { id: 'proyectos',    label: 'Proyectos',       icon: Building2,       path: '/admin/proyectos'}
   ],
   supervisor: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
@@ -22,6 +23,7 @@ const MENU_POR_ROL = {
     { id: 'mis-contratos',    label: 'Mis Contratos',     icon: FileText,        path: '/app/mis-contratos' },
     { id: 'ausencias',        label: 'Gestión de ausencias',         icon: Clock,           path: '/admin/ausencias' },
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/supervisor/avisos' },
+    { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'}
   ],
   trabajador: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },

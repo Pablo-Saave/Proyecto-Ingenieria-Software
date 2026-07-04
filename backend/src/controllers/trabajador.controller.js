@@ -4,9 +4,12 @@ import { AppDataSource } from "../config/configDb.js";
 import { In, Not } from "typeorm";
 import { TrabajadorSchema } from "../entities/trabajador.entity.js";
 import { AsignadoSchema }   from "../entities/asignado.entity.js";
+import { ProyectoSchema } from "../entities/proyecto.entity.js";
 
 const trabajadorRepo = AppDataSource.getRepository(TrabajadorSchema);
 const asignadoRepo   = AppDataSource.getRepository(AsignadoSchema);
+const proyectoRepo   = AppDataSource.getRepository(ProyectoSchema);
+
 
 // Valores válidos para tipo_usuario. Definir aquí para validación consistente.
 const TIPOS_USUARIO_VALIDOS = ["trabajador", "supervisor", "administrador"];
@@ -227,6 +230,65 @@ export async function getAllTrabajadoresSinCuadrilla(req, res) {
 
   } catch (error) {
     console.error("[getAllTrabajadoresSinCuadrilla]", error);
+    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+  }
+}
+
+
+
+
+
+
+
+
+
+/*
+ * Retorna todos los supervisores que no están asignados a ningún proyecto.
+ *
+ * Recibe:
+ *   token: { id_trabajador, tipo_usuario }  <- via authMiddleware
+ *
+ * Retorna 200:
+ *   {
+ *     status: "success",
+ *     data: [{ id_trabajador, nombres, apellidos, rut }]
+ *   }
+ */
+export async function getAllSupervisoresSinProyecto(req, res) {
+  try {
+    // ── Validación 1: solo administrador ──────────────────────────────────────
+    if (req.user?.tipo_usuario !== "administrador") {
+      return res.status(403).json({
+        status:  "error",
+        message: "Solo un administrador puede consultar esta información.",
+      });
+    }
+
+    // ── Validaciones 2 y 3: supervisores cuyo id no aparece en ningún proyecto ─
+    const proyectos = await proyectoRepo.find({
+      select: ["id_supervisor"],
+    });
+
+    const idsSupervisoresOcupados = proyectos
+      .map((p) => p.id_supervisor)
+      .filter((id) => id !== null);
+
+    const where = idsSupervisoresOcupados.length
+      ? { tipo_usuario: "supervisor", id_trabajador: Not(In(idsSupervisoresOcupados)) }
+      : { tipo_usuario: "supervisor" };
+
+    const supervisores = await trabajadorRepo.find({
+      where,
+      select: ["id_trabajador", "nombres", "apellidos", "rut"],
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data:   supervisores,
+    });
+
+  } catch (error) {
+    console.error("[getAllSupervisoresSinProyecto]", error);
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
