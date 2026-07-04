@@ -9,13 +9,13 @@ const MENU_POR_ROL = {
     { id: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, path: '/admin' },
     { id: 'trabajadores', label: 'Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
     { id: 'clientes',     label: 'Clientes',        icon: Building2,       path: '/admin/clientes' },
-    { id: 'ausencias',    label: 'Gestión de Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
+    { id: 'proyectos',    label: 'Proyectos',       icon: Building2,       path: '/admin/proyectos'},
     { id: 'contratos',    label: 'Contratos Laborales',       icon: FileText,        path: '/admin/contratos' },
     { id: 'contratos-proyecto', label: 'Contratos de Proyecto', icon: ClipboardList, path: '/admin/contratos-proyecto' },
     { id: 'pagos',        label: 'Pagos',           icon: DollarSign,      path: '/admin/pagos' },
+    { id: 'ausencias',    label: 'Gestión de Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
     { id: 'asignaciones', label: 'Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
     { id: 'avisos',       label: 'Canales de Avisos', icon: Bell,          path: '/admin/avisos' },
-    { id: 'proyectos',    label: 'Proyectos',       icon: Building2,       path: '/admin/proyectos'}
   ],
   supervisor: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
@@ -23,15 +23,15 @@ const MENU_POR_ROL = {
     { id: 'mis-contratos',    label: 'Mis Contratos',     icon: FileText,        path: '/app/mis-contratos' },
     { id: 'pagos',            label: 'Mis Pagos',         icon: DollarSign,      path: '/supervisor/pagos' },
     { id: 'ausencias',        label: 'Gestión de Ausencias',         icon: Clock,           path: '/admin/ausencias' },
+    { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'},
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/supervisor/avisos' },
-    { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'}
   ],
   trabajador: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
-    { id: 'mis-ausencias',    label: 'Mis Ausencias',     icon: CalendarOff,     path: '/app/mis-ausencias' },
     { id: 'mis-asignaciones', label: 'Mis Asignaciones',  icon: Briefcase,       path: '/app/mis-asignaciones' },
     { id: 'mis-contratos',    label: 'Mis Contratos',     icon: FileText,        path: '/app/mis-contratos' },
     { id: 'pagos',            label: 'Mis Pagos',         icon: DollarSign,      path: '/app/mis-pagos' },
+    { id: 'mis-ausencias',    label: 'Mis Ausencias',     icon: CalendarOff,     path: '/app/mis-ausencias' },
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/app/avisos' },
   ],
 };
