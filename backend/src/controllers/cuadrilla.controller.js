@@ -136,6 +136,81 @@ export async function deleteCuadrilla(req, res) {
 
 
 /***
+ * Soft Delete - Cambia el estado de una cuadrilla a "inactiva"
+ * Validaciones
+ * - El que realiza la peticion debe tener tipo_usuario = administrador
+ * - La cuadrilla debe existir
+ * - El proyecto al cual pertenece la cuadrilla debe tener estado = activo
+ * - La cuadrilla no debe estar inactiva
+ */
+export const inactivarCuadrilla = async (req, res) => {
+  try {
+    const { id_cuadrilla } = req.body;
+    const { tipo_usuario: tipo_solicitante } = req.user;
+
+    if (!id_cuadrilla) {
+      return res.status(400).json({
+        message: "El campo id_cuadrilla es obligatorio",
+      });
+    }
+
+    if (isNaN(Number(id_cuadrilla))) {
+      return res.status(400).json({
+        message: "id_cuadrilla debe ser numérico",
+      });
+    }
+
+    // 1. Validar que quien realiza la petición sea administrador
+    if (tipo_solicitante !== "administrador") {
+      return res.status(403).json({
+        message: "No tiene permisos para realizar esta acción",
+      });
+    }
+
+    // 2. Validar que la cuadrilla exista (con su proyecto, para validar estado)
+    const cuadrilla = await cuadrillaRepository.findOne({
+      where: { id_cuadrilla: Number(id_cuadrilla) },
+      relations: ["proyecto"],
+    });
+    if (!cuadrilla) {
+      return res.status(404).json({ message: "Cuadrilla no encontrada" });
+    }
+
+    // Validar que el proyecto al cual pertenece la cuadrilla esté activo
+    if (cuadrilla.proyecto.estado !== "activo") {
+      return res.status(409).json({
+        message: "No se puede inactivar la cuadrilla porque su proyecto no está activo",
+      });
+    }
+
+    // Validar que la cuadrilla no esté ya inactiva
+    if (cuadrilla.estado === "inactiva") {
+      return res.status(409).json({
+        message: "La cuadrilla ya se encuentra inactiva",
+      });
+    }
+
+    // Cambiar estado a "inactiva"
+    cuadrilla.estado = "inactiva";
+    await cuadrillaRepository.save(cuadrilla);
+
+    return res.status(200).json({
+      message: "Cuadrilla inactivada correctamente",
+      data: cuadrilla,
+    });
+  } catch (error) {
+    console.error("Error en inactivarCuadrilla:", error);
+    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
+  }
+};
+
+
+
+
+
+
+
+/***
  * Reactiva una Cuadrilla
  * Cambia el estado de una cuadrilla a "activa"
  * Validaciones:
@@ -146,7 +221,7 @@ export async function deleteCuadrilla(req, res) {
  */
 export const reactivarCuadrilla = async (req, res) => {
   try {
-    const { id_cuadrilla } = req.params;
+    const { id_cuadrilla } = req.body;
     const { tipo_usuario: tipo_solicitante } = req.user;
 
     if (isNaN(Number(id_cuadrilla))) {
@@ -198,6 +273,7 @@ export const reactivarCuadrilla = async (req, res) => {
     return res.status(500).json({ message: "Error interno del servidor", error: error.message });
   }
 };
+
 
 
 
