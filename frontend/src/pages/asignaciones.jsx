@@ -283,7 +283,7 @@ function Asignaciones({ usuario, onLogout }) {
             {/* ── Encabezado ──────────────────────────────────────────── */}
             <div className="asignaciones-header">
               <div>
-                <h1 className="vista-general-title">Asignaciones</h1>
+                <h1 className="vista-general-title">Cuadrillas</h1>
                 <p className="vista-general-subtitle">Gestiona las asignaciones de cuadrillas y trabajadores a proyectos.</p>
               </div>
               <button

@@ -31,5 +31,22 @@ export const getMisContratos = (id_trabajador) =>
 export const getMiRemuneracion = (rut) =>
   apiFetch('/api/remuneraciones/get', {
     method: 'POST',
-    body: JSON.stringify({ rut }),
+    body: JSON.stringify({ rut })
   });
+
+  // GET /api/contratos -> { status, data: [...] }
+export const getTodosLosContratos = () => 
+  apiFetch('/api/contratos');
+ 
+// GET /api/remuneraciones -> array directo (ver getRemuneraciones en tu controller)
+export const getTodasLasRemuneraciones = () => 
+  apiFetch('/api/remuneraciones');
+ 
+// Trabakadores sin cuadrilla
+export const getTrabajadoresSinCuadrilla = () => 
+  apiFetch('/api/trabajadores/sinCuadrilla');
+ 
+// Proyectos activos
+export const getResumenProyectos = () => 
+  apiFetch('/api/contratos-proyecto?limit=1000');
+

@@ -305,6 +305,17 @@ export const Pagos = ({ usuario, onLogout }) => {
   /* ─── JSX ───────────────────────────────────────────────────────────── */
   return (
     <AdminLayout usuario={usuario} onLogout={onLogout}>
+
+      {/* Encabezado */}
+      <div className="pag-header">
+        <div>
+          <h1 className="vista-general-title">Pagos</h1>
+          <p className="vista-general-subtitle">
+            Administra las remuneraciones, bonos, descuentos y estado de pago de los trabajadores.
+          </p>
+        </div>
+      </div>
+
       {/* Toolbar */}
       <div className="pag-toolbar">
         <div className="pag-search-wrapper">

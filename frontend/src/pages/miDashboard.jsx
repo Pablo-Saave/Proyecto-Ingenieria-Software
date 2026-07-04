@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   Briefcase, CalendarOff, FileSignature, Wallet, Megaphone,
   AlertCircle, MapPin, Users, ArrowRight, Info,
@@ -42,12 +41,12 @@ function DashboardCard({ icon: Icon, title, linkTo, children }) {
           <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#111827' }}>{title}</h3>
         </div>
         {linkTo && (
-          <Link to={linkTo} style={{
+          <a href={linkTo} style={{
             fontSize: '12px', color: '#4F46E5', fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none',
           }}>
             Ver más <ArrowRight size={12} />
-          </Link>
+          </a>
         )}
       </div>
       {children}
@@ -181,6 +180,43 @@ function Dashboard({ usuario, onLogout }) {
               <p className="vista-general-subtitle">
                 Hola {usuario?.nombres}, este es tu resumen personal
               </p>
+            </div>
+          </div>
+
+          {/* ── Encabezado de perfil ──────────────────────────────────────── */}
+          <div style={{
+            background: 'linear-gradient(135deg, #4F46E5, #6366F1)',
+            borderRadius: '14px',
+            padding: '22px 26px',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '18px',
+            marginBottom: '22px',
+          }}>
+            <div style={{
+              width: '58px', height: '58px', borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              fontSize: '20px', fontWeight: 700, flexShrink: 0,
+            }}>
+              {(usuario?.nombres?.[0] ?? '?').toUpperCase()}{(usuario?.apellidos?.[0] ?? '').toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
+                {usuario?.nombres} {usuario?.apellidos}
+              </h2>
+              <p style={{ margin: '2px 0 10px', fontSize: '13px', opacity: 0.9 }}>
+                {esSupervisor ? 'Supervisor' : 'Trabajador'}
+                {!esSupervisor && asignacion?.cargo_operativo ? ` · ${asignacion.cargo_operativo}` : ''}
+              </p>
+              <div style={{
+                display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '12.5px', opacity: 0.95,
+              }}>
+                <span>RUT: {usuario?.rut ?? '—'}</span>
+                <span>{usuario?.correo ?? '—'}</span>
+                <span>{usuario?.telefono ?? '—'}</span>
+              </div>
             </div>
           </div>
 
