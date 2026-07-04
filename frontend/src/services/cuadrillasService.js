@@ -25,18 +25,19 @@ export const crearCuadrilla = (datos) =>
     body: JSON.stringify(datos),
   });
 
-// Desactiva la cuadrilla (Soft delete)
-export const inactivarCuadrilla = (id_cuadrilla) =>
-  apiFetch('/api/cuadrilla', {
-    method: 'DELETE',
+export async function inactivarCuadrilla(id_cuadrilla) {
+  return apiFetch("/api/cuadrilla/inactivar/", {
+    method: "DELETE",
     body: JSON.stringify({ id_cuadrilla }),
   });
+}
 
-// Reactiva una cuadrilla oculta
-export const reactivarCuadrilla = (id_cuadrilla) =>
-  apiFetch(`/api/cuadrilla/reactivar/${id_cuadrilla}`, {
-    method: 'PATCH',
+export async function reactivarCuadrilla(id_cuadrilla) {
+  return apiFetch("/api/cuadrilla/reactivar/", {
+    method: "PATCH",
+    body: JSON.stringify({ id_cuadrilla }),
   });
+}
 
 // Cambia el nombre del equipo
 export const editarNombreCuadrilla = (datos) =>

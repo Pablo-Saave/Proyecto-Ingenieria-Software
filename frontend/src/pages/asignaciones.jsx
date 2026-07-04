@@ -15,6 +15,8 @@ import {
   eliminarSupervisorCuadrilla, //SE DEBE ELIMINAR POR REGLA DE NEGOCIO
   agregarTrabajadorCuadrilla,
   eliminarTrabajadorCuadrilla,
+  inactivarCuadrilla,
+  reactivarCuadrilla
 } from '../services/cuadrillasService';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
@@ -273,6 +275,22 @@ function Asignaciones({ usuario, onLogout }) {
     }
   };
 
+
+  const handleCambiarEstadoCuadrilla = async (cuadrilla) => {
+    try {
+      if (cuadrilla.estado === "activa") {
+        await inactivarCuadrilla(cuadrilla.id_cuadrilla);
+      } else {
+        await reactivarCuadrilla(cuadrilla.id_cuadrilla);
+      }
+
+      await reloadCuadrillas();
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="dashboard-wrapper">
@@ -461,12 +479,34 @@ function Asignaciones({ usuario, onLogout }) {
                                   <MoreVertical size={16} />
                                 </button>
                                 {menuAbierto === c.id_cuadrilla && (
-                                  <div className="context-menu" onMouseLeave={() => setMenuAbierto(null)}>
+                                  <div
+                                    className="context-menu"
+                                    onMouseLeave={() => setMenuAbierto(null)}
+                                  >
+                                    <button
+                                      className={`ctx-toggle ${
+                                        c.estado === "activa" ? "ctx-warning" : "ctx-success"
+                                      }`}
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        setMenuAbierto(null);
+                                        await handleCambiarEstadoCuadrilla(c);
+                                      }}
+                                    >
+                                      {c.estado === "activa"
+                                        ? "Desactivar cuadrilla"
+                                        : "Activar cuadrilla"}
+                                    </button>
+
                                     <button
                                       className="ctx-danger"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        setConfirmDelete({ tipo: 'cuadrilla', id_cuadrilla: c.id_cuadrilla, nombre: c.nombre_cuadrilla });
+                                        setConfirmDelete({
+                                          tipo: "cuadrilla",
+                                          id_cuadrilla: c.id_cuadrilla,
+                                          nombre: c.nombre_cuadrilla,
+                                        });
                                         setMenuAbierto(null);
                                       }}
                                     >
