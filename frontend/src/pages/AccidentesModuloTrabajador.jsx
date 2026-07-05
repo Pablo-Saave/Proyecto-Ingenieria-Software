@@ -122,7 +122,7 @@ function AccidentesModuloTrabajador({ usuario, onLogout }) {
               <h1 className="vista-general-title">
                 Mis Accidentes Laborales
                 {usuario?.nombres && (
-                  <span style={{ fontWeight: 400, color: '#6b7280' }}>
+                  <span className="al-tope-trabajador">
                     {' '}— {usuario.nombres} {usuario.apellidos}
                   </span>
                 )}

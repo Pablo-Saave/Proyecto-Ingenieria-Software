@@ -26,7 +26,6 @@ const MENU_POR_ROL = {
     { id: 'ausencias',        label: 'Gestión de Ausencias',         icon: Clock,           path: '/admin/ausencias' },
     { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'},
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/supervisor/avisos' },
-    { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'},
     { id: 'accidentes',       label: 'Accidentes Laborales', icon: Accessibility,      path: '/supervisor/accidentes-laborales'}
   ],
   trabajador: [

@@ -539,7 +539,7 @@
 }
 
 .inv-btn-primary:hover:not(:disabled) {
-  background: #2244cc;
+  background: #4466ff;
 }
 
 .inv-btn-primary:disabled {
