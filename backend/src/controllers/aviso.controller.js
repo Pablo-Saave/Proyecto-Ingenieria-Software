@@ -121,7 +121,7 @@ export const editarAviso = async (req, res) => {
   try {
     const { id_aviso } = req.params;
     const { titulo, contenido, prioridad } = req.body;
-    const { id_trabajador: id_solicitante } = req.user;
+    const { id_trabajador: id_solicitante, tipo_usuario } = req.user;
 
     // Valida que el id de aviso venga bien formado
     const errId = validarIdAviso(id_aviso);
@@ -131,13 +131,14 @@ export const editarAviso = async (req, res) => {
     const errCampos = validarCamposEditar({ titulo, contenido, prioridad });
     if (errCampos) return res.status(400).json({ message: errCampos });
 
-    // El service verifica que quien edita sea el autor del aviso
+    // El service verifica que quien edita sea el autor del aviso (o administrador)
     const data = await avisoService.editarAviso({
       id_aviso,
       titulo:    titulo?.trim(),
       contenido: contenido?.trim(),
       prioridad,
       id_solicitante,
+      tipo_usuario,
     });
 
     return res.status(200).json({ data });

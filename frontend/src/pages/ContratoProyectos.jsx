@@ -52,6 +52,12 @@ function getEstadoClass(estado) {
   return '';
 }
 
+function getIniciales(nombres = '', apellidos = '') {
+  const n = String(nombres || '').trim();
+  const a = String(apellidos || '').trim();
+  return ((n[0] || '') + (a[0] || '')).toUpperCase() || '?';
+}
+
 function mapContrato(c) {
   const p = c.proyecto || {};
   const cli = p.cliente || {};
@@ -68,6 +74,7 @@ function mapContrato(c) {
       nombre: p.nombre_proyecto || 'Proyecto sin nombre',
       direccion: p.direccion || '—',
       cliente: `${cli.nombres || ''} ${cli.apellidos || ''}`.trim() || 'Sin cliente',
+      cliente_iniciales: getIniciales(cli.nombres, cli.apellidos),
     },
     diasRestantes: calcularDiasRestantes(c.fecha_termino),
   };
@@ -729,6 +736,9 @@ function ContratoProyectos({ usuario, onLogout }) {
                       <tr key={contrato.id_contrato_proyecto}>
                         <td className="col-trabajador">
                           <div className="trabajador-info">
+                            <div className="cliente-avatar" title={contrato.proyecto.cliente}>
+                              {contrato.proyecto.cliente_iniciales}
+                            </div>
                             <div>
                               <div className="nombre">{contrato.proyecto.nombre}</div>
                               <div className="rut">{contrato.proyecto.direccion}</div>

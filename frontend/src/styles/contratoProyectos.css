@@ -182,6 +182,19 @@
 .contrato-proyecto-page .trabajador-info { display: flex; align-items: center; gap: 0.75rem; }
 .contrato-proyecto-page .trabajador-info .nombre { font-weight: 500; color: #000; font-size: 0.9rem; }
 .contrato-proyecto-page .trabajador-info .rut { font-size: 0.75rem; color: #9ca3af; font-weight: 400; }
+.contrato-proyecto-page .cliente-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
 .contrato-proyecto-page .estado-badge {
   display: inline-block;

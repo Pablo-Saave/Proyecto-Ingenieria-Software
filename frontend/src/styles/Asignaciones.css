@@ -227,62 +227,52 @@
    Acciones del menú contextual
 =================================*/
 
-.context-menu button {
+.acciones-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.context-menu {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.3rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-width: 145px;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.context-menu .ctx-item {
+    display: block;
     width: 100%;
     text-align: left;
-    padding: 10px 14px;
+    padding: 7px 10px;
     border: none;
     background: transparent;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #111827;
     transition: background .15s;
+    white-space: nowrap;
+    line-height: 1.15;
 }
 
-.context-menu button:hover {
+.context-menu .ctx-item:hover {
     background: #f3f4f6;
 }
 
-.ctx-warning {
-    color: #b45309;
-}
-
-.ctx-warning:hover {
-    background: #fef3c7 !important;
-}
-
-.ctx-success {
-    color: #15803d;
-}
-
-.ctx-success:hover {
-    background: #dcfce7 !important;
-}
-
-.ctx-danger {
+.context-menu .ctx-item.ctx-danger {
     color: #dc2626;
 }
 
-.ctx-danger:hover {
-    background: #fee2e2 !important;
+.context-menu .ctx-item.ctx-danger:hover {
+    background: #fee2e2;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
