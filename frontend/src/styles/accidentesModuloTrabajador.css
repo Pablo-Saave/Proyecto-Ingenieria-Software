@@ -15,6 +15,11 @@
   margin-top: 4px;
 }
 
+.al-tope-trabajador {
+  font-weight: 500;
+  color: #4466ff;
+}
+
 /* ─── Panel compartido (base para izquierdo y derecho) ──────────────────── */
 
 .al-panel {
