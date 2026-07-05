@@ -631,13 +631,6 @@ export const getAllCuadrillasAndWorkersByIdProyecto = async (req, res) => {
       return res.status(404).json({ message: "Proyecto no encontrado" });
     }
 
-    // Validacion 3: el proyecto debe estar activo
-    if (proyecto.estado !== "activo") {
-      return res.status(409).json({
-        message: "No se pueden listar las cuadrillas porque el proyecto no está activo",
-      });
-    }
-
     let { page = 1, limit = 10, orden } = req.query;
 
     page = Number(page);

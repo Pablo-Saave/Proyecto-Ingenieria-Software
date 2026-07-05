@@ -3,6 +3,7 @@
 import { AppDataSource } from "../config/configDb.js";
 import { ProyectoSchema } from "../entities/proyecto.entity.js";
 import { CuadrillaSchema } from "../entities/cuadrilla.entity.js";
+import { AsignadoSchema } from "../entities/asignado.entity.js";
 
 const ORDENES_VALIDOS = ["nombre_proyecto", "fecha_creacion"];
 const ESTADOS_VALIDOS = ["activo", "inactivo"];
@@ -189,6 +190,7 @@ export async function getAllProyectos(req, res) {
 
 /*
  * Cambia el estado de un proyecto a "inactivo" y todas sus cuadrillas a "inactiva".
+ * Ademas remueve a todos los trabajadores de sus cuadrillas, y al supervisor del proyecto.
  *
  * Recibe:
  *   params: { id_proyecto (int) }
@@ -208,27 +210,43 @@ export async function inactivarProyecto(req, res) {
   try {
     const { id_proyecto } = req.proyectoValidado;
 
-    // Paso 1: inactivar todas las cuadrillas del proyecto
+    // Paso 1: eliminar todos los trabajadores de las cuadrillas del proyecto.
+    await queryRunner.query(
+      `
+      DELETE FROM asignados
+      WHERE id_cuadrilla IN (
+          SELECT id_cuadrilla
+          FROM cuadrilla
+          WHERE id_proyecto = $1
+      )
+      `,
+      [id_proyecto]
+    );
+
+    // Paso 2: inactivar todas las cuadrillas del proyecto
     await queryRunner.manager
       .getRepository(CuadrillaSchema)
       .update({ id_proyecto }, { estado: "inactiva" });
 
-    // Paso 2: inactivar el proyecto
+    // Paso 3: inactivar el proyecto y desvincular al supervisor en una sola operación
     await queryRunner.manager
       .getRepository(ProyectoSchema)
-      .update({ id_proyecto }, { estado: "inactivo" });
+      .update({ id_proyecto }, { estado: "inactivo", id_supervisor: null });
 
     await queryRunner.commitTransaction();
 
     return res.status(200).json({
-      status:  "success",
+      status: "success",
       message: "Proyecto inactivado exitosamente.",
     });
 
   } catch (error) {
     await queryRunner.rollbackTransaction();
     console.error("[inactivarProyecto]", error);
-    return res.status(500).json({ status: "error", message: "Error interno del servidor." });
+    return res.status(500).json({
+      status: "error",
+      message: "Error interno del servidor.",
+    });
   } finally {
     await queryRunner.release();
   }

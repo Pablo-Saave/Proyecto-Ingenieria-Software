@@ -464,7 +464,7 @@ export default function Proyectos({ usuario, onLogout }) {
                           </button>
                         ) : (
                           <div className="proy-confirm-panel">
-                            <p>¿Desactivar <strong>{selectedProyecto.nombre_proyecto}</strong>? Sus cuadrillas también se inactivarán.</p>
+                            <p>¿Desactivar <strong>{selectedProyecto.nombre_proyecto}</strong>? El supervisor y sus trabajadores seran removidos del proyecto, ademas las cuadrillas se inactivarán.</p>
                             <div className="proy-confirm-panel-actions">
                               <button className="proy-btn-danger" onClick={handleInactivar} disabled={loadingAction}>
                                 {loadingAction ? 'Desactivando...' : 'Confirmar'}
