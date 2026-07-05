@@ -146,7 +146,7 @@ function AccidentesModuloAdministrador({ usuario, onLogout }) {
   );
   const tituloTope = proyectoSeleccionado
     ? proyectoSeleccionado.nombre_proyecto
-    : 'Sistema';
+    : '';
 
   // ==========================
   // Render
@@ -169,7 +169,7 @@ function AccidentesModuloAdministrador({ usuario, onLogout }) {
               <h1 className="vista-general-title">
                 Accidentes Laborales
                 <span className="aa-tope-proyecto">
-                  {' '}— {tituloTope}
+                  {' '} {tituloTope}
                 </span>
               </h1>
               <p className="vista-general-subtitle">
