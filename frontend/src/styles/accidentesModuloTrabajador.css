@@ -1,0 +1,382 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   accidentesModuloTrabajador.css
+   Prefijo: al-  (accidente laboral)
+   Comparte paleta y tokens con trabajadores.css:
+     Primary  #4F46E5 · Gray-50 #f9fafb · Border #e5e7eb · Text #111827
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Layout principal: tope + dos columnas ─────────────────────────────── */
+
+.al-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 20px;
+  align-items: start;
+  margin-top: 4px;
+}
+
+/* ─── Panel compartido (base para izquierdo y derecho) ──────────────────── */
+
+.al-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── Cabecera de panel ─────────────────────────────────────────────────── */
+
+.al-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.al-panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: 0.01em;
+}
+
+.al-panel-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #e5e7eb;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+/* ─── Lista de accidentes (panel izquierdo) ─────────────────────────────── */
+
+.al-list {
+  overflow-y: auto;
+  max-height: 508px;
+}
+
+.al-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.al-list-item:last-child {
+  border-bottom: none;
+}
+
+.al-list-item:hover {
+  background: #f9fafb;
+}
+
+.al-list-item.al-selected {
+  background: #eef2ff;
+  border-left-color: #4F46E5;
+}
+
+/* Avatar */
+.al-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+/* Info nombre + rut dentro del item */
+.al-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.al-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.al-item-rut {
+  font-size: 11px;
+  font-family: monospace;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Fecha alineada a la derecha */
+.al-item-fecha {
+  font-size: 11px;
+  color: #9ca3af;
+  white-space: nowrap;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ─── Paginación (panel izquierdo) ──────────────────────────────────────── */
+
+.al-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.al-page-info {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.al-page-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.al-page-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.al-page-btn:hover:not(:disabled) {
+  border-color: #4F46E5;
+  color: #4F46E5;
+}
+
+.al-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ─── Empty / loading dentro del panel izquierdo ───────────────────────── */
+
+.al-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 52px 20px;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+/* ─── Panel derecho: detalle ────────────────────────────────────────────── */
+
+.al-detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 80px 24px;
+  color: #9ca3af;
+  font-size: 13px;
+  text-align: center;
+  min-height: 360px;
+}
+
+.al-detail-empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d1d5db;
+}
+
+.al-detail-empty p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Cabecera del detalle */
+.al-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.al-detail-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.al-detail-id {
+  font-size: 11px;
+  font-family: monospace;
+  color: #6b7280;
+  background: #e5e7eb;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+/* Cuerpo del detalle */
+.al-detail-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Sección con título separador */
+.al-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 12px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Grid de campos dentro de cada sección */
+.al-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+}
+
+.al-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.al-field-full {
+  grid-column: span 2;
+}
+
+.al-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.al-field-value {
+  font-size: 14px;
+  color: #111827;
+  line-height: 1.45;
+}
+
+.al-field-value-mono {
+  font-family: monospace;
+  font-size: 13px;
+  color: #374151;
+}
+
+.al-field-value-muted {
+  font-size: 13px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* ─── Badges de gravedad (extienden sistema tw-badge) ───────────────────── */
+
+/* tw-badge base ya viene de trabajadores.css / global,
+   aquí solo agregamos los modificadores de color propios */
+
+.badge-grave {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.badge-fatal {
+  background: #1f2937;
+  color: #f9fafb;
+}
+
+/* Reutilizamos badge-activo (leve → verde) y badge-licencia (moderado → amarillo)
+   que vienen del CSS global, sin redefinirlos aquí */
+
+/* ─── tw-* — incluidos por si el CSS global no los carga en este módulo ─── */
+
+.tw-loading,
+.tw-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.tw-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #4F46E5;
+  border-radius: 50%;
+  animation: al-spin 0.7s linear infinite;
+}
+
+@keyframes al-spin {
+  to { transform: rotate(360deg); }
+}
+
+.tw-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.tw-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge-activo  { background: #d1fae5; color: #065f46; }
+.badge-licencia { background: #fef3c7; color: #92400e; }
+.badge-inactivo { background: #fee2e2; color: #991b1b; }

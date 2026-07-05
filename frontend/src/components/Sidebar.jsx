@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/sidebar.css';
-import { LayoutDashboard, Users, Clock, FileText, DollarSign, CalendarOff, Briefcase, Bell, ClipboardList, Building2, List } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, FileText, DollarSign, CalendarOff, Briefcase, Bell, ClipboardList, Building2, List, Accessibility } from 'lucide-react';
 
 // Menu por tipo de usuario
 const MENU_POR_ROL = {
@@ -16,6 +16,8 @@ const MENU_POR_ROL = {
     { id: 'ausencias',    label: 'Gestión de Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
     { id: 'asignaciones', label: 'Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
     { id: 'avisos',       label: 'Canales de Avisos', icon: Bell,          path: '/admin/avisos' },
+    { id: 'proyectos',    label: 'Proyectos',       icon: Building2,       path: '/admin/proyectos'},
+    { id: 'accidentes-laborales', label: 'Accidentes', icon: Accessibility, path: '/admin/accidentes-laborales'}
   ],
   supervisor: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
@@ -25,6 +27,8 @@ const MENU_POR_ROL = {
     { id: 'ausencias',        label: 'Gestión de Ausencias',         icon: Clock,           path: '/admin/ausencias' },
     { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'},
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/supervisor/avisos' },
+    { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'},
+    { id: 'accidentes',       label: 'Accidentes Laborales', icon: Accessibility,      path: '/supervisor/accidentes-laborales'}
   ],
   trabajador: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
@@ -33,6 +37,7 @@ const MENU_POR_ROL = {
     { id: 'pagos',            label: 'Mis Remuneraciones', icon: DollarSign,      path: '/app/mis-pagos' },
     { id: 'mis-ausencias',    label: 'Mis Ausencias',     icon: CalendarOff,     path: '/app/mis-ausencias' },
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/app/avisos' },
+    { id: 'mis-accidentes',   label: 'Mis Accidentes',    icon: Accessibility,   path: '/app/mis-accidentes'}
   ],
 };
 

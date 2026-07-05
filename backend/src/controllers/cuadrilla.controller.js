@@ -1570,77 +1570,86 @@ export const despojarBodeguero = async (req, res) => {
 
 
 
-
-// controllers/cuadrilla.controller.js
-
-
-
 /*
  * GET /supervisor/misCuadrillasAndIntegrantes
  *
- * Recibe:
- *   - req.user.id_trabajador  (desde el token JWT via authMiddleware)
+ * Recibe (query, todos opcionales):
+ *   page_cuadrillas   (int) – página de cuadrillas         (default: sin paginar)
+ *   limit_cuadrillas  (int) – cuadrillas por página        (default: sin paginar)
+ *   page_integrantes  (int) – página de integrantes        (default: sin paginar)
+ *   limit_integrantes (int) – integrantes por página       (default: sin paginar)
+ *   token: { id_trabajador } <- via authMiddleware
  *
- * Validación:
- *   - El id_trabajador del token debe coincidir con el campo id_supervisor
- *     de al menos un Proyecto activo (es decir, el usuario autenticado
- *     debe ser supervisor de algún proyecto).
+ * Retorna 200 SIN paginación (comportamiento por defecto):
+ *   {
+ *     status: "success",
+ *     data: [
+ *       {
+ *         id_cuadrilla, id_proyecto, nombre_cuadrilla, fecha_creacion, estado,
+ *         integrantes: [{ id_trabajador, rut, nombres, apellidos, telefono,
+ *                         correo, direccion, fecha_nacimiento, fecha_ingreso,
+ *                         estado_laboral, cargo_operativo, tipo_jornada, fecha_asignacion }]
+ *       }
+ *     ]
+ *   }
  *
- * Retorna:
- *   [
- *     {
- *       id_cuadrilla,
- *       id_proyecto,
- *       nombre_cuadrilla,
- *       fecha_creacion,
- *       estado,
- *       integrantes: [
- *         {
- *           id_trabajador,
- *           rut,
- *           nombres,
- *           apellidos,
- *           telefono,
- *           correo,
- *           direccion,
- *           fecha_nacimiento,
- *           fecha_ingreso,
- *           estado_laboral,
- *           cargo_operativo,    <- viene de Asignado
- *           tipo_jornada,       <- viene de Asignado
- *           fecha_asignacion    <- viene de Asignado
- *         }
- *       ]
+ * Retorna 200 CON paginación (cuando se envían los params):
+ *   {
+ *     status: "success",
+ *     data: [ ...misma estructura... ],
+ *     meta: {
+ *       cuadrillas: { total, page, limit, totalPages },
+ *       integrantes: { page, limit }   <- aplica a cada cuadrilla individualmente
  *     }
- *   ]
+ *   }
  */
 export async function getMyCuadrillasAndIntegrantesFromToken(req, res) {
   try {
     const id_trabajador = req.user.id_trabajador;
 
-    const proyectoRepo  = AppDataSource.getRepository(ProyectoSchema);
+    // ── Parámetros de paginación opcionales ───────────────────────────────────
+    const paginarCuadrillas  = req.query.page_cuadrillas !== undefined || req.query.limit_cuadrillas !== undefined;
+    const paginarIntegrantes = req.query.page_integrantes !== undefined || req.query.limit_integrantes !== undefined;
+
+    const pageCuad  = Math.max(1, parseInt(req.query.page_cuadrillas)   || 1);
+    const limitCuad = Math.max(1, parseInt(req.query.limit_cuadrillas)  || 10);
+
+    const pageInt   = Math.max(1, parseInt(req.query.page_integrantes)  || 1);
+    const limitInt  = Math.max(1, parseInt(req.query.limit_integrantes) || 10);
+
+    const proyectoRepo   = AppDataSource.getRepository(ProyectoSchema);
     const cuadrillaRepository = AppDataSource.getRepository(CuadrillaSchema);
 
     // ── Paso 1: proyectos activos donde este trabajador es supervisor ─────────
     const proyectos = await proyectoRepo.find({
-      where: { id_supervisor: id_trabajador, estado: "activo" },
+      where:  { id_supervisor: id_trabajador, estado: "activo" },
       select: ["id_proyecto"],
     });
 
-    // ── Validación 1: debe supervisar al menos un proyecto ────────────────────
     if (!proyectos.length) {
       return res.status(403).json({
-        status: "error",
+        status:  "error",
         message: "No tienes proyectos activos asignados como supervisor.",
       });
     }
 
     const idProyectos = proyectos.map((p) => p.id_proyecto);
 
-    // ── Paso 2: cuadrillas de esos proyectos ──────────────────────────────────
-    const cuadrillas = await cuadrillaRepository.find({
+    // ── Paso 2: cuadrillas (con o sin paginación) ─────────────────────────────
+    const findOptions = {
       where: { id_proyecto: In(idProyectos) },
-    });
+      order: { nombre_cuadrilla: "ASC" },
+    };
+
+    let totalCuadrillas = 0;
+
+    if (paginarCuadrillas) {
+      findOptions.skip = (pageCuad - 1) * limitCuad;
+      findOptions.take = limitCuad;
+    }
+
+    const [cuadrillas, total] = await cuadrillaRepository.findAndCount(findOptions);
+    totalCuadrillas = total;
 
     if (!cuadrillas.length) {
       return res.status(200).json({ status: "success", data: [] });
@@ -1648,11 +1657,13 @@ export async function getMyCuadrillasAndIntegrantesFromToken(req, res) {
 
     const idCuadrillas = cuadrillas.map((c) => c.id_cuadrilla);
 
-    // ── Paso 3: asignados con datos del trabajador (un solo query, sin N+1) ───
+    // ── Paso 3: asignados con datos del trabajador ────────────────────────────
     const asignados = await AppDataSource.getRepository(AsignadoSchema)
       .createQueryBuilder("a")
       .innerJoinAndSelect("a.trabajador", "t")
       .where("a.id_cuadrilla IN (:...ids)", { ids: idCuadrillas })
+      .orderBy("t.apellidos", "ASC")
+      .addOrderBy("t.nombres", "ASC")
       .getMany();
 
     // ── Paso 4: agrupar asignados por id_cuadrilla ────────────────────────────
@@ -1666,33 +1677,65 @@ export async function getMyCuadrillasAndIntegrantesFromToken(req, res) {
       }
 
       integrantesPorCuadrilla[id_cuadrilla].push({
-        id_trabajador:   trabajador.id_trabajador,
-        rut:             trabajador.rut,
-        nombres:         trabajador.nombres,
-        apellidos:       trabajador.apellidos,
-        telefono:        trabajador.telefono,
-        correo:          trabajador.correo,
-        direccion:       trabajador.direccion,
+        id_trabajador:    trabajador.id_trabajador,
+        rut:              trabajador.rut,
+        nombres:          trabajador.nombres,
+        apellidos:        trabajador.apellidos,
+        telefono:         trabajador.telefono,
+        correo:           trabajador.correo,
+        direccion:        trabajador.direccion,
         fecha_nacimiento: trabajador.fecha_nacimiento,
-        fecha_ingreso:   trabajador.fecha_ingreso,
-        estado_laboral:  trabajador.estado_laboral,
+        fecha_ingreso:    trabajador.fecha_ingreso,
+        estado_laboral:   trabajador.estado_laboral,
         cargo_operativo,
         tipo_jornada,
         fecha_asignacion,
       });
     }
 
-    // ── Paso 5: armar respuesta final ─────────────────────────────────────────
-    const data = cuadrillas.map((cuadrilla) => ({
-      id_cuadrilla:    cuadrilla.id_cuadrilla,
-      id_proyecto:     cuadrilla.id_proyecto,
-      nombre_cuadrilla: cuadrilla.nombre_cuadrilla,
-      fecha_creacion:  cuadrilla.fecha_creacion,
-      estado:          cuadrilla.estado,
-      integrantes:     integrantesPorCuadrilla[cuadrilla.id_cuadrilla] ?? [],
-    }));
+    // ── Paso 5: armar respuesta, aplicando paginación de integrantes si aplica
+    const data = cuadrillas.map((cuadrilla) => {
+      let integrantes = integrantesPorCuadrilla[cuadrilla.id_cuadrilla] ?? [];
 
-    return res.status(200).json({ status: "success", data });
+      if (paginarIntegrantes) {
+        const skip = (pageInt - 1) * limitInt;
+        integrantes = integrantes.slice(skip, skip + limitInt);
+      }
+
+      return {
+        id_cuadrilla:     cuadrilla.id_cuadrilla,
+        id_proyecto:      cuadrilla.id_proyecto,
+        nombre_cuadrilla: cuadrilla.nombre_cuadrilla,
+        fecha_creacion:   cuadrilla.fecha_creacion,
+        estado:           cuadrilla.estado,
+        integrantes,
+      };
+    });
+
+    // ── Paso 6: construir respuesta con meta solo si se paginó ────────────────
+    const response = { status: "success", data };
+
+    if (paginarCuadrillas || paginarIntegrantes) {
+      response.meta = {};
+
+      if (paginarCuadrillas) {
+        response.meta.cuadrillas = {
+          total:      totalCuadrillas,
+          page:       pageCuad,
+          limit:      limitCuad,
+          totalPages: Math.ceil(totalCuadrillas / limitCuad),
+        };
+      }
+
+      if (paginarIntegrantes) {
+        response.meta.integrantes = {
+          page:  pageInt,
+          limit: limitInt,
+        };
+      }
+    }
+
+    return res.status(200).json(response);
 
   } catch (error) {
     console.error("[getMyCuadrillasAndIntegrantesFromToken]", error);
