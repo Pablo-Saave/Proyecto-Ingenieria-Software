@@ -20,6 +20,7 @@ import CanalesAvisosAdmin     from './pages/CanalesAvisosAdmin';
 import CanalesAvisosSupervisor from './pages/CanalesAvisosSupervisor';
 import CanalesAvisosTrabajador from './pages/CanalesAvisosTrabajador';
 import AccidentesModuloTrabajador from './pages/AccidentesModuloTrabajador';
+import AccidentesModuloSupervisor from './pages/AccidentesModuloSupervisor';
 import CambiarPassword from './pages/CambiarPassword';
 import Proyectos  from './pages/Proyectos';
 
@@ -28,6 +29,7 @@ import { getUsuarioLocal, logoutClean } from './services/authService';
 import { NotificacionesProvider } from './context/NotificacionesContext';
 import './styles/globals.css';
 import Inventarios from './pages/Inventario';
+import AccidentesModuloAdministrador from './pages/AccidentesModuloAdministrador';
 
 function ProtectedRoute({ isLoggedIn, children }) {
   return isLoggedIn ? children : <Navigate to="/login" replace />;
@@ -81,6 +83,8 @@ function App() {
         <Route path="/admin/asignaciones" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Asignaciones {...pageProps} /></RolRoute>} />
         <Route path="/admin/avisos"       element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><CanalesAvisosAdmin {...pageProps} /></RolRoute>} />
         <Route path="/admin/proyectos"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Proyectos {...pageProps} ></Proyectos></RolRoute>}/>
+        <Route path="/admin/accidentes-laborales"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}> <AccidentesModuloAdministrador {...pageProps} ></AccidentesModuloAdministrador> </RolRoute>}/>
+
 
         {/* Administrador + Supervisor */}
         <Route path="/admin/ausencias"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador', 'supervisor']}><Ausencias {...pageProps} /></RolRoute>} />
@@ -89,6 +93,8 @@ function App() {
         <Route path="/supervisor/contratos" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><ContratosSupervisor {...pageProps} /></RolRoute>} />
         <Route path="/supervisor/avisos"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><CanalesAvisosSupervisor {...pageProps} /></RolRoute>} />
         <Route path="/supervisor/inventario"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}> <Inventarios {...pageProps} ></Inventarios> </RolRoute>} />
+        <Route path="/supervisor/accidentes-laborales"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}> <AccidentesModuloSupervisor {...pageProps} /> </RolRoute>} />
+
 
         {/* Solo Trabajador */}
         <Route path="/app/mis-accidentes"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['trabajador']} > <AccidentesModuloTrabajador {...pageProps} >a</AccidentesModuloTrabajador> </RolRoute>} />

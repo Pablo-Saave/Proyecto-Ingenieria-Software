@@ -1,7 +1,7 @@
 // controllers/accidenteLaboral.controller.js
 
 import { AppDataSource } from "../config/configDb.js";
-import { AccidenteLaboralSchema } from "../entity/accidente_laboral.entity.js";
+import { AccidenteLaboralSchema } from "../entities/accidente_laboral.entity.js";
 import { handleErrorServer, handleSuccess } from "../handlers/responseHandlers.js";
 
 const repo = AppDataSource.getRepository(AccidenteLaboralSchema);
@@ -31,8 +31,9 @@ const repo = AppDataSource.getRepository(AccidenteLaboralSchema);
  *     status: { total, page, limit, totalPages },
  *     data: [
  *       {
- *         id_accidente, id_trabajador, id_cuadrilla,
+ *         id_accidente, id_trabajador, id_cuadrilla, nombre_cuadrilla,
  *         fecha_accidente, descripcion, gravedad, traslado, observaciones,
+ *         proyecto: { id_proyecto, nombre_proyecto, id_supervisor, supervisor: { nombres, apellidos } },
  *         trabajador: { id_trabajador, rut, nombres, apellidos, sexo, telefono, correo, estado_laboral }
  *       },
  *       ...
@@ -47,17 +48,17 @@ export async function getAllAccidentesLaborales(req, res) {
 
     const { id_proyecto, rut } = req.query;
 
-
     const qb = repo
       .createQueryBuilder("accidente")
       .leftJoinAndSelect("accidente.trabajador", "trabajador")
       .leftJoinAndSelect("accidente.cuadrilla",  "cuadrilla")
-      .orderBy("accidente.fecha_accidente", "DESC")
-      .skip(skip)
-      .take(limit);
+      .leftJoinAndSelect("cuadrilla.proyecto",   "proyecto")
+      .leftJoin("Trabajador", "supervisor", "supervisor.id_trabajador = proyecto.id_supervisor")
+      .addSelect(["supervisor.nombres", "supervisor.apellidos"])
+      .orderBy("accidente.fecha_accidente", "DESC");
 
     if (id_proyecto) {
-      qb.andWhere("cuadrilla.id_proyecto = :id_proyecto", {
+      qb.andWhere("proyecto.id_proyecto = :id_proyecto", {
         id_proyecto: parseInt(id_proyecto),
       });
     }
@@ -66,36 +67,42 @@ export async function getAllAccidentesLaborales(req, res) {
       qb.andWhere("trabajador.rut = :rut", { rut: rut.trim() });
     }
 
-    const [accidentes, total] = await qb.getManyAndCount();
+    const total = await qb.getCount();
+    const { raw, entities } = await qb.skip(skip).take(limit).getRawAndEntities();
 
-    const data = accidentes.map(({ trabajador, ...accidente }) => ({
-      id_accidente:     accidente.id_accidente,
-      id_trabajador:    accidente.id_trabajador,
-      id_cuadrilla:     accidente.id_cuadrilla,
-      fecha_accidente:  accidente.fecha_accidente,
-      descripcion:      accidente.descripcion,
-      gravedad:         accidente.gravedad,
-      traslado:         accidente.traslado,
-      observaciones:    accidente.observaciones ?? null,
+    const data = entities.map((accidente, i) => ({
+      id_accidente:    accidente.id_accidente,
+      id_trabajador:   accidente.id_trabajador,
+      id_cuadrilla:    accidente.id_cuadrilla,
+      nombre_cuadrilla:  accidente.cuadrilla.nombre_cuadrilla,
+      fecha_accidente: accidente.fecha_accidente,
+      descripcion:     accidente.descripcion,
+      gravedad:        accidente.gravedad,
+      traslado:        accidente.traslado,
+      observaciones:   accidente.observaciones ?? null,
+      proyecto: {
+        id_proyecto:     accidente.cuadrilla.proyecto.id_proyecto,
+        nombre_proyecto: accidente.cuadrilla.proyecto.nombre_proyecto,
+        id_supervisor:   accidente.cuadrilla.proyecto.id_supervisor,
+        supervisor: {
+          nombres:   raw[i].supervisor_nombres   ?? null,
+          apellidos: raw[i].supervisor_apellidos ?? null,
+        },
+      },
       trabajador: {
-        id_trabajador:  trabajador.id_trabajador,
-        rut:            trabajador.rut,
-        nombres:        trabajador.nombres,
-        apellidos:      trabajador.apellidos,
-        sexo:           trabajador.sexo,
-        telefono:       trabajador.telefono,
-        correo:         trabajador.correo,
-        estado_laboral: trabajador.estado_laboral,
+        id_trabajador:  accidente.trabajador.id_trabajador,
+        rut:            accidente.trabajador.rut,
+        nombres:        accidente.trabajador.nombres,
+        apellidos:      accidente.trabajador.apellidos,
+        sexo:           accidente.trabajador.sexo,
+        telefono:       accidente.trabajador.telefono,
+        correo:         accidente.trabajador.correo,
+        estado_laboral: accidente.trabajador.estado_laboral,
       },
     }));
 
     return handleSuccess(res, 200, "Accidentes laborales obtenidos correctamente.", {
-      status: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      status: { total, page, limit, totalPages: Math.ceil(total / limit) },
       data,
     });
 
@@ -119,16 +126,14 @@ export async function getAllAccidentesLaborales(req, res) {
  *
  * Retorna una lista paginada de los accidentes laborales del proyecto
  * al cual pertenece el supervisor autenticado.
- *
  * La restricción de pertenencia se aplica vía:
  *   accidente → cuadrilla → proyecto WHERE proyecto.id_supervisor = req.user.id_trabajador
- * Esto garantiza que un supervisor solo acceda a los accidentes de su propio proyecto.
  *
  * Recibe (query):
- *   - page         {number}  [opcional, default: 1]   — número de página
- *   - limit        {number}  [opcional, default: 10]  — registros por página
- *   - id_cuadrilla {number}  [opcional]               — filtra por cuadrilla específica del proyecto
- *   - rut          {string}  [opcional]               — filtra accidentes del trabajador con ese rut
+ *   - page         {number}  [opcional, default: 1]
+ *   - limit        {number}  [opcional, default: 10]
+ *   - id_cuadrilla {number}  [opcional] — filtra por cuadrilla específica del proyecto
+ *   - rut          {string}  [opcional] — filtra accidentes del trabajador con ese rut
  *
  * Recibe (headers):
  *   - Authorization: Bearer <token>  (procesado por authMiddleware → req.user)
@@ -138,8 +143,9 @@ export async function getAllAccidentesLaborales(req, res) {
  *     status: { total, page, limit, totalPages },
  *     data: [
  *       {
- *         id_accidente, id_trabajador, id_cuadrilla,
+ *         id_accidente, id_trabajador, id_cuadrilla, id_cuadrilla,
  *         fecha_accidente, descripcion, gravedad, traslado, observaciones,
+ *         proyecto: { id_proyecto, nombre_proyecto, id_supervisor, supervisor: { nombres, apellidos } },
  *         trabajador: { id_trabajador, rut, nombres, apellidos, sexo, telefono, correo, estado_laboral }
  *       },
  *       ...
@@ -158,12 +164,12 @@ export async function getAccidentesFromMyProyecto(req, res) {
     const qb = repo
       .createQueryBuilder("accidente")
       .leftJoinAndSelect("accidente.trabajador", "trabajador")
-      .innerJoin("accidente.cuadrilla", "cuadrilla")
-      .innerJoin("cuadrilla.proyecto", "proyecto")
+      .leftJoinAndSelect("accidente.cuadrilla",  "cuadrilla")
+      .leftJoinAndSelect("cuadrilla.proyecto",   "proyecto")
+      .leftJoin("Trabajador", "supervisor", "supervisor.id_trabajador = proyecto.id_supervisor")
+      .addSelect(["supervisor.nombres", "supervisor.apellidos"])
       .where("proyecto.id_supervisor = :id_supervisor", { id_supervisor })
-      .orderBy("accidente.fecha_accidente", "DESC")
-      .skip(skip)
-      .take(limit);
+      .orderBy("accidente.fecha_accidente", "DESC");
 
     if (id_cuadrilla) {
       qb.andWhere("cuadrilla.id_cuadrilla = :id_cuadrilla", {
@@ -175,36 +181,42 @@ export async function getAccidentesFromMyProyecto(req, res) {
       qb.andWhere("trabajador.rut = :rut", { rut: rut.trim() });
     }
 
-    const [accidentes, total] = await qb.getManyAndCount();
+    const total = await qb.getCount();
+    const { raw, entities } = await qb.skip(skip).take(limit).getRawAndEntities();
 
-    const data = accidentes.map(({ trabajador, ...accidente }) => ({
+    const data = entities.map((accidente, i) => ({
       id_accidente:    accidente.id_accidente,
       id_trabajador:   accidente.id_trabajador,
       id_cuadrilla:    accidente.id_cuadrilla,
+      nombre_cuadrilla:  accidente.cuadrilla.nombre_cuadrilla,
       fecha_accidente: accidente.fecha_accidente,
       descripcion:     accidente.descripcion,
       gravedad:        accidente.gravedad,
       traslado:        accidente.traslado,
       observaciones:   accidente.observaciones ?? null,
+      proyecto: {
+        id_proyecto:     accidente.cuadrilla.proyecto.id_proyecto,
+        nombre_proyecto: accidente.cuadrilla.proyecto.nombre_proyecto,
+        id_supervisor:   accidente.cuadrilla.proyecto.id_supervisor,
+        supervisor: {
+          nombres:   raw[i].supervisor_nombres   ?? null,
+          apellidos: raw[i].supervisor_apellidos ?? null,
+        },
+      },
       trabajador: {
-        id_trabajador:  trabajador.id_trabajador,
-        rut:            trabajador.rut,
-        nombres:        trabajador.nombres,
-        apellidos:      trabajador.apellidos,
-        sexo:           trabajador.sexo,
-        telefono:       trabajador.telefono,
-        correo:         trabajador.correo,
-        estado_laboral: trabajador.estado_laboral,
+        id_trabajador:  accidente.trabajador.id_trabajador,
+        rut:            accidente.trabajador.rut,
+        nombres:        accidente.trabajador.nombres,
+        apellidos:      accidente.trabajador.apellidos,
+        sexo:           accidente.trabajador.sexo,
+        telefono:       accidente.trabajador.telefono,
+        correo:         accidente.trabajador.correo,
+        estado_laboral: accidente.trabajador.estado_laboral,
       },
     }));
 
     return handleSuccess(res, 200, "Accidentes laborales obtenidos correctamente.", {
-      status: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      status: { total, page, limit, totalPages: Math.ceil(total / limit) },
       data,
     });
 
@@ -396,8 +408,8 @@ export async function editarAccidenteLaboral(req, res) {
  *   WHERE accidente.id_trabajador = req.user.id_trabajador
  *
  * Recibe (query):
- *   - page  {number}  [opcional, default: 1]   — número de página
- *   - limit {number}  [opcional, default: 10]  — registros por página
+ *   - page  {number}  [opcional, default: 1]
+ *   - limit {number}  [opcional, default: 10]
  *
  * Recibe (headers):
  *   - Authorization: Bearer <token>  (procesado por authMiddleware → req.user)
@@ -407,8 +419,9 @@ export async function editarAccidenteLaboral(req, res) {
  *     status: { total, page, limit, totalPages },
  *     data: [
  *       {
- *         id_accidente, id_trabajador, id_cuadrilla,
+ *         id_accidente, id_trabajador, id_cuadrilla, nombre_cuadrilla,
  *         fecha_accidente, descripcion, gravedad, traslado, observaciones,
+ *         proyecto: { id_proyecto, nombre_proyecto, id_supervisor, supervisor: { nombres, apellidos } },
  *         trabajador: { id_trabajador, rut, nombres, apellidos, sexo, telefono, correo, estado_laboral }
  *       },
  *       ...
@@ -423,43 +436,52 @@ export async function getMisAccidentes(req, res) {
 
     const { id_trabajador } = req.user;
 
-    const [accidentes, total] = await repo
+    const qb = repo
       .createQueryBuilder("accidente")
       .leftJoinAndSelect("accidente.trabajador", "trabajador")
+      .leftJoinAndSelect("accidente.cuadrilla",  "cuadrilla")
+      .leftJoinAndSelect("cuadrilla.proyecto",   "proyecto")
+      .leftJoin("Trabajador", "supervisor", "supervisor.id_trabajador = proyecto.id_supervisor")
+      .addSelect(["supervisor.nombres", "supervisor.apellidos"])
       .where("accidente.id_trabajador = :id_trabajador", { id_trabajador })
-      .orderBy("accidente.fecha_accidente", "DESC")
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
+      .orderBy("accidente.fecha_accidente", "DESC");
 
-    const data = accidentes.map(({ trabajador, ...accidente }) => ({
+    const total = await qb.getCount();
+    const { raw, entities } = await qb.skip(skip).take(limit).getRawAndEntities();
+
+    const data = entities.map((accidente, i) => ({
       id_accidente:    accidente.id_accidente,
       id_trabajador:   accidente.id_trabajador,
       id_cuadrilla:    accidente.id_cuadrilla,
+      nombre_cuadrilla:  accidente.cuadrilla.nombre_cuadrilla,
       fecha_accidente: accidente.fecha_accidente,
       descripcion:     accidente.descripcion,
       gravedad:        accidente.gravedad,
       traslado:        accidente.traslado,
       observaciones:   accidente.observaciones ?? null,
+      proyecto: {
+        id_proyecto:     accidente.cuadrilla.proyecto.id_proyecto,
+        nombre_proyecto: accidente.cuadrilla.proyecto.nombre_proyecto,
+        id_supervisor:   accidente.cuadrilla.proyecto.id_supervisor,
+        supervisor: {
+          nombres:   raw[i].supervisor_nombres   ?? null,
+          apellidos: raw[i].supervisor_apellidos ?? null,
+        },
+      },
       trabajador: {
-        id_trabajador:  trabajador.id_trabajador,
-        rut:            trabajador.rut,
-        nombres:        trabajador.nombres,
-        apellidos:      trabajador.apellidos,
-        sexo:           trabajador.sexo,
-        telefono:       trabajador.telefono,
-        correo:         trabajador.correo,
-        estado_laboral: trabajador.estado_laboral,
+        id_trabajador:  accidente.trabajador.id_trabajador,
+        rut:            accidente.trabajador.rut,
+        nombres:        accidente.trabajador.nombres,
+        apellidos:      accidente.trabajador.apellidos,
+        sexo:           accidente.trabajador.sexo,
+        telefono:       accidente.trabajador.telefono,
+        correo:         accidente.trabajador.correo,
+        estado_laboral: accidente.trabajador.estado_laboral,
       },
     }));
 
     return handleSuccess(res, 200, "Accidentes laborales obtenidos correctamente.", {
-      status: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      status: { total, page, limit, totalPages: Math.ceil(total / limit) },
       data,
     });
 

@@ -91,6 +91,7 @@ export async function crearProyecto(req, res) {
 
 
 /*
+ * getAllProyectos
  * Retorna todos los proyectos del sistema con su cliente, inventarios
  * y contrato de proyecto (con anexos). Paginado y ordenable.
  *
@@ -418,6 +419,7 @@ export async function removerSupervisorDeProyecto(req, res) {
 
 
 /*
+ * getMiProyectoBySupervisor
  * Retorna el proyecto al cual el supervisor autenticado pertenece.
  *
  * Recibe:

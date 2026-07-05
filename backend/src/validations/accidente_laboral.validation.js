@@ -2,10 +2,10 @@
 
 import { handleErrorClient } from "../handlers/responseHandlers.js";
 import { AppDataSource } from "../config/configDb.js";
-import { CuadrillaSchema } from "../entity/cuadrilla.entity.js";
-import { ProyectoSchema } from "../entity/proyecto.entity.js";
-import { TrabajadorSchema } from "../entity/trabajador.entity.js";
-import { AccidenteLaboralSchema } from "../entity/accidente_laboral.entity.js";
+import { CuadrillaSchema } from "../entities/cuadrilla.entity.js";
+import { ProyectoSchema } from "../entities/proyecto.entity.js";
+import { TrabajadorSchema } from "../entities/trabajador.entity.js";
+import { AccidenteLaboralSchema } from "../entities/accidente_laboral.entity.js";
 
 
 const trabajadorRepo = AppDataSource.getRepository(TrabajadorSchema);
