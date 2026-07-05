@@ -262,7 +262,7 @@ function AccidentesModuloSupervisor({ usuario, onLogout }) {
               <h1 className="vista-general-title">
                 Accidentes Laborales
                 {proyecto && (
-                  <span style={{ fontWeight: 400, color: '#6b7280' }}>
+                  <span className="as-tope-proyecto">
                     {' '}— {proyecto.nombre_proyecto}
                   </span>
                 )}

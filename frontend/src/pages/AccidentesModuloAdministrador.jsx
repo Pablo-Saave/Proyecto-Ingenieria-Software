@@ -168,7 +168,7 @@ function AccidentesModuloAdministrador({ usuario, onLogout }) {
             <div>
               <h1 className="vista-general-title">
                 Accidentes Laborales
-                <span style={{ fontWeight: 400, color: '#6b7280' }}>
+                <span className="aa-tope-proyecto">
                   {' '}— {tituloTope}
                 </span>
               </h1>

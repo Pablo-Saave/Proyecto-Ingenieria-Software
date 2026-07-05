@@ -16,7 +16,6 @@ const MENU_POR_ROL = {
     { id: 'ausencias',    label: 'Gestión de Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
     { id: 'asignaciones', label: 'Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
     { id: 'avisos',       label: 'Canales de Avisos', icon: Bell,          path: '/admin/avisos' },
-    { id: 'proyectos',    label: 'Proyectos',       icon: Building2,       path: '/admin/proyectos'},
     { id: 'accidentes-laborales', label: 'Accidentes', icon: Accessibility, path: '/admin/accidentes-laborales'}
   ],
   supervisor: [
