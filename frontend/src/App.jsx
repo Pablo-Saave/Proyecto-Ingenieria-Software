@@ -32,6 +32,7 @@ import { NotificacionesProvider } from './context/NotificacionesContext';
 import './styles/globals.css';
 import Inventarios from './pages/Inventario';
 import AccidentesModuloAdministrador from './pages/AccidentesModuloAdministrador';
+import RegistrarAccidentesModuloSupervisor from './pages/RegistrarAccidentesModuloSupervisor';
 
 function ProtectedRoute({ isLoggedIn, children }) {
   return isLoggedIn ? children : <Navigate to="/login" replace />;
@@ -97,6 +98,7 @@ function App() {
         <Route path="/supervisor/avisos"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><CanalesAvisosSupervisor {...pageProps} /></RolRoute>} />
         <Route path="/supervisor/inventario"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}> <Inventarios {...pageProps} ></Inventarios> </RolRoute>} />
         <Route path="/supervisor/accidentes-laborales"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}> <AccidentesModuloSupervisor {...pageProps} /> </RolRoute>} />
+        <Route path="/supervisor/registrar-accidente"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['supervisor']}><RegistrarAccidentesModuloSupervisor {...pageProps} ></RegistrarAccidentesModuloSupervisor></RolRoute>} />
 
 
         {/* Solo Trabajador */}
