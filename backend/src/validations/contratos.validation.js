@@ -4,6 +4,12 @@ export const TIPOS_CONTRATO   = ['Indefinido', 'Plazo Fijo'];
 export const ESTADOS_CONTRATO = ['Activo', 'Inactivo', 'Por vencer'];
 export const ESTADOS_ELIMINABLES = ['Inactivo'];
 
+// Campos que SÍ se pueden editar directamente en un contrato existente.
+// Todo lo demás (tipo_contrato, fecha_inicio, fecha_termino, monto) requiere
+// crear un anexo, igual que en contrato_proyecto.
+const CAMPOS_EDITABLES = ['estado_contrato', 'observaciones'];
+const CAMPOS_SOLO_VIA_ANEXO = ['tipo_contrato', 'fecha_inicio', 'fecha_termino', 'monto'];
+
 function hoyLocal() {
   const d = new Date();
   const y = d.getFullYear();
@@ -40,6 +46,7 @@ export function validarCrearContrato(req, res, next) {
     errores.push(`estado_contrato inválido. Valores permitidos: ${ESTADOS_CONTRATO.join(', ')}.`);
   }
 
+  // Esta validación de "no anterior a hoy" SOLO aplica al crear.
   if (!esFechaValida(fecha_inicio)) {
     errores.push('fecha_inicio no es una fecha válida (formato YYYY-MM-DD).');
   } else if (fecha_inicio < hoyLocal()) {
@@ -77,43 +84,64 @@ export function validarCrearContrato(req, res, next) {
   next();
 }
 
+/**
+ * Actualizar contrato: SOLO permite estado_contrato y observaciones.
+ * Si el frontend manda tipo_contrato, fecha_inicio, fecha_termino o monto
+ * (aunque sea el mismo valor que ya tenía), avisamos que esos cambios
+ * deben hacerse mediante un anexo, no aquí.
+ *
+ * IMPORTANTE: comparamos contra req.contratoActual (adjuntado por un loader,
+ * igual que cargarContrato en las rutas de DELETE) para no explotar si el
+ * frontend simplemente reenvía los mismos valores que ya tenía el contrato.
+ */
 export function validarActualizarContrato(req, res, next) {
   const errores = [];
-  const { tipo_contrato, estado_contrato, fecha_inicio, fecha_termino } = req.body;
+  const contratoActual = req.contratoActual; // ver nota en las rutas más abajo
 
-  if (tipo_contrato !== undefined && !TIPOS_CONTRATO.includes(tipo_contrato)) {
-    errores.push(`tipo_contrato inválido. Valores permitidos: ${TIPOS_CONTRATO.join(', ')}.`);
-  }
+  for (const campo of CAMPOS_SOLO_VIA_ANEXO) {
+    if (req.body[campo] === undefined) continue;
 
-  if (estado_contrato !== undefined && !ESTADOS_CONTRATO.includes(estado_contrato)) {
-    errores.push(`estado_contrato inválido. Valores permitidos: ${ESTADOS_CONTRATO.join(', ')}.`);
-  }
+    const valorNuevo = req.body[campo];
+    const valorActual = contratoActual ? contratoActual[campo] : undefined;
 
-  if (fecha_inicio !== undefined) {
-    if (!esFechaValida(fecha_inicio)) {
-      errores.push('fecha_inicio no es una fecha válida (formato YYYY-MM-DD).');
-    } else if (fecha_inicio < hoyLocal()) {
-      errores.push('La fecha de inicio no puede ser anterior a hoy.');
+    // Si es el mismo valor que ya tenía, lo ignoramos silenciosamente
+    // (evita que el form, al reenviar todo el objeto, rompa la edición).
+    const sonIguales =
+      contratoActual &&
+      (valorNuevo === valorActual ||
+        (valorNuevo == null && valorActual == null) ||
+        String(valorNuevo) === String(valorActual));
+
+    if (sonIguales) {
+      delete req.body[campo];
+      continue;
     }
-  }
 
-  if (fecha_termino !== undefined && fecha_termino !== null && fecha_termino !== '') {
-    if (!esFechaValida(fecha_termino)) {
-      errores.push('fecha_termino no es una fecha válida (formato YYYY-MM-DD).');
-    } else if (fecha_inicio && esFechaValida(fecha_inicio) && fecha_termino <= fecha_inicio) {
-      errores.push('La fecha de término debe ser posterior a la fecha de inicio.');
-    }
-  }
-
-  if (tipo_contrato === 'Indefinido' && fecha_termino) {
-    errores.push('Un contrato Indefinido no puede tener fecha de término.');
+    errores.push(
+      `No se puede modificar "${campo}" desde la edición directa. Para cambiar tipo de contrato, fechas o monto debes crear un anexo.`
+    );
   }
 
   if (errores.length) {
     return res.status(400).json({ status: 'error', message: errores.join(' ') });
   }
 
-  if (tipo_contrato === 'Indefinido') req.body.fecha_termino = null;
+  const { estado_contrato } = req.body;
+  if (estado_contrato !== undefined && !ESTADOS_CONTRATO.includes(estado_contrato)) {
+    errores.push(`estado_contrato inválido. Valores permitidos: ${ESTADOS_CONTRATO.join(', ')}.`);
+  }
+
+  if (errores.length) {
+    return res.status(400).json({ status: 'error', message: errores.join(' ') });
+  }
+
+  // Solo dejamos pasar los campos editables + cualquier campo interno que ya
+  // hayamos limpiado arriba.
+  const bodyLimpio = {};
+  for (const campo of CAMPOS_EDITABLES) {
+    if (req.body[campo] !== undefined) bodyLimpio[campo] = req.body[campo];
+  }
+  req.body = bodyLimpio;
 
   next();
 }

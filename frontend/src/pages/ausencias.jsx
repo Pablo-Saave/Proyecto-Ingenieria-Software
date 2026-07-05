@@ -15,7 +15,6 @@ import {
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 // Nota: esta llamada no tiene aún un home en cuadrillasService.js.
-// Se recomienda moverla ahí como `getMyCuadrillasAndIntegrantes()`.
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
   const res = await fetch(`${API_BASE}${path}`, {
@@ -239,7 +238,7 @@ function Ausencias({ usuario, onLogout }) {
           {/* Encabezado */}
           <div className="vista-general-header">
             <div>
-              <h1 className="vista-general-title">Ausencias</h1>
+              <h1 className="vista-general-title">Gestión de Ausencias</h1>
               <p className="vista-general-subtitle">Registro de inasistencias y justificaciones</p>
             </div>
             {puedeRegistrarInasistencia && (

@@ -10,6 +10,12 @@ import {
   cargarContrato,
 } from '../controllers/contrato.controller.js';
 
+import {
+  getAnexosByContrato,
+  crearAnexo,
+  eliminarAnexo,
+} from '../controllers/anexo_contrato.controller.js';
+
 import { authMiddleware }  from '../middlewares/auth.middleware.js';
 import { autorizar }       from '../middlewares/autorizar.middleware.js';
 import {
@@ -25,11 +31,9 @@ router.use(authMiddleware);
 
 // ── Lectura ────────────────────────────────────────────────────────────────────
 
-// Administrador y Supervisor → ven todos los contratos
 router.get('/',    autorizar('contratos:ver_todos'), getAllContratos);
 router.get('/:id', autorizar('contratos:ver_todos'), getContratoById);
 
-// Trabajador → solo sus propios contratos
 router.get(
   '/mis-contratos/:id_trabajador',
   autorizar('contratos:ver_propios'),
@@ -45,14 +49,21 @@ router.post(
   createContrato
 );
 
+// cargarContratoActual adjunta req.contratoActual (el contrato tal como está
+// en BD) para que validarActualizarContrato pueda comparar contra los
+// valores nuevos y detectar si intentan cambiar tipo/fechas/monto.
 router.put(
   '/:id',
   autorizar('contratos:editar'),
+  cargarContrato,               // reutilizamos el mismo loader, adjunta req.contrato
+  (req, _res, next) => {        // pequeño adapter: lo dejamos también como req.contratoActual
+    req.contratoActual = req.contrato;
+    next();
+  },
   validarActualizarContrato,
   updateContrato
 );
 
-// cargarContrato adjunta req.contrato → validarEliminarContrato revisa el estado
 router.delete(
   '/:id',
   autorizar('contratos:eliminar'),
@@ -60,5 +71,12 @@ router.delete(
   validarEliminarContrato,
   deleteContrato
 );
+
+// ── Anexos (modifican tipo_contrato / fechas / monto) ──────────────────────────
+// Reutiliza el permiso de edición: solo quien puede editar el contrato puede
+// crear/ver/eliminar sus anexos.
+router.get('/:id_contrato/anexos', autorizar('contratos:editar'), getAnexosByContrato);
+router.post('/:id_contrato/anexos', autorizar('contratos:editar'), crearAnexo);
+router.delete('/anexos/:id_anexo', autorizar('contratos:editar'), eliminarAnexo);
 
 export default router;

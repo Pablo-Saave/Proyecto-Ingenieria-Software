@@ -52,6 +52,12 @@ function getEstadoClass(estado) {
   return '';
 }
 
+function getIniciales(nombres = '', apellidos = '') {
+  const n = String(nombres || '').trim();
+  const a = String(apellidos || '').trim();
+  return ((n[0] || '') + (a[0] || '')).toUpperCase() || '?';
+}
+
 function mapContrato(c) {
   const p = c.proyecto || {};
   const cli = p.cliente || {};
@@ -68,6 +74,7 @@ function mapContrato(c) {
       nombre: p.nombre_proyecto || 'Proyecto sin nombre',
       direccion: p.direccion || '—',
       cliente: `${cli.nombres || ''} ${cli.apellidos || ''}`.trim() || 'Sin cliente',
+      cliente_iniciales: getIniciales(cli.nombres, cli.apellidos),
     },
     diasRestantes: calcularDiasRestantes(c.fecha_termino),
   };
@@ -132,12 +139,11 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
     setErrores([]);
     try {
       if (contratoEdit) {
+        // En edición solo se pueden tocar descripción y estado; fechas y monto
+        // se cambian creando un anexo.
         await updateContratoProyecto(contratoEdit.id_contrato_proyecto, {
           descripcion:     form.descripcion,
           estado_contrato: form.estado_contrato,
-          fecha_inicio:    form.fecha_inicio,
-          fecha_termino:   form.fecha_termino,
-          monto:           form.monto === '' ? null : Number(form.monto),
         });
       } else {
         await createContratoProyecto({
@@ -233,6 +239,9 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
             name="fecha_inicio"
             value={form.fecha_inicio}
             onChange={handleChange}
+            disabled={!!contratoEdit}
+            title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}
+            style={contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
 
           <label>Fecha de término *</label>
@@ -242,6 +251,9 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
             value={form.fecha_termino}
             min={form.fecha_inicio || hoy}
             onChange={handleChange}
+            disabled={!!contratoEdit}
+            title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}
+            style={contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
 
           <label>Monto del contrato *</label>
@@ -253,6 +265,9 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
             min="0"
             step="1"
             placeholder="Ej: 4500000"
+            disabled={!!contratoEdit}
+            title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}
+            style={contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
         </div>
 
@@ -721,6 +736,9 @@ function ContratoProyectos({ usuario, onLogout }) {
                       <tr key={contrato.id_contrato_proyecto}>
                         <td className="col-trabajador">
                           <div className="trabajador-info">
+                            <div className="cliente-avatar" title={contrato.proyecto.cliente}>
+                              {contrato.proyecto.cliente_iniciales}
+                            </div>
                             <div>
                               <div className="nombre">{contrato.proyecto.nombre}</div>
                               <div className="rut">{contrato.proyecto.direccion}</div>

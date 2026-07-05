@@ -6,8 +6,8 @@ import Header from '../components/Header';
 import '../styles/trabajadores.css';
 import '../styles/dashboard.css';
 import '../styles/Avisosfiltros.css';
-import { AlertCircle, Bell, Filter, MessageSquare, MoreVertical, Plus, Send, Tag, Trash2, Users, X } from 'lucide-react';
-import { getTodosLosAvisos, getCuadrillasAviso, crearAviso, eliminarAviso } from '../services/avisosService';
+import { AlertCircle, Bell, Edit2, Filter, MessageSquare, MoreVertical, Plus, Send, Tag, Trash2, Users, X } from 'lucide-react';
+import { getTodosLosAvisos, getCuadrillasAviso, crearAviso, editarAviso, eliminarAviso } from '../services/avisosService';
 
 const EMPTY_FORM = { titulo: '', contenido: '', prioridad: 'normal', id_cuadrilla: '' };
 const PRIORIDAD_LABEL = { baja: 'Baja', normal: 'Normal', alta: 'Alta', urgente: 'Urgente' };
@@ -98,8 +98,9 @@ function BarraFiltros({ cuadrillas, filtros, setFiltros, filtrosActivos, onFiltr
   );
 }
 
-// ─── Modal nuevo aviso ──────────────────────────────────────────────────
-function ModalNuevoAviso({ form, setForm, cuadrillas, saving, onClose, onSubmit }) {
+// ─── Modal nuevo / editar aviso ──────────────────────────────────────────────
+function ModalNuevoAviso({ modo = 'crear', form, setForm, cuadrillas, saving, onClose, onSubmit }) {
+  const esEdicion = modo === 'editar';
   return (
     <div
       onClick={onClose}
@@ -109,11 +110,13 @@ function ModalNuevoAviso({ form, setForm, cuadrillas, saving, onClose, onSubmit 
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '20px 22px 16px' }}>
           <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
             <div style={{ width: 38, height: 38, borderRadius: 10, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Send size={18} color="#4F46E5" />
+              {esEdicion ? <Edit2 size={17} color="#4F46E5" /> : <Send size={18} color="#4F46E5" />}
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: 16, color: '#111827' }}>Nuevo aviso</h2>
-              <p style={{ margin: '2px 0 0', fontSize: 12.5, color: '#6B7280' }}>Publica información importante para la cuadrilla</p>
+              <h2 style={{ margin: 0, fontSize: 16, color: '#111827' }}>{esEdicion ? 'Editar aviso' : 'Nuevo aviso'}</h2>
+              <p style={{ margin: '2px 0 0', fontSize: 12.5, color: '#6B7280' }}>
+                {esEdicion ? 'Actualiza el contenido de este aviso' : 'Publica información importante para la cuadrilla'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 4 }}>
@@ -122,23 +125,25 @@ function ModalNuevoAviso({ form, setForm, cuadrillas, saving, onClose, onSubmit 
         </div>
 
         <form onSubmit={onSubmit} style={{ padding: '0 22px 22px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginBottom: 14 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>
-                Cuadrilla *
-              </label>
-              <select
-                value={form.id_cuadrilla}
-                onChange={(e) => setForm((p) => ({ ...p, id_cuadrilla: e.target.value }))}
-                required
-                style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 9, padding: '10px 12px', fontSize: 13.5, boxSizing: 'border-box', background: '#fff' }}
-              >
-                <option value="">Selecciona una cuadrilla</option>
-                {cuadrillas.map((c) => (
-                  <option key={c.id_cuadrilla} value={c.id_cuadrilla}>{c.nombre_cuadrilla}</option>
-                ))}
-              </select>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: esEdicion ? '1fr' : '2fr 1fr', gap: 12, marginBottom: 14 }}>
+            {!esEdicion && (
+              <div>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+                  Cuadrilla *
+                </label>
+                <select
+                  value={form.id_cuadrilla}
+                  onChange={(e) => setForm((p) => ({ ...p, id_cuadrilla: e.target.value }))}
+                  required
+                  style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 9, padding: '10px 12px', fontSize: 13.5, boxSizing: 'border-box', background: '#fff' }}
+                >
+                  <option value="">Selecciona una cuadrilla</option>
+                  {cuadrillas.map((c) => (
+                    <option key={c.id_cuadrilla} value={c.id_cuadrilla}>{c.nombre_cuadrilla}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>
                 Prioridad
@@ -193,7 +198,8 @@ function ModalNuevoAviso({ form, setForm, cuadrillas, saving, onClose, onSubmit 
             </button>
             <button type="submit" disabled={saving}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 9, border: 'none', background: '#4F46E5', color: '#fff', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
-              <Send size={14} /> {saving ? 'Publicando...' : 'Publicar aviso'}
+              {esEdicion ? <Edit2 size={14} /> : <Send size={14} />}
+              {saving ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Publicar aviso'}
             </button>
           </div>
         </form>
@@ -233,7 +239,7 @@ function ConfirmEliminar({ aviso, onClose, onConfirmar, eliminando }) {
 }
 
 // ─── Menú de acciones (kebab) ──────────────────────────────────────────────────
-function MenuAcciones({ onEliminar }) {
+function MenuAcciones({ onEditar, onEliminar }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -254,6 +260,12 @@ function MenuAcciones({ onEliminar }) {
       </button>
       {open && (
         <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', borderRadius: 10, boxShadow: '0 10px 30px rgba(0,0,0,0.15)', border: '1px solid #F1F5F9', minWidth: 150, zIndex: 20, overflow: 'hidden' }}>
+          <button
+            onClick={() => { setOpen(false); onEditar(); }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#374151', textAlign: 'left' }}
+          >
+            <Edit2 size={14} /> Editar aviso
+          </button>
           <button
             onClick={() => { setOpen(false); onEliminar(); }}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#EF4444', textAlign: 'left' }}
@@ -278,6 +290,9 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
   const [filtrosActivos, setFiltrosActivos] = useState(false);
   const [avisoDelete, setAvisoDelete] = useState(null);
   const [eliminando,  setEliminando]  = useState(false);
+  const [avisoEditar, setAvisoEditar] = useState(null);
+  const [formEditar,  setFormEditar]  = useState(EMPTY_FORM);
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false);
 
   const cargar = () => {
     setLoading(true);
@@ -319,6 +334,31 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
       setError(e.message);
     } finally {
       setEliminando(false);
+    }
+  };
+
+  const abrirEditar = (aviso) => {
+    setAvisoEditar(aviso);
+    setFormEditar({ titulo: aviso.titulo, contenido: aviso.contenido, prioridad: aviso.prioridad, id_cuadrilla: aviso.id_cuadrilla });
+  };
+
+  const handleEditarSubmit = async (e) => {
+    e.preventDefault();
+    if (!formEditar.titulo.trim() || !formEditar.contenido.trim()) { setError('Título y contenido son obligatorios.'); return; }
+    setGuardandoEdicion(true);
+    setError(null);
+    try {
+      const actualizado = await editarAviso(avisoEditar.id_aviso, {
+        titulo: formEditar.titulo,
+        contenido: formEditar.contenido,
+        prioridad: formEditar.prioridad,
+      });
+      setAvisos((prev) => prev.map((a) => (a.id_aviso === avisoEditar.id_aviso ? { ...a, ...actualizado } : a)));
+      setAvisoEditar(null);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setGuardandoEdicion(false);
     }
   };
 
@@ -399,7 +439,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
                       <span className="tw-badge" style={{ ...getPrioridadStyle(aviso.prioridad), whiteSpace: 'nowrap', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999 }}>
                         {PRIORIDAD_LABEL[aviso.prioridad] ?? aviso.prioridad}
                       </span>
-                      <MenuAcciones onEliminar={() => setAvisoDelete(aviso)} />
+                      <MenuAcciones onEditar={() => abrirEditar(aviso)} onEliminar={() => setAvisoDelete(aviso)} />
                     </div>
                   </div>
                   <p style={{ fontSize: 13.5, color: '#374151', lineHeight: 1.55, margin: '12px 0 0', whiteSpace: 'pre-wrap' }}>
@@ -417,12 +457,25 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
 
       {showForm && (
         <ModalNuevoAviso
+          modo="crear"
           form={form}
           setForm={setForm}
           cuadrillas={cuadrillas}
           saving={saving}
           onClose={() => { setShowForm(false); setForm(EMPTY_FORM); }}
           onSubmit={handleSubmit}
+        />
+      )}
+
+      {avisoEditar && (
+        <ModalNuevoAviso
+          modo="editar"
+          form={formEditar}
+          setForm={setFormEditar}
+          cuadrillas={cuadrillas}
+          saving={guardandoEdicion}
+          onClose={() => setAvisoEditar(null)}
+          onSubmit={handleEditarSubmit}
         />
       )}
 

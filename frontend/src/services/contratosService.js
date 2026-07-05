@@ -118,3 +118,63 @@ export async function getTrabajadores() {
   const res = await apiFetch('/api/trabajadores');
   return Array.isArray(res.data) ? res.data : [];
 }
+
+// ─── Anexos ────────────────────────────────────────────────────────────────────
+// Igual patrón que contratoProyectoService: cambios de tipo_contrato, fechas o
+// monto se hacen creando un anexo, no editando el contrato directamente.
+
+export async function getAnexosContrato(idContrato) {
+  const res = await apiFetch(`/api/contratos/${idContrato}/anexos`);
+  return Array.isArray(res.data) ? res.data : [];
+}
+
+export async function createAnexoContrato(idContrato, payload) {
+  const res = await apiFetch(`/api/contratos/${idContrato}/anexos`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+export async function deleteAnexoContrato(idAnexo) {
+  await apiFetch(`/api/contratos/anexos/${idAnexo}`, { method: 'DELETE' });
+  return true;
+}
+
+export function validarFormAnexoContrato(form) {
+  const errores = [];
+
+  if (!form.fecha_anexo) errores.push('La fecha del anexo es obligatoria.');
+  if (!form.fecha_vigencia) errores.push('La fecha de vigencia es obligatoria.');
+  if (
+    form.fecha_anexo &&
+    form.fecha_vigencia &&
+    new Date(form.fecha_vigencia) < new Date(form.fecha_anexo)
+  ) {
+    errores.push('La fecha de vigencia no puede ser anterior a la fecha del anexo.');
+  }
+  if (!form.motivo || !form.motivo.trim()) errores.push('El motivo es obligatorio.');
+  if (!form.descripcion_modificacion || !form.descripcion_modificacion.trim()) {
+    errores.push('La descripción de la modificación es obligatoria.');
+  }
+
+  if (form.tipo_contrato_nuevo && !TIPOS_CONTRATO.includes(form.tipo_contrato_nuevo)) {
+    errores.push(`Tipo inválido. Opciones: ${TIPOS_CONTRATO.join(', ')}.`);
+  }
+  if (form.tipo_contrato_nuevo === 'Plazo Fijo' && !form.fecha_termino_nueva) {
+    errores.push('Si cambia el tipo a Plazo Fijo debe indicar la nueva fecha de término.');
+  }
+  if (form.tipo_contrato_nuevo === 'Indefinido' && form.fecha_termino_nueva) {
+    errores.push('Un contrato Indefinido no puede tener fecha de término.');
+  }
+  if (
+    form.monto_nuevo !== '' &&
+    form.monto_nuevo !== undefined &&
+    form.monto_nuevo !== null &&
+    isNaN(Number(form.monto_nuevo))
+  ) {
+    errores.push('El nuevo monto debe ser numérico.');
+  }
+
+  return errores;
+}

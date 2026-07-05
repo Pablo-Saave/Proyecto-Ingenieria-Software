@@ -11,8 +11,6 @@ import {
 import {
   crearCuadrilla,
   getAllCuadrillasAndWorkersByIdProyecto,
-  agregarSupervisorCuadrilla, //SE DEBE ELIMINAR POR REGLA DE NEGOCIO
-  eliminarSupervisorCuadrilla, //SE DEBE ELIMINAR POR REGLA DE NEGOCIO
   agregarTrabajadorCuadrilla,
   eliminarTrabajadorCuadrilla,
   inactivarCuadrilla,
@@ -303,7 +301,7 @@ function Asignaciones({ usuario, onLogout }) {
             {/* ── Encabezado ──────────────────────────────────────────── */}
             <div className="asignaciones-header">
               <div>
-                <h1 className="vista-general-title">Asignaciones</h1>
+                <h1 className="vista-general-title">Cuadrillas</h1>
                 <p className="vista-general-subtitle">Gestiona las asignaciones de cuadrillas y trabajadores a proyectos.</p>
               </div>
               <button
@@ -470,50 +468,50 @@ function Asignaciones({ usuario, onLogout }) {
                                   {c.estado === 'activa' ? 'Activa' : 'Inactiva'}
                                 </span>
                               </td>
-                              <td className="col-acciones" style={{ position: 'relative' }}>
-                                <button
-                                  className="btn-accion"
-                                  title="Más opciones"
-                                  onClick={(e) => { e.stopPropagation(); setMenuAbierto(menuAbierto === c.id_cuadrilla ? null : c.id_cuadrilla); }}
-                                >
-                                  <MoreVertical size={16} />
-                                </button>
-                                {menuAbierto === c.id_cuadrilla && (
-                                  <div
-                                    className="context-menu"
-                                    onMouseLeave={() => setMenuAbierto(null)}
+                              <td className="col-acciones">
+                                <div className="acciones-wrap">
+                                  <button
+                                    className="btn-accion"
+                                    title="Más opciones"
+                                    onClick={(e) => { e.stopPropagation(); setMenuAbierto(menuAbierto === c.id_cuadrilla ? null : c.id_cuadrilla); }}
                                   >
-                                    <button
-                                      className={`ctx-toggle ${
-                                        c.estado === "activa" ? "ctx-warning" : "ctx-success"
-                                      }`}
-                                      onClick={async (e) => {
-                                        e.stopPropagation();
-                                        setMenuAbierto(null);
-                                        await handleCambiarEstadoCuadrilla(c);
-                                      }}
+                                    <MoreVertical size={16} />
+                                  </button>
+                                  {menuAbierto === c.id_cuadrilla && (
+                                    <div
+                                      className="context-menu"
+                                      onMouseLeave={() => setMenuAbierto(null)}
                                     >
-                                      {c.estado === "activa"
-                                        ? "Desactivar cuadrilla"
-                                        : "Activar cuadrilla"}
-                                    </button>
+                                      <button
+                                        className="ctx-item"
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          setMenuAbierto(null);
+                                          await handleCambiarEstadoCuadrilla(c);
+                                        }}
+                                      >
+                                        {c.estado === "activa"
+                                          ? "Desactivar cuadrilla"
+                                          : "Activar cuadrilla"}
+                                      </button>
 
-                                    <button
-                                      className="ctx-danger"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setConfirmDelete({
-                                          tipo: "cuadrilla",
-                                          id_cuadrilla: c.id_cuadrilla,
-                                          nombre: c.nombre_cuadrilla,
-                                        });
-                                        setMenuAbierto(null);
-                                      }}
-                                    >
-                                      Eliminar cuadrilla
-                                    </button>
-                                  </div>
-                                )}
+                                      <button
+                                        className="ctx-item ctx-danger"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setConfirmDelete({
+                                            tipo: "cuadrilla",
+                                            id_cuadrilla: c.id_cuadrilla,
+                                            nombre: c.nombre_cuadrilla,
+                                          });
+                                          setMenuAbierto(null);
+                                        }}
+                                      >
+                                        Eliminar cuadrilla
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               </td>
                             </tr>
 

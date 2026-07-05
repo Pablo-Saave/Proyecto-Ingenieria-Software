@@ -14,13 +14,13 @@
 .btn-nuevo-contrato {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 1.2rem;
+  gap: 6px;
+  padding: 8px 16px;
   background: #4466ff;
   color: #fff;
   border: none;
-  border-radius: 0.4rem;
-  font-size: 0.75rem;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
@@ -410,7 +410,7 @@
 .btn-eliminar:disabled { background: #f87171; cursor: not-allowed; }
 
 /* Menú contextual */
-.context-menu {
+.contratos-page .context-menu {
   position: absolute;
   left: 0px;
   top: 55%;
@@ -423,7 +423,7 @@
   min-width: 105px;
   overflow: hidden;
 }
-.context-menu button {
+.contratos-page .context-menu button {
   display: block;
   width: 100%;
   padding: 0.35rem 0.7rem;
@@ -437,9 +437,9 @@
   white-space: nowrap;
   line-height: 1.2;
 }
-.context-menu button:hover { background: #f3f4f6; }
-.context-menu .ctx-danger { color: #dc2626; }
-.context-menu .ctx-danger:hover { background: #fee2e2; }
+.contratos-page .context-menu button:hover { background: #f3f4f6; }
+.contratos-page .context-menu .ctx-danger { color: #dc2626; }
+.contratos-page .context-menu .ctx-danger:hover { background: #fee2e2; }
 
 /* Detalle grid */
 .detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; }
@@ -740,3 +740,61 @@
     margin: 0 14px 12px;
   }
 }
+/* ─── Sección de Anexos (dentro del modal de detalle) ───────────────────── */
+.modal-detalle-contrato { max-width: 640px; }
+.anexos-section {
+  padding: 0 1.25rem 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+.anexos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0 0.6rem;
+}
+.anexos-header h3 { font-size: 0.85rem; margin: 0; color: #111827; font-weight: 700; }
+.btn-agregar-anexo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #eef1ff;
+  color: #4466ff;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-agregar-anexo:hover { background: #e0e5ff; }
+
+.anexos-empty { font-size: 0.8rem; color: #9ca3af; padding: 0.5rem 0; }
+
+.anexos-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.anexo-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  background: #f9fafb;
+}
+.anexo-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+.anexo-fecha { font-size: 0.72rem; color: #6b7280; font-weight: 600; }
+.anexo-motivo { font-size: 0.8rem; font-weight: 600; color: #111827; flex: 1; }
+.btn-eliminar-anexo {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.1rem;
+}
+.btn-eliminar-anexo:hover { color: #dc2626; }
+
+.anexo-descripcion { font-size: 0.8rem; color: #374151; margin: 0.25rem 0; }
+.anexo-meta { display: flex; gap: 0.85rem; font-size: 0.72rem; color: #6b7280; flex-wrap: wrap; }
+.anexo-observaciones { font-size: 0.72rem; color: #9ca3af; margin-top: 0.25rem; font-style: italic; }

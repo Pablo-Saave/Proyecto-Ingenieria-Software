@@ -166,6 +166,19 @@
   font-weight: 600;
   color: #111827;
 }
+
+.tw-rut-sub {
+  font-family: monospace;
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 1px;
+}
+
+.tw-tipo-usuario {
+  color: #374151;
+  font-size: 13px;
+  text-transform: capitalize;
+}
  
 .tw-rut {
   font-family: monospace;
@@ -482,13 +495,13 @@
 .btn-nuevo-trabajador {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 7px 14px;
+  gap: 6px;
+  padding: 8px 16px;
   background: #4466ff;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 11px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;

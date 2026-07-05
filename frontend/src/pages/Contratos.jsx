@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/contratos.css';
-import { Eye, MoreVertical, Plus, X, AlertTriangle, Download } from 'lucide-react';
+import { Eye, MoreVertical, Plus, X, AlertTriangle, Download, FilePlus } from 'lucide-react';
 import { generarPDFContrato } from '../utils/generarPDFContrato';
 import {
   getContratos,
+  getContratoById,
   createContrato,
   updateContrato,
   deleteContrato,
@@ -15,6 +16,10 @@ import {
   hoyLocal,
   TIPOS_CONTRATO,
   ESTADOS_CONTRATO,
+  getAnexosContrato,
+  createAnexoContrato,
+  deleteAnexoContrato,
+  validarFormAnexoContrato,
 } from '../services/contratosService';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -76,6 +81,7 @@ function mapContrato(c) {
     estado: calcularEstado(c.fecha_termino),
     diasRestantes,
     diasTotal,
+    anexos: c.anexos || [],
   };
 }
 
@@ -156,15 +162,22 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
     setGuardando(true);
     setErrores([]);
     try {
-      const payload = {
-        tipo_contrato:   form.tipo_contrato,
-        estado_contrato: form.estado_contrato,
-        fecha_inicio:    form.fecha_inicio,
-        fecha_termino:   esIndefinido ? null : (form.fecha_termino || null),
-        monto:           form.monto === '' ? null : Number(form.monto),
-        observaciones:   form.observaciones || null,
-        id_trabajador:   Number(form.id_trabajador),
-      };
+      // En edición solo se pueden tocar estado y observaciones; el resto
+      // (tipo, fechas, monto) se cambia creando un anexo.
+      const payload = contratoEdit
+        ? {
+            estado_contrato: form.estado_contrato,
+            observaciones:   form.observaciones || null,
+          }
+        : {
+            tipo_contrato:   form.tipo_contrato,
+            estado_contrato: form.estado_contrato,
+            fecha_inicio:    form.fecha_inicio,
+            fecha_termino:   esIndefinido ? null : (form.fecha_termino || null),
+            monto:           form.monto === '' ? null : Number(form.monto),
+            observaciones:   form.observaciones || null,
+            id_trabajador:   Number(form.id_trabajador),
+          };
 
       if (contratoEdit) {
         await updateContrato(contratoEdit.id_contrato, payload);
@@ -208,7 +221,14 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
           </select>
 
           <label>Tipo de contrato *</label>
-          <select name="tipo_contrato" value={form.tipo_contrato} onChange={handleChange}>
+          <select
+            name="tipo_contrato"
+            value={form.tipo_contrato}
+            onChange={handleChange}
+            disabled={!!contratoEdit}
+            title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}
+            style={contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+          >
             <option value="">— Seleccionar —</option>
             {TIPOS_CONTRATO.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
@@ -243,6 +263,9 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
             value={form.fecha_inicio}
             min={hoy}
             onChange={handleChange}
+            disabled={!!contratoEdit}
+            title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}
+            style={contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -263,9 +286,13 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
             value={form.fecha_termino}
             min={form.fecha_inicio || hoy}
             onChange={handleChange}
-            disabled={esIndefinido}
-            title={esIndefinido ? 'Los contratos indefinidos no tienen fecha de término' : ''}
-            style={esIndefinido ? { opacity: 0.4, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+            disabled={esIndefinido || !!contratoEdit}
+            title={
+              contratoEdit
+                ? 'Se necesita crear un anexo para modificar esto'
+                : esIndefinido ? 'Los contratos indefinidos no tienen fecha de término' : ''
+            }
+            style={(esIndefinido || contratoEdit) ? { opacity: 0.4, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
 
           <label>Monto (sueldo) *</label>
@@ -277,6 +304,9 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
             min="0"
             step="1"
             placeholder="Ej: 650000"
+            disabled={!!contratoEdit}
+            title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}
+            style={contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
 
           <label>Observaciones</label>
@@ -300,12 +330,180 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
   );
 }
 
-// ─── Modal Ver Detalle ─────────────────────────────────────────────────────────
+// ─── Modal Agregar Anexo ───────────────────────────────────────────────────────
 
-function DetalleModal({ contrato, onClose }) {
+const ANEXO_VACIO = {
+  fecha_anexo: '',
+  fecha_vigencia: '',
+  motivo: '',
+  descripcion_modificacion: '',
+  tipo_contrato_nuevo: '',
+  fecha_termino_nueva: '',
+  monto_nuevo: '',
+  observaciones: '',
+};
+
+function AnexoModal({ idContrato, onClose, onGuardado }) {
+  const [form, setForm]       = useState(ANEXO_VACIO);
+  const [guardando, setGuardando] = useState(false);
+  const [errores,   setErrores]   = useState([]);
+  const hoy = hoyLocal();
+  const esIndefinidoNuevo = form.tipo_contrato_nuevo === 'Indefinido';
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'tipo_contrato_nuevo' && value === 'Indefinido') {
+        next.fecha_termino_nueva = '';
+      }
+      return next;
+    });
+    setErrores([]);
+  };
+
+  const handleGuardar = async () => {
+    const errs = validarFormAnexoContrato(form);
+    if (errs.length) { setErrores(errs); return; }
+
+    setGuardando(true);
+    setErrores([]);
+    try {
+      await createAnexoContrato(idContrato, {
+        fecha_anexo: form.fecha_anexo,
+        fecha_vigencia: form.fecha_vigencia,
+        motivo: form.motivo,
+        descripcion_modificacion: form.descripcion_modificacion,
+        tipo_contrato_nuevo: form.tipo_contrato_nuevo || null,
+        fecha_termino_nueva: esIndefinidoNuevo ? null : (form.fecha_termino_nueva || null),
+        monto_nuevo: form.monto_nuevo === '' ? null : Number(form.monto_nuevo),
+        observaciones: form.observaciones || null,
+      });
+      onGuardado();
+    } catch (err) {
+      setErrores([err.message]);
+    } finally {
+      setGuardando(false);
+    }
+  };
+
   return (
     <div className="modal-overlay">
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Nuevo Anexo</h2>
+          <button className="modal-close" onClick={onClose}><X size={18} /></button>
+        </div>
+
+        <div className="modal-body">
+          {errores.length > 0 && (
+            <div className="modal-error-list">
+              {errores.map((e, i) => (
+                <p key={i} className="modal-error"><AlertTriangle size={14} /> {e}</p>
+              ))}
+            </div>
+          )}
+
+          <label>Fecha del anexo *</label>
+          <input type="date" name="fecha_anexo" value={form.fecha_anexo} max={hoy} onChange={handleChange} />
+
+          <label>Fecha de vigencia *</label>
+          <input type="date" name="fecha_vigencia" value={form.fecha_vigencia}
+            min={form.fecha_anexo || undefined} onChange={handleChange} />
+
+          <label>Motivo *</label>
+          <input type="text" name="motivo" value={form.motivo}
+            onChange={handleChange} placeholder="Ej: Renovación, cambio de sueldo..." />
+
+          <label>Descripción de la modificación *</label>
+          <textarea name="descripcion_modificacion" value={form.descripcion_modificacion}
+            onChange={handleChange} rows={3} placeholder="Detalle de lo que cambia..." />
+
+          <label>Nuevo tipo de contrato (opcional)</label>
+          <select name="tipo_contrato_nuevo" value={form.tipo_contrato_nuevo} onChange={handleChange}>
+            <option value="">— Sin cambio —</option>
+            {TIPOS_CONTRATO.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Nueva fecha de término (opcional)
+            {esIndefinidoNuevo && (
+              <span style={{
+                fontSize: '11px', color: '#6b7280',
+                background: '#f3f4f6', borderRadius: '4px',
+                padding: '2px 6px', fontWeight: 500,
+              }}>
+                No aplica para Indefinido
+              </span>
+            )}
+          </label>
+          <input
+            type="date"
+            name="fecha_termino_nueva"
+            value={form.fecha_termino_nueva}
+            onChange={handleChange}
+            disabled={esIndefinidoNuevo}
+            style={esIndefinidoNuevo ? { opacity: 0.4, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+          />
+
+          <label>Nuevo monto (opcional)</label>
+          <input type="number" name="monto_nuevo" value={form.monto_nuevo} onChange={handleChange} />
+
+          <label>Observaciones</label>
+          <textarea name="observaciones" value={form.observaciones}
+            onChange={handleChange} rows={2} placeholder="Notas adicionales..." />
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn-cancelar" onClick={onClose}>Cancelar</button>
+          <button className="btn-guardar" onClick={handleGuardar} disabled={guardando}>
+            {guardando ? 'Guardando...' : 'Guardar anexo'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Modal Ver Detalle ─────────────────────────────────────────────────────────
+
+function DetalleModal({ contrato: contratoResumen, onClose, onCambio }) {
+  const [contrato, setContrato] = useState(contratoResumen);
+  const [loading,  setLoading]  = useState(true);
+  const [modalAnexo, setModalAnexo] = useState(false);
+  const [eliminandoAnexoId, setEliminandoAnexoId] = useState(null);
+
+  const cargar = async () => {
+    setLoading(true);
+    try {
+      const data = await getContratoById(contratoResumen.id_contrato);
+      setContrato(mapContrato(data));
+    } catch {
+      // silencioso: el modal simplemente se queda con lo que ya tenía
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleEliminarAnexo = async (id_anexo_contrato) => {
+    if (!window.confirm('¿Eliminar este anexo? Esta acción no se puede deshacer.')) return;
+    setEliminandoAnexoId(id_anexo_contrato);
+    try {
+      await deleteAnexoContrato(id_anexo_contrato);
+      await cargar();
+      onCambio && onCambio();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setEliminandoAnexoId(null);
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-box modal-detalle-contrato" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Detalle del Contrato</h2>
           <button className="modal-close" onClick={onClose}><X size={18} /></button>
@@ -338,6 +536,51 @@ function DetalleModal({ contrato, onClose }) {
             </div>
           )}
         </div>
+
+        <div className="anexos-section">
+          <div className="anexos-header">
+            <h3>Anexos ({contrato.anexos?.length || 0})</h3>
+            <button className="btn-agregar-anexo" onClick={() => setModalAnexo(true)}>
+              <FilePlus size={14} /> Agregar anexo
+            </button>
+          </div>
+
+          {loading ? (
+            <p className="anexos-empty">Cargando anexos...</p>
+          ) : (!contrato.anexos || contrato.anexos.length === 0) ? (
+            <p className="anexos-empty">Este contrato aún no tiene anexos.</p>
+          ) : (
+            <ul className="anexos-list">
+              {contrato.anexos.map((a) => (
+                <li key={a.id_anexo_contrato} className="anexo-item">
+                  <div className="anexo-item-header">
+                    <span className="anexo-fecha">{formatearFecha(a.fecha_anexo)}</span>
+                    <span className="anexo-motivo">{a.motivo}</span>
+                    <button
+                      className="btn-eliminar-anexo"
+                      onClick={() => handleEliminarAnexo(a.id_anexo_contrato)}
+                      disabled={eliminandoAnexoId === a.id_anexo_contrato}
+                      title="Eliminar anexo"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <p className="anexo-descripcion">{a.descripcion_modificacion}</p>
+                  <div className="anexo-meta">
+                    <span>Vigencia hasta: {formatearFecha(a.fecha_vigencia)}</span>
+                    {a.tipo_contrato_nuevo && <span>Nuevo tipo: {a.tipo_contrato_nuevo}</span>}
+                    {a.fecha_termino_nueva && <span>Nueva fecha término: {formatearFecha(a.fecha_termino_nueva)}</span>}
+                    {a.monto_nuevo !== null && a.monto_nuevo !== undefined && (
+                      <span>Monto nuevo: {formatearMonto(a.monto_nuevo)}</span>
+                    )}
+                  </div>
+                  {a.observaciones && <p className="anexo-observaciones">{a.observaciones}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <div className="modal-footer">
           <button className="btn-cancelar" onClick={onClose}>Cerrar</button>
           <button className="btn-guardar" onClick={() => generarPDFContrato(contrato)}
@@ -346,6 +589,14 @@ function DetalleModal({ contrato, onClose }) {
           </button>
         </div>
       </div>
+
+      {modalAnexo && (
+        <AnexoModal
+          idContrato={contratoResumen.id_contrato}
+          onClose={() => setModalAnexo(false)}
+          onGuardado={async () => { setModalAnexo(false); await cargar(); onCambio && onCambio(); }}
+        />
+      )}
     </div>
   );
 }
@@ -486,7 +737,7 @@ function Contratos({ usuario, onLogout }) {
   };
 
   return (
-    <div className="dashboard-wrapper">
+    <div className="dashboard-wrapper contratos-page">
       <Sidebar usuario={usuario} />
       <div className="dashboard-main">
         <Header onLogout={onLogout} />
@@ -653,7 +904,7 @@ function Contratos({ usuario, onLogout }) {
         />
       )}
       {contratoDetalle && (
-        <DetalleModal contrato={contratoDetalle} onClose={() => setContratoDetalle(null)} />
+        <DetalleModal contrato={contratoDetalle} onClose={() => setContratoDetalle(null)} onCambio={fetchContratos} />
       )}
       {contratoDelete && (
         <ConfirmModal contrato={contratoDelete}

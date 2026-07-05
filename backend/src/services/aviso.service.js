@@ -131,14 +131,15 @@ export const crearAviso = async ({ id_cuadrilla, titulo, contenido, prioridad, i
   return { ...nuevoAviso, cuadrilla };
 };
 
-export const editarAviso = async ({ id_aviso, titulo, contenido, prioridad, id_solicitante }) => {
+export const editarAviso = async ({ id_aviso, titulo, contenido, prioridad, id_solicitante, tipo_usuario }) => {
   const aviso = await avisoRepository.findOne({
     where: { id_aviso: Number(id_aviso) },
     relations: ["cuadrilla", "cuadrilla.proyecto"],
   });
   if (!aviso) throw { status: 404, message: "Aviso no encontrado" };
 
-  if (aviso.id_autor !== id_solicitante)
+  // El administrador puede editar cualquier aviso; el resto solo el suyo propio
+  if (tipo_usuario !== "administrador" && aviso.id_autor !== id_solicitante)
     throw { status: 403, message: "No tiene permisos para editar este aviso" };
 
   await getCuadrillaOperativa(aviso.id_cuadrilla);

@@ -146,6 +146,54 @@ export function generarPDFContrato(contrato) {
     y += lineas.length * 6 + 4;
   }
 
+  if (contrato.anexos && contrato.anexos.length > 0) {
+    y += 4;
+    doc.setFillColor(...GRIS_CLR);
+    doc.roundedRect(14, y - 5, ancho - 28, 8, 1, 1, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...GRIS_MED);
+    doc.text(`ANEXOS (${contrato.anexos.length})`, 18, y);
+    y += 10;
+
+    contrato.anexos.forEach((a) => {
+      if (y > doc.internal.pageSize.getHeight() - 30) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(...GRIS_OSC);
+      // x=18, misma columna que usa fila() (x+4) en el resto del documento
+      doc.text(`${formatearFecha(a.fecha_anexo)} - ${a.motivo || ''}`, 18, y);
+      y += 6;
+
+      if (a.descripcion_modificacion) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...GRIS_MED);
+        const lineasAnexo = doc.splitTextToSize(a.descripcion_modificacion, ancho - 28);
+        doc.text(lineasAnexo, 18, y);
+        y += lineasAnexo.length * 5 + 2;
+      }
+
+      if (a.tipo_contrato_nuevo) {
+        fila(doc, 14, y, ancho, 'Nuevo tipo', a.tipo_contrato_nuevo, GRIS_OSC, GRIS_MED);
+        y += 6;
+      }
+      if (a.fecha_termino_nueva) {
+        fila(doc, 14, y, ancho, 'Nueva fecha término', formatearFecha(a.fecha_termino_nueva), GRIS_OSC, GRIS_MED);
+        y += 6;
+      }
+      if (a.monto_nuevo !== undefined && a.monto_nuevo !== null && a.monto_nuevo !== '') {
+        fila(doc, 14, y, ancho, 'Nuevo monto', formatearMonto(a.monto_nuevo), GRIS_OSC, GRIS_MED);
+        y += 6;
+      }
+
+      y += 4;
+    });
+  }
+
   const alturaPagina = doc.internal.pageSize.getHeight();
   doc.setFillColor(...GRIS_CLR);
   doc.rect(0, alturaPagina - 18, ancho, 18, 'F');
