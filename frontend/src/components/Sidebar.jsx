@@ -13,7 +13,7 @@ const MENU_POR_ROL = {
     { id: 'contratos',    label: 'Contratos Laborales',       icon: FileText,        path: '/admin/contratos' },
     { id: 'contratos-proyecto', label: 'Contratos de Proyecto', icon: ClipboardList, path: '/admin/contratos-proyecto' },
     { id: 'pagos',        label: 'Remuneraciones',  icon: DollarSign,      path: '/admin/pagos' },
-    { id: 'ausencias',    label: 'Gestión de Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
+    { id: 'ausencias',    label: 'Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
     { id: 'asignaciones', label: 'Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
     { id: 'avisos',       label: 'Canales de Avisos', icon: Bell,          path: '/admin/avisos' },
     { id: 'accidentes-laborales', label: 'Accidentes', icon: Accessibility, path: '/admin/accidentes-laborales'}
@@ -27,9 +27,7 @@ const MENU_POR_ROL = {
     { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'},
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/supervisor/avisos' },
     { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'},
-    { id: 'accidentes',       label: 'Accidentes Laborales', icon: Accessibility,      path: '/supervisor/accidentes-laborales'},
-    { id: 'registrar-accidente', label: 'Registrar Accidente', icon: Accessibility,    path: '/supervisor/registrar-accidente'},
-    { id: 'accidentes',       label: 'Accidentes Laborales', icon: Accessibility,      path: '/supervisor/accidentes-laborales'}
+    { id: 'registrar-accidente', label: 'Registrar Accidente', icon: Accessibility,    path: '/supervisor/registrar-accidente'}
   ],
   trabajador: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },
