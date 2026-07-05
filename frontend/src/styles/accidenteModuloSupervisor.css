@@ -83,13 +83,13 @@
 }
 
 .as-btn-todos:hover {
-  border-color: #4F46E5;
-  color: #4F46E5;
+  border-color: #4466ff;
+  color: #4466ff;
 }
 
 .as-btn-todos-active {
-  background: #4F46E5;
-  border-color: #4F46E5;
+  background: #4466ff;
+  border-color: #4466ff;
   color: #fff !important;
 }
 

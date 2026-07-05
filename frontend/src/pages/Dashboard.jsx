@@ -68,6 +68,7 @@ function AdminDashboard({ usuario, onLogout }) {
   const [sinCuadrilla, setSinCuadrilla] = useState([]);
   const [remuneracionesPendientes, setRemuneracionesPendientes] = useState([]);
   const [proyectos, setProyectos] = useState({ activos: 0, inactivos: 0 });
+  const [mostrarTodasAlertas, setMostrarTodasAlertas] = useState(false);
 
   useEffect(() => {
     const cargarTodo = async () => {
@@ -119,7 +120,7 @@ function AdminDashboard({ usuario, onLogout }) {
 
   // ── Alertas combinadas (contratos por vencer + sin cuadrilla + pagos) ──────
   const alertas = [
-    ...contratosPorVencer.slice(0, 3).map((c) => ({
+    ...contratosPorVencer.map((c) => ({
       key: `contrato-${c.id_contrato}`,
       tone: diasRestantes(c.fecha_termino) <= 7 ? 'warning' : 'default',
       icon: FileSignature,
@@ -127,7 +128,7 @@ function AdminDashboard({ usuario, onLogout }) {
       description: `${c.trabajador?.nombres ?? ''} ${c.trabajador?.apellidos ?? ''} finaliza su contrato pronto.`,
       timestamp: formatTiempo(diasRestantes(c.fecha_termino)),
     })),
-    ...sinCuadrilla.slice(0, 2).map((t) => ({
+    ...sinCuadrilla.map((t) => ({
       key: `cuadrilla-${t.id_trabajador}`,
       tone: 'default',
       icon: Users,
@@ -135,7 +136,7 @@ function AdminDashboard({ usuario, onLogout }) {
       description: `${t.nombres} ${t.apellidos} no tiene una cuadrilla asignada.`,
       timestamp: '',
     })),
-    ...remuneracionesPendientes.slice(0, 2).map((r) => ({
+    ...remuneracionesPendientes.map((r) => ({
       key: `pago-${r.id_remuneracion}`,
       tone: 'warning',
       icon: Wallet,
@@ -143,7 +144,8 @@ function AdminDashboard({ usuario, onLogout }) {
       description: `${r.trabajador?.nombres ?? ''} ${r.trabajador?.apellidos ?? ''} tiene un pago pendiente.`,
       timestamp: '',
     })),
-  ].slice(0, 5);
+  ];
+  const alertasVisibles = mostrarTodasAlertas ? alertas : alertas.slice(0, 3);
 
   // ── Donut de proyectos ──────────────────────────────────────────────────────
   const totalProyectos = proyectos.activos + proyectos.inactivos;
@@ -216,7 +218,15 @@ function AdminDashboard({ usuario, onLogout }) {
                 <div className="alerts-section">
                   <div className="section-header">
                     <h3 className="section-title">Alertas y Acciones</h3>
-                    {alertas.length > 0 && <button className="see-all-link">Ver todas</button>}
+                    {alertas.length > 3 && (
+                      <button
+                        type="button"
+                        className="see-all-link"
+                        onClick={() => setMostrarTodasAlertas(prev => !prev)}
+                      >
+                        {mostrarTodasAlertas ? 'Ver menos' : 'Ver todas'}
+                      </button>
+                    )}
                   </div>
                   {alertas.length === 0 ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '11px', padding: '8px 0' }}>
@@ -224,7 +234,7 @@ function AdminDashboard({ usuario, onLogout }) {
                     </div>
                   ) : (
                     <div className="alerts-grid">
-                      {alertas.map((a) => (
+                      {alertasVisibles.map((a) => (
                         <AlertCard key={a.key} tone={a.tone} icon={a.icon} title={a.title} description={a.description} timestamp={a.timestamp} />
                       ))}
                     </div>

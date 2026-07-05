@@ -220,7 +220,7 @@ function RegistrarAccidentesModuloSupervisor({ usuario, onLogout }) {
               <h1 className="vista-general-title">
                 Registrar Accidente Laboral
                 {proyecto && (
-                  <span style={{ fontWeight: 400, color: '#6b7280' }}>
+                  <span className="ra-tope-proyecto">
                     {' '}— {proyecto.nombre_proyecto}
                   </span>
                 )}
