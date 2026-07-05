@@ -28,7 +28,8 @@ const MENU_POR_ROL = {
     { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'},
     { id: 'avisos',           label: 'Canales de Avisos', icon: Bell,            path: '/supervisor/avisos' },
     { id: 'inventario',       label: 'Inventario del Proyecto', icon: List,      path: '/supervisor/inventario'},
-    { id: 'accidentes',       label: 'Accidentes Laborales', icon: Accessibility,      path: '/supervisor/accidentes-laborales'}
+    { id: 'accidentes',       label: 'Accidentes Laborales', icon: Accessibility,      path: '/supervisor/accidentes-laborales'},
+    { id: 'registrar-accidente', label: 'Registrar Accidente', icon: Accessibility,    path: '/supervisor/registrar-accidente'}
   ],
   trabajador: [
     { id: 'dashboard',        label: 'Mi Dashboard',      icon: LayoutDashboard, path: '/app/dashboard' },

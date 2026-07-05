@@ -1,0 +1,516 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   registrarAccidentesModuloSupervisor.css
+   Prefijo: ra-  (registrar accidente)
+   Paleta compartida: Primary #4F46E5 · Border #e5e7eb · Text #111827
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Layout principal ──────────────────────────────────────────────────── */
+
+.ra-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  align-items: start;
+  margin-top: 4px;
+}
+
+/* ─── Panel base ────────────────────────────────────────────────────────── */
+
+.ra-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── Cabecera de panel ─────────────────────────────────────────────────── */
+
+.ra-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ra-panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ra-panel-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #e5e7eb;
+  padding: 2px 9px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+/* ─── Lista de cuadrillas (panel izquierdo) ─────────────────────────────── */
+
+.ra-cuadrilla-list {
+  overflow-y: auto;
+}
+
+.ra-cuadrilla-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.ra-cuadrilla-item:last-child { border-bottom: none; }
+
+.ra-cuadrilla-item:hover { background: #f9fafb; }
+
+.ra-cuadrilla-item.ra-cuadrilla-selected {
+  background: #eef2ff;
+  border-left-color: #4F46E5;
+}
+
+.ra-cuadrilla-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  color: #4F46E5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ra-cuadrilla-item.ra-cuadrilla-selected .ra-cuadrilla-icon {
+  background: linear-gradient(135deg, #4F46E5 0%, #6366f1 100%);
+  color: #fff;
+}
+
+.ra-cuadrilla-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ra-cuadrilla-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ra-cuadrilla-count {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* ─── Badges de estado cuadrilla ────────────────────────────────────────── */
+
+.ra-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.ra-badge-activa   { background: #d1fae5; color: #065f46; }
+.ra-badge-inactiva { background: #fee2e2; color: #991b1b; }
+
+/* ─── Lista de integrantes (panel derecho) ──────────────────────────────── */
+
+.ra-integrante-list {
+  overflow-y: auto;
+  max-height: 520px;
+}
+
+.ra-integrante-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.12s;
+}
+
+.ra-integrante-row:last-child { border-bottom: none; }
+
+.ra-integrante-row:hover { background: #fafafa; }
+
+.ra-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.ra-integrante-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ra-integrante-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ra-integrante-rut {
+  font-size: 11px;
+  font-family: monospace;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Botón Registrar Accidente por fila */
+.ra-btn-registrar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.ra-btn-registrar:hover {
+  border-color: #4F46E5;
+  color: #4F46E5;
+  background: #eef2ff;
+}
+
+/* ─── Estado vacío ──────────────────────────────────────────────────────── */
+
+.ra-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 24px;
+  color: #9ca3af;
+  font-size: 13px;
+  text-align: center;
+  min-height: 280px;
+}
+
+.ra-empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ra-empty p { margin: 0; line-height: 1.6; }
+
+/* ─── Paginación ────────────────────────────────────────────────────────── */
+
+.ra-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.ra-page-info { font-size: 12px; color: #6b7280; }
+
+.ra-page-btns { display: flex; gap: 4px; }
+
+.ra-page-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.ra-page-btn:hover:not(:disabled) {
+  border-color: #4F46E5;
+  color: #4F46E5;
+}
+
+.ra-page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ─── Banner de éxito ───────────────────────────────────────────────────── */
+
+.ra-success-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  color: #065f46;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 12px 18px 0;
+}
+
+/* ─── Modal de registro ─────────────────────────────────────────────────── */
+
+.tw-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+}
+
+.tw-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: ra-modalIn 0.2s ease;
+}
+
+@keyframes ra-modalIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tw-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tw-modal-header h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.tw-modal-header p {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 3px 0 0;
+}
+
+.tw-modal-close {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.tw-modal-close:hover { background: #e5e7eb; }
+
+.tw-form {
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tw-form-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.tw-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.tw-field { display: flex; flex-direction: column; gap: 5px; }
+
+.tw-field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tw-field input,
+.tw-field select {
+  padding: 9px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.tw-field input:focus,
+.tw-field select:focus {
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.ra-textarea {
+  padding: 9px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+  min-height: 68px;
+  font-family: inherit;
+}
+
+.ra-textarea:focus {
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.ra-textarea::placeholder { color: #bcc3d9; }
+
+.tw-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 22px 18px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.tw-btn-cancel {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tw-btn-cancel:hover { background: #f9fafb; }
+
+.tw-btn-save {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  background: #4F46E5;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tw-btn-save:hover:not(:disabled) { background: #4338ca; }
+
+.tw-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ─── tw-* fallback ─────────────────────────────────────────────────────── */
+
+.tw-loading,
+.tw-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.tw-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #4F46E5;
+  border-radius: 50%;
+  animation: ra-spin 0.7s linear infinite;
+}
+
+@keyframes ra-spin { to { transform: rotate(360deg); } }
+
+.tw-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
