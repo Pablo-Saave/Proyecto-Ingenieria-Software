@@ -1,14 +1,18 @@
 // validations/contratos.validation.js
+import { AppDataSource } from "../config/configDb.js";
 
 export const TIPOS_CONTRATO   = ['Indefinido', 'Plazo Fijo'];
 export const ESTADOS_CONTRATO = ['Activo', 'Inactivo', 'Por vencer'];
 export const ESTADOS_ELIMINABLES = ['Inactivo'];
 
 // Campos que SÍ se pueden editar directamente en un contrato existente.
-// Todo lo demás (tipo_contrato, fecha_inicio, fecha_termino, monto) requiere
-// crear un anexo, igual que en contrato_proyecto.
-const CAMPOS_EDITABLES = ['estado_contrato', 'observaciones'];
-const CAMPOS_SOLO_VIA_ANEXO = ['tipo_contrato', 'fecha_inicio', 'fecha_termino', 'monto'];
+// Todo lo demás (tipo_contrato, fecha_inicio, fecha_termino, monto,
+// estado_contrato) requiere crear un anexo. En particular, para pasar a
+// "Inactivo" se exige un anexo de término (es_anexo_termino) que registre
+// el motivo y la fecha real de cierre — no se permite apagar el contrato
+// con un simple PUT.
+const CAMPOS_EDITABLES = ['observaciones'];
+const CAMPOS_SOLO_VIA_ANEXO = ['tipo_contrato', 'fecha_inicio', 'fecha_termino', 'monto', 'estado_contrato'];
 
 function hoyLocal() {
   const d = new Date();
@@ -118,17 +122,14 @@ export function validarActualizarContrato(req, res, next) {
     }
 
     errores.push(
-      `No se puede modificar "${campo}" desde la edición directa. Para cambiar tipo de contrato, fechas o monto debes crear un anexo.`
+      campo === 'estado_contrato'
+        ? 'No se puede modificar "estado_contrato" desde la edición directa. Para inactivar el contrato debes crear un anexo de término (es_anexo_termino).'
+        : `No se puede modificar "${campo}" desde la edición directa. Para cambiar tipo de contrato, fechas o monto debes crear un anexo.`
     );
   }
 
   if (errores.length) {
     return res.status(400).json({ status: 'error', message: errores.join(' ') });
-  }
-
-  const { estado_contrato } = req.body;
-  if (estado_contrato !== undefined && !ESTADOS_CONTRATO.includes(estado_contrato)) {
-    errores.push(`estado_contrato inválido. Valores permitidos: ${ESTADOS_CONTRATO.join(', ')}.`);
   }
 
   if (errores.length) {
@@ -144,6 +145,42 @@ export function validarActualizarContrato(req, res, next) {
   req.body = bodyLimpio;
 
   next();
+}
+
+/**
+ * Crear anexo: bloquea la operación si el contrato asociado está Inactivo.
+ * Se usa en la ruta POST /api/contratos/:id_contrato/anexos, antes del
+ * controlador de creación de anexo.
+ */
+export async function validarCrearAnexo(req, res, next) {
+  try {
+    const idContrato = parseInt(req.params.id_contrato);
+
+    if (Number.isNaN(idContrato)) {
+      return res.status(400).json({ status: 'error', message: 'id de contrato inválido.' });
+    }
+
+    const repo = AppDataSource.getRepository('ContratoTrabajador');
+    const contrato = await repo.findOne({ where: { id_contrato: idContrato } });
+
+    if (!contrato) {
+      return res.status(404).json({ status: 'error', message: 'Contrato no encontrado.' });
+    }
+
+    if (contrato.estado_contrato === 'Inactivo') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No se pueden agregar anexos a un contrato Inactivo.',
+      });
+    }
+
+    // Lo dejamos disponible por si el controlador lo necesita, evitando
+    // otra consulta a la BD.
+    req.contratoActual = contrato;
+    next();
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
 }
 
 export function validarEliminarContrato(req, res, next) {

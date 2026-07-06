@@ -2,6 +2,7 @@ import { AppDataSource } from "../config/configDb.js";
 import { AusenciaSchema } from "../entities/ausencia.entity.js";
 import { JustificacionAusenciaSchema } from "../entities/justificacion_ausencia.entity.js"; // Asegúrate de importar esto
 import { In } from "typeorm";
+import { crearNotificacion } from "../services/notificacion.service.js";
 
 const repo = AppDataSource.getRepository(AusenciaSchema);
 const repoJustificacion = AppDataSource.getRepository(JustificacionAusenciaSchema);
@@ -50,6 +51,29 @@ export const crearAusencia = async (req, res) => {
       return ausenciaGuardada;
     });
 
+    // Notificar al supervisor del proyecto de esa cuadrilla que hay una
+    // nueva ausencia pendiente de revisión.
+    try {
+      const cuadrillaConProyecto = await AppDataSource.getRepository("Cuadrilla").findOne({
+        where: { id_cuadrilla },
+        relations: ["proyecto"],
+      });
+
+      if (cuadrillaConProyecto?.proyecto?.id_supervisor) {
+        await crearNotificacion({
+          id_trabajador: cuadrillaConProyecto.proyecto.id_supervisor,
+          tipo: "ausencia_pendiente",
+          titulo: "Nueva ausencia pendiente",
+          mensaje: "Un trabajador registró una ausencia pendiente de revisión",
+          referencia_tipo: "ausencia",
+          referencia_id: resultado.id_ausencia,
+        });
+      }
+    } catch (notifError) {
+      // La notificación nunca debe romper el flujo principal de creación de la ausencia.
+      console.error("Error al notificar nueva ausencia:", notifError);
+    }
+
     res.json(resultado);
   } catch (error) {
     res.status(500).json({ error: "Error al crear ausencia" });
@@ -96,6 +120,21 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
     });
 
     const resultado = await repo.save(nueva);
+
+    // Notificar al trabajador que se le registró una inasistencia y debe justificarla.
+    try {
+      await crearNotificacion({
+        id_trabajador,
+        tipo: "inasistencia_detectada",
+        titulo: "Inasistencia registrada",
+        mensaje: "Tu supervisor registró una inasistencia a tu nombre. Debes justificarla.",
+        referencia_tipo: "ausencia",
+        referencia_id: resultado.id_ausencia,
+      });
+    } catch (notifError) {
+      console.error("Error al notificar inasistencia detectada:", notifError);
+    }
+
     res.json(resultado);
 
   } catch (error) {
@@ -111,7 +150,7 @@ export const justificarAusencia = async (req, res) => {
  
     const ausencia = await repo.findOne({
       where: { id_ausencia },
-      relations: ["trabajador", "cuadrilla"],
+      relations: ["trabajador", "cuadrilla", "cuadrilla.proyecto"],
     });
  
     if (!ausencia) {
@@ -143,6 +182,22 @@ export const justificarAusencia = async (req, res) => {
       ausencia.estado = "Justificada";
       await transactionalEntityManager.save(AusenciaSchema, ausencia);
     });
+
+    // Notificar al supervisor del proyecto que hay una justificación pendiente de revisión.
+    try {
+      if (ausencia.cuadrilla?.proyecto?.id_supervisor) {
+        await crearNotificacion({
+          id_trabajador: ausencia.cuadrilla.proyecto.id_supervisor,
+          tipo: "ausencia_justificada",
+          titulo: "Justificación pendiente de revisión",
+          mensaje: "Un trabajador justificó su inasistencia, queda pendiente de revisión",
+          referencia_tipo: "ausencia",
+          referencia_id: id_ausencia,
+        });
+      }
+    } catch (notifError) {
+      console.error("Error al notificar justificación de ausencia:", notifError);
+    }
  
     res.json({ message: "Justificación presentada correctamente y pendiente de revisión" });
   } catch (error) {
@@ -317,6 +372,23 @@ export const revisarAusencia = async (req, res) => {
       ausencia.estado = estado_aprobacion;
       await transactionalEntityManager.save(AusenciaSchema, ausencia);
     });
+
+    // Notificar al trabajador el resultado de la revisión.
+    try {
+      await crearNotificacion({
+        id_trabajador: ausencia.trabajador.id_trabajador,
+        tipo: estado_aprobacion === "Aprobado" ? "ausencia_aprobada" : "ausencia_rechazada",
+        titulo: estado_aprobacion === "Aprobado" ? "Ausencia aprobada" : "Ausencia rechazada",
+        mensaje:
+          estado_aprobacion === "Aprobado"
+            ? "Tu ausencia fue aprobada"
+            : `Tu ausencia fue rechazada${comentario_revision ? ": " + comentario_revision : ""}`,
+        referencia_tipo: "ausencia",
+        referencia_id: id_ausencia,
+      });
+    } catch (notifError) {
+      console.error("Error al notificar revisión de ausencia:", notifError);
+    }
  
     res.json({ message: `Ausencia revisada con éxito. Resultado: ${estado_aprobacion}` });
  

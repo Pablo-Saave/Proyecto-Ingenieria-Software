@@ -22,6 +22,7 @@ import {
   validarCrearContrato,
   validarActualizarContrato,
   validarEliminarContrato,
+  validarCrearAnexo,
 } from '../validations/contratos.validation.js';
 
 const router = express.Router();
@@ -76,7 +77,7 @@ router.delete(
 // Reutiliza el permiso de edición: solo quien puede editar el contrato puede
 // crear/ver/eliminar sus anexos.
 router.get('/:id_contrato/anexos', autorizar('contratos:editar'), getAnexosByContrato);
-router.post('/:id_contrato/anexos', autorizar('contratos:editar'), crearAnexo);
+router.post('/:id_contrato/anexos', autorizar('contratos:editar'), validarCrearAnexo, crearAnexo);
 router.delete('/anexos/:id_anexo', autorizar('contratos:editar'), eliminarAnexo);
 
 export default router;

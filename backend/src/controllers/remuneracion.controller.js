@@ -3,6 +3,7 @@
 import { AppDataSource } from "../config/configDb.js";
 import { RemuneracionSchema } from "../entities/remuneracion.entity.js";
 import { TrabajadorSchema } from "../entities/trabajador.entity.js";
+import { crearNotificacion } from "../services/notificacion.service.js";
 
 const remuneracionRepo = AppDataSource.getRepository(RemuneracionSchema);
 const trabajadorRepo = AppDataSource.getRepository(TrabajadorSchema);
@@ -84,6 +85,20 @@ export const crearRemuneracion = async (req, res) => {
 
     await remuneracionRepo.save(nuevaRemuneracion);
 
+    // Notificar al trabajador que se registró su nueva remuneración.
+    try {
+      await crearNotificacion({
+        id_trabajador: trabajador.id_trabajador,
+        tipo: "remuneracion_nueva",
+        titulo: "Nueva remuneración registrada",
+        mensaje: `Se registró tu remuneración con fecha de pago ${fecha_pago}`,
+        referencia_tipo: "remuneracion",
+        referencia_id: nuevaRemuneracion.id_remuneracion,
+      });
+    } catch (notifError) {
+      console.error("Error al notificar nueva remuneración:", notifError);
+    }
+
     return res.status(201).json(nuevaRemuneracion);
 
   } catch (error) {
@@ -116,6 +131,10 @@ export const actualizarRemuneracion = async (req, res) => {
       estado_pago,
     } = req.body;
 
+    // Guardamos el estado anterior para saber si realmente hubo un cambio
+    // de estado y así evitar notificar cuando solo se actualizan otros campos.
+    const estadoAnterior = remuneracion.estado_pago;
+
     // Solo actualiza los campos que vienen en el body
     if (fecha_pago) remuneracion.fecha_pago = fecha_pago;
     if (sueldo !== undefined) remuneracion.sueldo = sueldo;
@@ -124,6 +143,25 @@ export const actualizarRemuneracion = async (req, res) => {
     if (estado_pago) remuneracion.estado_pago = estado_pago;
 
     await remuneracionRepo.save(remuneracion);
+
+    // Notificar al trabajador si cambió el estado de pago (ej: Rechazado, Pagado, etc.)
+    if (estado_pago && estado_pago !== estadoAnterior) {
+      try {
+        await crearNotificacion({
+          id_trabajador: remuneracion.trabajador.id_trabajador,
+          tipo: "remuneracion_actualizada",
+          titulo: estado_pago === "Rechazado" ? "Pago rechazado" : "Actualización de tu remuneración",
+          mensaje:
+            estado_pago === "Rechazado"
+              ? "Tu remuneración fue rechazada, revisa el detalle"
+              : `El estado de tu remuneración cambió a: ${estado_pago}`,
+          referencia_tipo: "remuneracion",
+          referencia_id: remuneracion.id_remuneracion,
+        });
+      } catch (notifError) {
+        console.error("Error al notificar cambio de estado de remuneración:", notifError);
+      }
+    }
 
     res.status(200).json(remuneracion);
   } catch (error) {

@@ -78,7 +78,10 @@ function mapContrato(c) {
       rut:       t.rut || '—',
       iniciales: getIniciales(t.nombres, t.apellidos),
     },
-    estado: calcularEstado(c.fecha_termino),
+    // Usamos el estado real guardado en BD (lo que el admin edita y lo que
+    // el cron de contratos actualiza). calcularEstado() queda solo como
+    // fallback por si algún contrato antiguo no tiene estado_contrato.
+    estado: c.estado_contrato || calcularEstado(c.fecha_termino),
     diasRestantes,
     diasTotal,
     anexos: c.anexos || [],
@@ -162,12 +165,12 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
     setGuardando(true);
     setErrores([]);
     try {
-      // En edición solo se pueden tocar estado y observaciones; el resto
-      // (tipo, fechas, monto) se cambia creando un anexo.
+      // En edición solo se puede tocar observaciones; el resto (tipo, fechas,
+      // monto, estado) se cambia creando un anexo — el estado en particular
+      // requiere un anexo de término para pasar a Inactivo.
       const payload = contratoEdit
         ? {
-            estado_contrato: form.estado_contrato,
-            observaciones:   form.observaciones || null,
+            observaciones: form.observaciones || null,
           }
         : {
             tipo_contrato:   form.tipo_contrato,
@@ -234,24 +237,24 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
           </select>
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            Estado *
-            {!contratoEdit && (
-              <span style={{
-                fontSize: '11px', color: '#6b7280',
-                background: '#f3f4f6', borderRadius: '4px',
-                padding: '2px 6px', fontWeight: 500,
-              }}>
-                Los contratos nuevos se crean como Activo
-              </span>
-            )}
+            Estado
+            <span style={{
+              fontSize: '11px', color: '#6b7280',
+              background: '#f3f4f6', borderRadius: '4px',
+              padding: '2px 6px', fontWeight: 500,
+            }}>
+              {contratoEdit
+                ? 'Para inactivar el contrato crea un anexo de término'
+                : 'Los contratos nuevos se crean como Activo'}
+            </span>
           </label>
           <select
             name="estado_contrato"
             value={form.estado_contrato}
             onChange={handleChange}
-            disabled={!contratoEdit}
-            title={!contratoEdit ? 'Los contratos nuevos siempre inician en estado Activo' : ''}
-            style={!contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+            disabled
+            title="El estado no se edita directamente. Para inactivar el contrato crea un anexo de término desde el detalle del contrato."
+            style={{ opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' }}
           >
             {ESTADOS_CONTRATO.map((e) => <option key={e} value={e}>{e}</option>)}
           </select>
@@ -341,6 +344,7 @@ const ANEXO_VACIO = {
   fecha_termino_nueva: '',
   monto_nuevo: '',
   observaciones: '',
+  es_anexo_termino: false,
 };
 
 function AnexoModal({ idContrato, onClose, onGuardado }) {
@@ -351,9 +355,9 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
   const esIndefinidoNuevo = form.tipo_contrato_nuevo === 'Indefinido';
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setForm((prev) => {
-      const next = { ...prev, [name]: value };
+      const next = { ...prev, [name]: type === 'checkbox' ? checked : value };
       if (name === 'tipo_contrato_nuevo' && value === 'Indefinido') {
         next.fecha_termino_nueva = '';
       }
@@ -364,6 +368,9 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
 
   const handleGuardar = async () => {
     const errs = validarFormAnexoContrato(form);
+    if (form.es_anexo_termino && !form.fecha_termino_nueva) {
+      errs.push('Debes indicar la fecha real de término para inactivar el contrato.');
+    }
     if (errs.length) { setErrores(errs); return; }
 
     setGuardando(true);
@@ -378,6 +385,7 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
         fecha_termino_nueva: esIndefinidoNuevo ? null : (form.fecha_termino_nueva || null),
         monto_nuevo: form.monto_nuevo === '' ? null : Number(form.monto_nuevo),
         observaciones: form.observaciones || null,
+        es_anexo_termino: form.es_anexo_termino || false,
       });
       onGuardado();
     } catch (err) {
@@ -419,6 +427,30 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
           <textarea name="descripcion_modificacion" value={form.descripcion_modificacion}
             onChange={handleChange} rows={3} placeholder="Detalle de lo que cambia..." />
 
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: form.es_anexo_termino ? '#fee2e2' : '#f9fafb',
+            border: `1px solid ${form.es_anexo_termino ? '#fecaca' : '#e5e7eb'}`,
+            borderRadius: '6px', padding: '10px 12px', marginTop: '4px', cursor: 'pointer',
+          }}>
+            <input
+              type="checkbox"
+              name="es_anexo_termino"
+              checked={form.es_anexo_termino}
+              onChange={handleChange}
+              style={{ width: 'auto' }}
+            />
+            <span style={{ fontWeight: 500, color: form.es_anexo_termino ? '#991b1b' : '#374151' }}>
+              Este anexo termina el contrato (pasará a Inactivo)
+            </span>
+          </label>
+          {form.es_anexo_termino && (
+            <p style={{ fontSize: '12px', color: '#991b1b', margin: '2px 0 8px' }}>
+              Debes indicar la fecha real de término abajo. Una vez guardado, el contrato
+              quedará <strong>Inactivo</strong> y no se podrán agregar más anexos.
+            </p>
+          )}
+
           <label>Nuevo tipo de contrato (opcional)</label>
           <select name="tipo_contrato_nuevo" value={form.tipo_contrato_nuevo} onChange={handleChange}>
             <option value="">— Sin cambio —</option>
@@ -426,8 +458,8 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
           </select>
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            Nueva fecha de término (opcional)
-            {esIndefinidoNuevo && (
+            {form.es_anexo_termino ? 'Fecha real de término *' : 'Nueva fecha de término (opcional)'}
+            {esIndefinidoNuevo && !form.es_anexo_termino && (
               <span style={{
                 fontSize: '11px', color: '#6b7280',
                 background: '#f3f4f6', borderRadius: '4px',
@@ -442,8 +474,8 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
             name="fecha_termino_nueva"
             value={form.fecha_termino_nueva}
             onChange={handleChange}
-            disabled={esIndefinidoNuevo}
-            style={esIndefinidoNuevo ? { opacity: 0.4, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+            disabled={esIndefinidoNuevo && !form.es_anexo_termino}
+            style={(esIndefinidoNuevo && !form.es_anexo_termino) ? { opacity: 0.4, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
 
           <label>Nuevo monto (opcional)</label>
@@ -540,10 +572,21 @@ function DetalleModal({ contrato: contratoResumen, onClose, onCambio }) {
         <div className="anexos-section">
           <div className="anexos-header">
             <h3>Anexos ({contrato.anexos?.length || 0})</h3>
-            <button className="btn-agregar-anexo" onClick={() => setModalAnexo(true)}>
+            <button
+              className="btn-agregar-anexo"
+              onClick={() => setModalAnexo(true)}
+              disabled={contrato.estado_contrato === 'Inactivo'}
+              title={contrato.estado_contrato === 'Inactivo' ? 'No se pueden agregar anexos a un contrato Inactivo' : ''}
+              style={contrato.estado_contrato === 'Inactivo' ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+            >
               <FilePlus size={14} /> Agregar anexo
             </button>
           </div>
+          {contrato.estado_contrato === 'Inactivo' && (
+            <p className="anexos-empty" style={{ color: '#991b1b' }}>
+              Este contrato está Inactivo, no se pueden agregar nuevos anexos.
+            </p>
+          )}
 
           {loading ? (
             <p className="anexos-empty">Cargando anexos...</p>

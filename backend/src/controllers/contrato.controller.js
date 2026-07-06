@@ -1,6 +1,7 @@
 // controllers/contrato.controller.js
 "use strict";
 import { AppDataSource } from "../config/configDb.js";
+import { crearNotificacion } from "../services/notificacion.service.js";
 
 function getRepo() {
   return AppDataSource.getRepository("ContratoTrabajador");
@@ -108,6 +109,21 @@ export async function createContrato(req, res) {
     });
 
     const guardado = await repo.save(nuevo);
+
+    // Notificar al trabajador que se generó un nuevo contrato.
+    try {
+      await crearNotificacion({
+        id_trabajador: parseInt(id_trabajador),
+        tipo: "contrato_creado",
+        titulo: "Nuevo contrato",
+        mensaje: `Se ha generado tu contrato (${tipo_contrato})`,
+        referencia_tipo: "contrato",
+        referencia_id: guardado.id_contrato,
+      });
+    } catch (notifError) {
+      console.error("Error al notificar creación de contrato:", notifError);
+    }
+
     res.status(201).json({ status: "success", data: guardado });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });
@@ -141,9 +157,26 @@ export async function updateContrato(req, res) {
 export async function deleteContrato(req, res) {
   try {
     // req.contrato viene del loader cargarContrato
-    await getRepo().remove(req.contrato);
+    await AppDataSource.transaction(async (transactionalEntityManager) => {
+      const anexoRepo = transactionalEntityManager.getRepository("AnexoContrato");
+
+      const anexos = await anexoRepo.find({
+        where: { id_contrato: req.contrato.id_contrato },
+      });
+
+      console.log(
+        `[deleteContrato] Contrato ${req.contrato.id_contrato}: eliminando ${anexos.length} anexo(s) asociados antes del contrato.`
+      );
+
+      if (anexos.length > 0) {
+        await anexoRepo.remove(anexos);
+      }
+
+      await transactionalEntityManager.remove("ContratoTrabajador", req.contrato);
+    });
     res.json({ status: "success", message: "Contrato eliminado correctamente" });
   } catch (error) {
+    console.error("Error en deleteContrato:", error);
     res.status(500).json({ status: "error", message: error.message });
   }
 }
