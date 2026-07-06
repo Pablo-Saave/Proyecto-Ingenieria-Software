@@ -3,6 +3,10 @@
 import { AppDataSource } from "../config/configDb.js";
 import { AnexoContratoProyectoSchema } from "../entities/anexo_contrato_proyecto.entity.js";
 import { ContratoProyectoSchema } from "../entities/contrato_proyecto.entity.js";
+import {
+  validarCrearAnexo,
+  validarContratoParaAnexo,
+} from "../validations/anexo_contrato_proyecto.validation.js";
 
 const anexoRepository = AppDataSource.getRepository(AnexoContratoProyectoSchema);
 const contratoProyectoRepository = AppDataSource.getRepository(ContratoProyectoSchema);
@@ -51,15 +55,22 @@ export const getAnexosByContrato = async (req, res) => {
 
 /***
  * Crea un anexo para un contrato de proyecto (ej: extension de plazo,
- * cambio de monto, modificacion de condiciones).
+ * cambio de monto, modificacion de condiciones, o termino del contrato).
  * Body: fecha_anexo, fecha_vigencia, motivo, descripcion_modificacion,
- *   monto_nuevo (opcional), observaciones (opcional)
- * Efecto secundario: actualiza fecha_extension del contrato a fecha_vigencia
- *   del anexo, ya que ese es el sentido de negocio del campo (fecha hasta la
+ *   monto_nuevo (opcional), observaciones (opcional),
+ *   finaliza_contrato (opcional, boolean)
+ * Efectos secundarios sobre el contrato:
+ * - Siempre actualiza fecha_extension del contrato a fecha_vigencia del
+ *   anexo, ya que ese es el sentido de negocio del campo (fecha hasta la
  *   cual queda extendido/vigente el contrato tras el ultimo anexo).
- * Validaciones:
+ * - Si finaliza_contrato === true, ademas pasa estado_contrato a "inactivo".
+ *   Esta es la UNICA via permitida para inactivar un contrato de proyecto;
+ *   la edición directa del contrato (PATCH) bloquea ese campo a proposito
+ *   (ver contrato_proyecto.validation.js).
+ * Validaciones (ver anexo_contrato_proyecto.validation.js):
  * - El que hace la peticion debe tener tipo_usuario = administrador
  * - El contrato debe existir
+ * - El contrato no debe estar ya inactivo
  * - Los campos obligatorios no deben estar vacios
  */
 export const crearAnexo = async (req, res) => {
@@ -75,6 +86,11 @@ export const crearAnexo = async (req, res) => {
       return res.status(400).json({ message: "id_contrato_proyecto debe ser numérico" });
     }
 
+    const errores = validarCrearAnexo(req.body);
+    if (errores.length) {
+      return res.status(400).json({ message: errores.join(" ") });
+    }
+
     const {
       fecha_anexo,
       fecha_vigencia,
@@ -82,18 +98,8 @@ export const crearAnexo = async (req, res) => {
       descripcion_modificacion,
       monto_nuevo,
       observaciones,
+      finaliza_contrato,
     } = req.body;
-
-    if (!fecha_anexo || !fecha_vigencia || !motivo || !descripcion_modificacion) {
-      return res.status(400).json({
-        message:
-          "Los campos fecha_anexo, fecha_vigencia, motivo y descripcion_modificacion son obligatorios",
-      });
-    }
-
-    if (monto_nuevo !== undefined && monto_nuevo !== null && isNaN(Number(monto_nuevo))) {
-      return res.status(400).json({ message: "monto_nuevo debe ser numérico" });
-    }
 
     const contrato = await contratoProyectoRepository.findOne({
       where: { id_contrato_proyecto: Number(id_contrato_proyecto) },
@@ -102,19 +108,29 @@ export const crearAnexo = async (req, res) => {
       return res.status(404).json({ message: "Contrato de proyecto no encontrado" });
     }
 
+    const erroresContrato = validarContratoParaAnexo(contrato);
+    if (erroresContrato.length) {
+      return res.status(400).json({ message: erroresContrato.join(" ") });
+    }
+
     const nuevoAnexo = anexoRepository.create({
       id_contrato_proyecto: Number(id_contrato_proyecto),
       fecha_anexo,
       fecha_vigencia,
       motivo,
       descripcion_modificacion,
-      monto_nuevo: monto_nuevo !== undefined && monto_nuevo !== null ? Number(monto_nuevo) : null,
+      monto_nuevo: monto_nuevo !== undefined && monto_nuevo !== null && monto_nuevo !== ""
+        ? Number(monto_nuevo)
+        : null,
       observaciones: observaciones || null,
     });
 
     await anexoRepository.save(nuevoAnexo);
 
     contrato.fecha_extension = fecha_vigencia;
+    if (finaliza_contrato === true) {
+      contrato.estado_contrato = "inactivo";
+    }
     await contratoProyectoRepository.save(contrato);
 
     return res.status(201).json({

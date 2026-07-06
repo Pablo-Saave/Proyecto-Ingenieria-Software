@@ -686,10 +686,19 @@ function ConfirmModal({ contrato, onClose, onConfirmar, eliminando }) {
 // ─── Menú contextual ──────────────────────────────────────────────────────────
 
 function ContextMenu({ contrato, onEditar, onEliminar, onCerrar }) {
+  const puedeEliminar = contrato.estado_contrato === 'Inactivo';
   return (
     <div className="context-menu" onMouseLeave={onCerrar}>
       <button onClick={() => { onEditar(contrato); onCerrar(); }}>Editar</button>
-      <button className="ctx-danger" onClick={() => { onEliminar(contrato); onCerrar(); }}>Eliminar</button>
+      <button
+        className="ctx-danger"
+        disabled={!puedeEliminar}
+        title={puedeEliminar ? '' : 'Solo se pueden eliminar contratos Inactivos.'}
+        style={!puedeEliminar ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+        onClick={() => { if (puedeEliminar) { onEliminar(contrato); onCerrar(); } }}
+      >
+        Eliminar
+      </button>
     </div>
   );
 }

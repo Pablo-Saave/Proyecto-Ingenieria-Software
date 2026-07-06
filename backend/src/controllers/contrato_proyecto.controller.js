@@ -3,15 +3,14 @@
 import { AppDataSource } from "../config/configDb.js";
 import { ContratoProyectoSchema } from "../entities/contrato_proyecto.entity.js";
 import { ProyectoSchema } from "../entities/proyecto.entity.js";
+import {
+  validarCrearContratoProyecto,
+  validarActualizarContratoProyecto,
+  validarEliminarContratoProyecto,
+} from "../validations/contrato_proyecto.validation.js";
 
 const contratoProyectoRepository = AppDataSource.getRepository(ContratoProyectoSchema);
 const proyectoRepository = AppDataSource.getRepository(ProyectoSchema);
-
-const ESTADOS_VALIDOS = ["activo", "por_vencer", "inactivo"];
-
-// Campos que SÍ se pueden editar directamente en un contrato existente.
-// Fechas y monto requieren crear un anexo (mismo patrón que ContratoTrabajador).
-const CAMPOS_SOLO_VIA_ANEXO = ["fecha_inicio", "fecha_termino", "monto"];
 
 function esAdministrador(req) {
   return req.user?.tipo_usuario === "administrador";
@@ -159,7 +158,7 @@ export const getContratoProyectoDetalle = async (req, res) => {
  *   fecha_extension es opcional: si no se envia, se inicializa igual a
  *   fecha_termino (el campo es nullable:false en la entidad, y recien
  *   tiene sentido real una vez que existe un anexo que extienda el contrato).
- * Validaciones:
+ * Validaciones (ver contrato_proyecto.validation.js):
  * - El que crea el contrato debe tener tipo_usuario = administrador
  * - El proyecto debe existir
  * - El proyecto no debe tener ya un contrato asociado
@@ -174,6 +173,11 @@ export const crearContratoProyecto = async (req, res) => {
       });
     }
 
+    const errores = validarCrearContratoProyecto(req.body);
+    if (errores.length) {
+      return res.status(400).json({ message: errores.join(" ") });
+    }
+
     const {
       id_proyecto,
       descripcion,
@@ -183,35 +187,6 @@ export const crearContratoProyecto = async (req, res) => {
       estado_contrato,
       monto,
     } = req.body;
-
-    if (!id_proyecto || !descripcion || !fecha_inicio || !fecha_termino || !estado_contrato || monto === undefined || monto === null || monto === '') {
-      return res.status(400).json({
-        message:
-          "Los campos id_proyecto, descripcion, fecha_inicio, fecha_termino, estado_contrato y monto son obligatorios",
-      });
-    }
-
-    if (isNaN(Number(id_proyecto))) {
-      return res.status(400).json({ message: "id_proyecto debe ser numérico" });
-    }
-
-    if (!ESTADOS_VALIDOS.includes(estado_contrato)) {
-      return res.status(400).json({
-        message: `estado_contrato debe ser uno de: ${ESTADOS_VALIDOS.join(", ")}`,
-      });
-    }
-
-    if (Number.isNaN(Number(monto))) {
-      return res.status(400).json({
-        message: "monto debe ser numérico",
-      });
-    }
-
-    if (new Date(fecha_termino) <= new Date(fecha_inicio)) {
-      return res.status(400).json({
-        message: "fecha_termino debe ser posterior a fecha_inicio",
-      });
-    }
 
     const proyecto = await proyectoRepository.findOne({
       where: { id_proyecto: Number(id_proyecto) },
@@ -253,15 +228,17 @@ export const crearContratoProyecto = async (req, res) => {
 
 /***
  * Actualiza un contrato de proyecto existente.
- * SOLO permite modificar descripcion y estado_contrato: fecha_inicio,
- * fecha_termino y monto quedan bloqueados para la edición directa (deben
- * cambiarse creando un anexo, igual que en ContratoTrabajador). Si el
+ * SOLO permite modificar descripcion: fecha_inicio, fecha_termino, monto
+ * y estado_contrato quedan bloqueados para la edición directa (deben
+ * cambiarse creando un anexo, igual que en ContratoTrabajador). En
+ * particular, inactivar un contrato (o reactivarlo) SIEMPRE debe hacerse
+ * a través de un anexo, nunca editando el campo directamente. Si el
  * frontend reenvía esos campos con el mismo valor que ya tenían, se
  * ignoran silenciosamente; si intenta cambiarlos de verdad, se rechaza.
- * Validaciones:
+ * Validaciones (ver contrato_proyecto.validation.js):
  * - El que hace la peticion debe tener tipo_usuario = administrador
  * - El contrato debe existir
- * - La peticion debe contener al menos un campo a actualizar
+ * - La peticion debe contener al menos un campo a actualizar (descripcion)
  */
 export const actualizarContratoProyecto = async (req, res) => {
   try {
@@ -283,47 +260,15 @@ export const actualizarContratoProyecto = async (req, res) => {
       return res.status(404).json({ message: "Contrato de proyecto no encontrado" });
     }
 
-    const errores = [];
-    for (const campo of CAMPOS_SOLO_VIA_ANEXO) {
-      if (req.body[campo] === undefined) continue;
-
-      const valorNuevo = req.body[campo];
-      const valorActual = contrato[campo];
-      const sonIguales =
-        valorNuevo === valorActual ||
-        (valorNuevo == null && valorActual == null) ||
-        String(valorNuevo) === String(valorActual);
-
-      if (sonIguales) {
-        delete req.body[campo];
-        continue;
-      }
-
-      errores.push(
-        `No se puede modificar "${campo}" desde la edición directa. Para cambiar fechas o monto debes crear un anexo.`
-      );
-    }
-
+    // validarActualizarContratoProyecto muta req.body: elimina campos
+    // bloqueados que llegaron sin cambio real de valor.
+    const errores = validarActualizarContratoProyecto(contrato, req.body);
     if (errores.length) {
       return res.status(400).json({ message: errores.join(" ") });
     }
 
-    const { descripcion, estado_contrato } = req.body;
-
-    if (descripcion === undefined && estado_contrato === undefined) {
-      return res.status(400).json({
-        message: "Debe enviar al menos un campo para actualizar (descripcion o estado_contrato)",
-      });
-    }
-
-    if (estado_contrato !== undefined && !ESTADOS_VALIDOS.includes(estado_contrato)) {
-      return res.status(400).json({
-        message: `estado_contrato debe ser uno de: ${ESTADOS_VALIDOS.join(", ")}`,
-      });
-    }
-
+    const { descripcion } = req.body;
     if (descripcion !== undefined) contrato.descripcion = descripcion;
-    if (estado_contrato !== undefined) contrato.estado_contrato = estado_contrato;
 
     await contratoProyectoRepository.save(contrato);
 
@@ -340,9 +285,11 @@ export const actualizarContratoProyecto = async (req, res) => {
 /***
  * Elimina un contrato de proyecto junto con todos sus anexos (cascada manual
  * via transaccion, ya que EntitySchema no define onDelete: "CASCADE").
- * Validaciones:
+ * Validaciones (ver contrato_proyecto.validation.js):
  * - El que hace la peticion debe tener tipo_usuario = administrador
  * - El contrato debe existir
+ * - El contrato debe estar en estado "inactivo" (si no, se debe crear un
+ *   anexo que lo finalice antes de poder eliminarlo)
  */
 export const eliminarContratoProyecto = async (req, res) => {
   const queryRunner = AppDataSource.createQueryRunner();
@@ -364,6 +311,11 @@ export const eliminarContratoProyecto = async (req, res) => {
     });
     if (!contrato) {
       return res.status(404).json({ message: "Contrato de proyecto no encontrado" });
+    }
+
+    const errores = validarEliminarContratoProyecto(contrato);
+    if (errores.length) {
+      return res.status(400).json({ message: errores.join(" ") });
     }
 
     await queryRunner.connect();

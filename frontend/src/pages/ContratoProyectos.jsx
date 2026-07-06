@@ -139,11 +139,10 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
     setErrores([]);
     try {
       if (contratoEdit) {
-        // En edición solo se pueden tocar descripción y estado; fechas y monto
-        // se cambian creando un anexo.
+        // En edición SOLO se puede tocar descripción; fechas, monto y estado
+        // se cambian creando un anexo (el estado nunca se manda desde acá).
         await updateContratoProyecto(contratoEdit.id_contrato_proyecto, {
-          descripcion:     form.descripcion,
-          estado_contrato: form.estado_contrato,
+          descripcion: form.descripcion,
         });
       } else {
         await createContratoProyecto({
@@ -210,23 +209,25 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             Estado *
-            {!contratoEdit && (
-              <span style={{
-                fontSize: '11px', color: '#6b7280',
-                background: '#f3f4f6', borderRadius: '4px',
-                padding: '2px 6px', fontWeight: 500,
-              }}>
-                Los contratos nuevos se crean como Activo
-              </span>
-            )}
+            <span style={{
+              fontSize: '11px', color: '#6b7280',
+              background: '#f3f4f6', borderRadius: '4px',
+              padding: '2px 6px', fontWeight: 500,
+            }}>
+              {contratoEdit ? 'Se cambia creando un anexo' : 'Los contratos nuevos se crean como Activo'}
+            </span>
           </label>
           <select
             name="estado_contrato"
             value={form.estado_contrato}
             onChange={handleChange}
-            disabled={!contratoEdit}
-            title={!contratoEdit ? 'Los contratos nuevos siempre inician en estado Activo' : ''}
-            style={!contratoEdit ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+            disabled
+            title={
+              contratoEdit
+                ? 'No se puede editar el estado directamente. Para inactivar el contrato, cierra este modal y crea un anexo marcando "finaliza el contrato".'
+                : 'Los contratos nuevos siempre inician en estado Activo'
+            }
+            style={{ opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' }}
           >
             {ESTADOS_CONTRATO_PROYECTO.map((e) => (
               <option key={e.value} value={e.value}>{e.label}</option>
@@ -291,6 +292,7 @@ const ANEXO_VACIO = {
   descripcion_modificacion: '',
   monto_nuevo: '',
   observaciones: '',
+  finaliza_contrato: false,
 };
 
 function AnexoModal({ idContrato, onClose, onGuardado }) {
@@ -300,8 +302,8 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
   const hoy = hoyLocal();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setErrores([]);
   };
 
@@ -319,6 +321,7 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
         descripcion_modificacion: form.descripcion_modificacion,
         monto_nuevo: form.monto_nuevo === '' ? null : Number(form.monto_nuevo),
         observaciones: form.observaciones || null,
+        finaliza_contrato: !!form.finaliza_contrato,
       });
       onGuardado();
     } catch (err) {
@@ -366,6 +369,17 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
           <label>Observaciones</label>
           <textarea name="observaciones" value={form.observaciones}
             onChange={handleChange} rows={2} placeholder="Notas adicionales..." />
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+            <input
+              type="checkbox"
+              name="finaliza_contrato"
+              checked={form.finaliza_contrato}
+              onChange={handleChange}
+              style={{ width: 'auto' }}
+            />
+            Este anexo termina el contrato (pasará a Inactivo)
+          </label>
         </div>
 
         <div className="modal-footer">
@@ -542,10 +556,19 @@ function ConfirmModal({ contrato, onClose, onConfirmar, eliminando }) {
 // ─── Menú contextual ──────────────────────────────────────────────────────────
 
 function ContextMenu({ contrato, onEditar, onEliminar, onCerrar }) {
+  const puedeEliminar = contrato.estado_contrato === 'inactivo';
   return (
     <div className="context-menu" onMouseLeave={onCerrar}>
       <button onClick={() => { onEditar(contrato); onCerrar(); }}>Editar</button>
-      <button className="ctx-danger" onClick={() => { onEliminar(contrato); onCerrar(); }}>Eliminar</button>
+      <button
+        className="ctx-danger"
+        disabled={!puedeEliminar}
+        title={puedeEliminar ? '' : 'Solo se pueden eliminar contratos Inactivos. Crea un anexo que finalice el contrato primero.'}
+        style={!puedeEliminar ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+        onClick={() => { if (puedeEliminar) { onEliminar(contrato); onCerrar(); } }}
+      >
+        Eliminar
+      </button>
     </div>
   );
 }
