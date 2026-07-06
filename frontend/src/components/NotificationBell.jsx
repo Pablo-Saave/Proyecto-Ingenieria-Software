@@ -33,7 +33,10 @@ function getRutaReferencia(n, tipoUsuario) {
   if (n.referencia_tipo === 'contrato') {
     return tipoUsuario === 'administrador' ? '/admin/contratos' : `${base}/mis-contratos`;
   }
-  if (n.referencia_tipo === 'ausencia') return `${base}/mis-ausencias`;
+  if (n.referencia_tipo === 'ausencia') {
+    if (tipoUsuario === 'administrador' || tipoUsuario === 'supervisor') return '/admin/ausencias';
+    return `${base}/mis-ausencias`;
+  }
   if (n.referencia_tipo === 'asignacion') return `${base}/mis-asignaciones`;
   return null;
 }
