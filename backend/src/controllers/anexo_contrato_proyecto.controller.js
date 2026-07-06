@@ -58,11 +58,12 @@ export const getAnexosByContrato = async (req, res) => {
  * cambio de monto, modificacion de condiciones, o termino del contrato).
  * Body: fecha_anexo, fecha_vigencia, motivo, descripcion_modificacion,
  *   monto_nuevo (opcional), observaciones (opcional),
- *   finaliza_contrato (opcional, boolean)
+ *   fecha_termino_nueva (opcional), finaliza_contrato (opcional, boolean)
  * Efectos secundarios sobre el contrato:
- * - Siempre actualiza fecha_extension del contrato a fecha_vigencia del
- *   anexo, ya que ese es el sentido de negocio del campo (fecha hasta la
- *   cual queda extendido/vigente el contrato tras el ultimo anexo).
+ * - Si viene fecha_termino_nueva, actualiza fecha_extension del contrato a
+ *   ese valor (nueva fecha hasta la cual queda vigente el contrato). Si el
+ *   anexo no modifica el plazo (ej: solo cambia monto u observaciones), no
+ *   se envía este campo y fecha_extension queda intacta.
  * - Si finaliza_contrato === true, ademas pasa estado_contrato a "inactivo".
  *   Esta es la UNICA via permitida para inactivar un contrato de proyecto;
  *   la edición directa del contrato (PATCH) bloquea ese campo a proposito
@@ -98,6 +99,7 @@ export const crearAnexo = async (req, res) => {
       descripcion_modificacion,
       monto_nuevo,
       observaciones,
+      fecha_termino_nueva,
       finaliza_contrato,
     } = req.body;
 
@@ -122,12 +124,15 @@ export const crearAnexo = async (req, res) => {
       monto_nuevo: monto_nuevo !== undefined && monto_nuevo !== null && monto_nuevo !== ""
         ? Number(monto_nuevo)
         : null,
+      fecha_termino_nueva: fecha_termino_nueva || null,
       observaciones: observaciones || null,
     });
 
     await anexoRepository.save(nuevoAnexo);
 
-    contrato.fecha_extension = fecha_vigencia;
+    if (fecha_termino_nueva) {
+      contrato.fecha_extension = fecha_termino_nueva;
+    }
     if (finaliza_contrato === true) {
       contrato.estado_contrato = "inactivo";
     }

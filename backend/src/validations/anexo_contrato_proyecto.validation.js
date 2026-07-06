@@ -8,6 +8,10 @@
  * - fecha_anexo, fecha_vigencia, motivo, descripcion_modificacion: obligatorios
  * - monto_nuevo: opcional, numérico
  * - observaciones: opcional
+ * - fecha_termino_nueva: opcional (date). Si viene, el controller debe
+ *   actualizar contrato.fecha_extension a este valor (es la nueva fecha
+ *   hasta la cual queda vigente el contrato). Si NO viene, el anexo no
+ *   modifica el plazo del contrato y fecha_extension queda intacta.
  * - finaliza_contrato: opcional (boolean). Si viene en true, el controller
  *   debe pasar el contrato asociado a estado "inactivo" (es la única vía
  *   permitida para inactivar un contrato de proyecto, ver
@@ -22,6 +26,7 @@ export function validarCrearAnexo(body) {
     motivo,
     descripcion_modificacion,
     monto_nuevo,
+    fecha_termino_nueva,
     finaliza_contrato,
   } = body;
 
@@ -38,6 +43,14 @@ export function validarCrearAnexo(body) {
 
   if (monto_nuevo !== undefined && monto_nuevo !== null && monto_nuevo !== "" && isNaN(Number(monto_nuevo))) {
     errores.push("monto_nuevo debe ser numérico");
+  }
+
+  if (fecha_termino_nueva !== undefined && fecha_termino_nueva !== null && fecha_termino_nueva !== "") {
+    if (isNaN(new Date(fecha_termino_nueva).getTime())) {
+      errores.push("fecha_termino_nueva debe ser una fecha válida");
+    } else if (new Date(fecha_termino_nueva) < new Date(fecha_vigencia)) {
+      errores.push("fecha_termino_nueva no puede ser anterior a fecha_vigencia");
+    }
   }
 
   if (finaliza_contrato !== undefined && typeof finaliza_contrato !== "boolean") {

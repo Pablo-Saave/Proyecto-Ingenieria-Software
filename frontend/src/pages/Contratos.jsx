@@ -419,44 +419,6 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
           <input type="date" name="fecha_vigencia" value={form.fecha_vigencia}
             min={form.fecha_anexo || undefined} onChange={handleChange} />
 
-          <label>Motivo *</label>
-          <input type="text" name="motivo" value={form.motivo}
-            onChange={handleChange} placeholder="Ej: Renovación, cambio de sueldo..." />
-
-          <label>Descripción de la modificación *</label>
-          <textarea name="descripcion_modificacion" value={form.descripcion_modificacion}
-            onChange={handleChange} rows={3} placeholder="Detalle de lo que cambia..." />
-
-          <label style={{
-            display: 'flex', alignItems: 'center', gap: '8px',
-            background: form.es_anexo_termino ? '#fee2e2' : '#f9fafb',
-            border: `1px solid ${form.es_anexo_termino ? '#fecaca' : '#e5e7eb'}`,
-            borderRadius: '6px', padding: '10px 12px', marginTop: '4px', cursor: 'pointer',
-          }}>
-            <input
-              type="checkbox"
-              name="es_anexo_termino"
-              checked={form.es_anexo_termino}
-              onChange={handleChange}
-              style={{ width: 'auto' }}
-            />
-            <span style={{ fontWeight: 500, color: form.es_anexo_termino ? '#991b1b' : '#374151' }}>
-              Este anexo termina el contrato (pasará a Inactivo)
-            </span>
-          </label>
-          {form.es_anexo_termino && (
-            <p style={{ fontSize: '12px', color: '#991b1b', margin: '2px 0 8px' }}>
-              Debes indicar la fecha real de término abajo. Una vez guardado, el contrato
-              quedará <strong>Inactivo</strong> y no se podrán agregar más anexos.
-            </p>
-          )}
-
-          <label>Nuevo tipo de contrato (opcional)</label>
-          <select name="tipo_contrato_nuevo" value={form.tipo_contrato_nuevo} onChange={handleChange}>
-            <option value="">— Sin cambio —</option>
-            {TIPOS_CONTRATO.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {form.es_anexo_termino ? 'Fecha real de término *' : 'Nueva fecha de término (opcional)'}
             {esIndefinidoNuevo && !form.es_anexo_termino && (
@@ -477,6 +439,44 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
             disabled={esIndefinidoNuevo && !form.es_anexo_termino}
             style={(esIndefinidoNuevo && !form.es_anexo_termino) ? { opacity: 0.4, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
+
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: form.es_anexo_termino ? '#fee2e2' : '#f9fafb',
+            border: `1px solid ${form.es_anexo_termino ? '#fecaca' : '#e5e7eb'}`,
+            borderRadius: '6px', padding: '10px 12px', marginTop: '4px', cursor: 'pointer',
+          }}>
+            <input
+              type="checkbox"
+              name="es_anexo_termino"
+              checked={form.es_anexo_termino}
+              onChange={handleChange}
+              style={{ width: 'auto' }}
+            />
+            <span style={{ fontWeight: 500, color: form.es_anexo_termino ? '#991b1b' : '#374151' }}>
+              Este anexo termina el contrato (pasará a Inactivo)
+            </span>
+          </label>
+          {form.es_anexo_termino && (
+            <p style={{ fontSize: '12px', color: '#991b1b', margin: '2px 0 8px' }}>
+              Debes indicar la fecha real de término arriba. Una vez guardado, el contrato
+              quedará <strong>Inactivo</strong> y no se podrán agregar más anexos.
+            </p>
+          )}
+
+          <label>Motivo *</label>
+          <input type="text" name="motivo" value={form.motivo}
+            onChange={handleChange} placeholder="Ej: Renovación, cambio de sueldo..." />
+
+          <label>Descripción de la modificación *</label>
+          <textarea name="descripcion_modificacion" value={form.descripcion_modificacion}
+            onChange={handleChange} rows={3} placeholder="Detalle de lo que cambia..." />
+
+          <label>Nuevo tipo de contrato (opcional)</label>
+          <select name="tipo_contrato_nuevo" value={form.tipo_contrato_nuevo} onChange={handleChange}>
+            <option value="">— Sin cambio —</option>
+            {TIPOS_CONTRATO.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
 
           <label>Nuevo monto (opcional)</label>
           <input type="number" name="monto_nuevo" value={form.monto_nuevo} onChange={handleChange} />

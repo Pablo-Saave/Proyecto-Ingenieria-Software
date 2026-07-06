@@ -159,6 +159,13 @@ export function validarFormAnexo(form) {
   if (form.monto_nuevo !== "" && form.monto_nuevo !== undefined && isNaN(Number(form.monto_nuevo))) {
     errores.push("El monto nuevo debe ser numérico");
   }
+  if (
+    form.fecha_termino_nueva &&
+    form.fecha_vigencia &&
+    new Date(form.fecha_termino_nueva) < new Date(form.fecha_vigencia)
+  ) {
+    errores.push("La nueva fecha de término no puede ser anterior a la fecha de vigencia");
+  }
 
   return errores;
 }

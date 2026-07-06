@@ -291,6 +291,7 @@ const ANEXO_VACIO = {
   motivo: '',
   descripcion_modificacion: '',
   monto_nuevo: '',
+  fecha_termino_nueva: '',
   observaciones: '',
   finaliza_contrato: false,
 };
@@ -320,6 +321,7 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
         motivo: form.motivo,
         descripcion_modificacion: form.descripcion_modificacion,
         monto_nuevo: form.monto_nuevo === '' ? null : Number(form.monto_nuevo),
+        fecha_termino_nueva: form.fecha_termino_nueva || null,
         observaciones: form.observaciones || null,
         finaliza_contrato: !!form.finaliza_contrato,
       });
@@ -355,6 +357,36 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
           <input type="date" name="fecha_vigencia" value={form.fecha_vigencia}
             min={form.fecha_anexo || undefined} onChange={handleChange} />
 
+          <label>Nueva fecha de término del contrato (opcional)</label>
+          <input
+            type="date"
+            name="fecha_termino_nueva"
+            value={form.fecha_termino_nueva}
+            min={form.fecha_vigencia || undefined}
+            onChange={handleChange}
+          />
+          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '-4px' }}>
+            Déjalo vacío si este anexo no modifica el plazo del contrato (ej: solo cambia el monto o la descripción).
+          </p>
+
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: form.finaliza_contrato ? '#fee2e2' : '#f9fafb',
+            border: `1px solid ${form.finaliza_contrato ? '#fecaca' : '#e5e7eb'}`,
+            borderRadius: '6px', padding: '10px 12px', marginTop: '4px', cursor: 'pointer',
+          }}>
+            <input
+              type="checkbox"
+              name="finaliza_contrato"
+              checked={form.finaliza_contrato}
+              onChange={handleChange}
+              style={{ width: 'auto' }}
+            />
+            <span style={{ fontWeight: 500, color: form.finaliza_contrato ? '#991b1b' : '#374151' }}>
+              Este anexo termina el contrato (pasará a Inactivo)
+            </span>
+          </label>
+
           <label>Motivo *</label>
           <input type="text" name="motivo" value={form.motivo}
             onChange={handleChange} placeholder="Ej: Extensión de plazo, ajuste de alcance..." />
@@ -369,17 +401,6 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
           <label>Observaciones</label>
           <textarea name="observaciones" value={form.observaciones}
             onChange={handleChange} rows={2} placeholder="Notas adicionales..." />
-
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-            <input
-              type="checkbox"
-              name="finaliza_contrato"
-              checked={form.finaliza_contrato}
-              onChange={handleChange}
-              style={{ width: 'auto' }}
-            />
-            Este anexo termina el contrato (pasará a Inactivo)
-          </label>
         </div>
 
         <div className="modal-footer">

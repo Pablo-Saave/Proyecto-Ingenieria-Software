@@ -32,6 +32,17 @@ export const AnexoContratoProyectoSchema = new EntitySchema({
       nullable: false,
     },
 
+  
+    // fecha_vigencia es desde cuándo rige el anexo.
+    // fecha_termino_nueva es hasta cuándo queda extendido el contrato a partir de ese anexo.
+    // Si el anexo no toca el plazo (ej: solo cambia el monto o la
+    // descripción), este campo queda null y no se actualiza
+    
+    fecha_termino_nueva: {
+      type: "date",
+      nullable: true,
+    },
+
     motivo: {
       type: "varchar",
       nullable: false,

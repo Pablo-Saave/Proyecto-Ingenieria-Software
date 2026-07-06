@@ -11,7 +11,7 @@ const MENU_POR_ROL = {
     { id: 'clientes',     label: 'Gestión de Clientes',        icon: Building2,       path: '/admin/clientes' },
     { id: 'proyectos',    label: 'Gestión de Proyectos',       icon: Building2,       path: '/admin/proyectos'},
     { id: 'contratos',    label: 'Gestión de Contratos Laborales',       icon: FileText,        path: '/admin/contratos' },
-    { id: 'contratos-proyecto', label: 'Gestión de Contratos de Proyecto', icon: ClipboardList, path: '/admin/contratos-proyecto' },
+    { id: 'contratos-proyecto', label: 'Gestión de Contratos Proyectos', icon: ClipboardList, path: '/admin/contratos-proyecto' },
     { id: 'pagos',        label: 'Gestión de Remuneraciones',  icon: DollarSign,      path: '/admin/pagos' },
     { id: 'ausencias',    label: 'Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
     { id: 'asignaciones', label: 'Gestión de Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
