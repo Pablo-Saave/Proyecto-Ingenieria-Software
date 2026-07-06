@@ -8,32 +8,11 @@ import Header from '../components/Header';
 import {
   getAusencias,
   crearAusenciaPorSupervisor,
-  revisarAusencia as revisarAusenciaService,
-  eliminarAusencia as eliminarAusenciaService,
+  revisarAusencia,
+  eliminarAusencia,
+  getMisCuadrillas,
+  getFileUrl
 } from '../services/ausenciasService';
-
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-
-// Nota: esta llamada no tiene aún un home en cuadrillasService.js.
-async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...options,
-  });
-  if (!res.ok) {
-    const contentType = res.headers.get('content-type');
-    if (contentType?.includes('application/json')) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || err.error || `Error ${res.status}`);
-    }
-    throw new Error(`Error interno del servidor (${res.status})`);
-  }
-  return res.json();
-}
 
 const FILTROS = ['Todos', 'Pendiente', 'Por Justificar', 'Justificada', 'Aprobado', 'Rechazado'];
 
@@ -98,7 +77,7 @@ function Ausencias({ usuario, onLogout }) {
     setMisCuadrillasLoading(true);
     setMisCuadrillasError(null);
     try {
-      const res = await apiFetch('/api/cuadrilla/supervisor/misCuadrillasAndIntegrantes');
+      const res = await getMisCuadrillas();
       setMisCuadrillas(Array.isArray(res) ? res : res.data ?? []);
     } catch (e) {
       setMisCuadrillas([]);
@@ -202,7 +181,7 @@ function Ausencias({ usuario, onLogout }) {
     setRevisionError(null);
     setSavingRevision(true);
     try {
-      await revisarAusenciaService(revisionId, {
+      await revisarAusencia(revisionId, {
         estado_aprobacion:   revisionEstado,
         comentario_revision: revisionComentario,
       });
@@ -218,7 +197,7 @@ function Ausencias({ usuario, onLogout }) {
   // ── Eliminar ─────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
-      await eliminarAusenciaService(id);
+      await eliminarAusencia(id);
       setAusencias((prev) => prev.filter((a) => a.id_ausencia !== id));
     } catch (e) {
       setError(e.message);
@@ -238,7 +217,7 @@ function Ausencias({ usuario, onLogout }) {
           {/* Encabezado */}
           <div className="vista-general-header">
             <div>
-              <h1 className="vista-general-title">Gestión de Ausencias</h1>
+              <h1 className="vista-general-title">Ausencias</h1>
               <p className="vista-general-subtitle">Registro de inasistencias y justificaciones</p>
             </div>
             {puedeRegistrarInasistencia && (
@@ -325,7 +304,7 @@ function Ausencias({ usuario, onLogout }) {
                         </td>
                         <td>
                           {a.justificacion?.documento_respaldo
-                            ? <a href={`${API_BASE}${a.justificacion.documento_respaldo}`} target="_blank" rel="noopener noreferrer">📄</a>
+                            ? <a href={getFileUrl(a.justificacion.documento_respaldo)} target="_blank" rel="noopener noreferrer">📄</a>
                             : <span style={{ color: '#d1d5db' }}>—</span>}
                         </td>
                         <td>

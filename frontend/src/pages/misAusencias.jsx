@@ -8,13 +8,13 @@ import {
 } from 'lucide-react';
 import {
   crearAusencia,
-  justificarAusencia as justificarAusenciaService,
-  eliminarAusencia as eliminarAusenciaService,
+  justificarAusencia,
+  eliminarAusencia,
   getAusenciasPorTrabajador,
+  subirPDFAusencia,
+  getFileUrl
 } from '../services/ausenciasService';
 import { getMiCuadrilla } from '../services/cuadrillasService';
-
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 const EMPTY_FORM = { fecha_inicio: '', fecha_termino: '', motivo: '' };
 const FILTROS = ['Todas', 'Por Justificar', 'Pendiente', 'Aprobado', 'Rechazado'];
@@ -119,26 +119,6 @@ function MisAusencias({ usuario, onLogout }) {
     setArchivoPDF(file);
   };
 
-  const subirPDF = async (idAusencia, archivo) => {
-    if (!archivo) return; // Si no hay archivo, no hay error
-    const formDataPDF = new FormData();
-    formDataPDF.append('archivo', archivo);
-    const token = localStorage.getItem('token');
-    
-    const res = await fetch(`${API_BASE}/api/ausencias/${idAusencia}/documento`, {
-      method: 'POST',
-      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: formDataPDF,
-    });
-    
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || `Error al subir PDF: ${res.status}`);
-    }
-    
-    return res.json();
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
@@ -159,7 +139,7 @@ function MisAusencias({ usuario, onLogout }) {
       
       // Subir PDF si existe (y lanzar error si falla)
       if (archivoPDF) {
-        await subirPDF(idAusencia, archivoPDF);
+        await subirPDFAusencia(idAusencia, archivoPDF);
       }
 
       setShowModal(false);
@@ -196,11 +176,11 @@ function MisAusencias({ usuario, onLogout }) {
     setJustificarError(null);
     setSavingJustificar(true);
     try {
-      await justificarAusenciaService(justificarId, { motivo: justificarMotivo });
+      await justificarAusencia(justificarId, { motivo: justificarMotivo });
       
       // Subir PDF si existe (y lanzar error si falla)
       if (archivoJustificar) {
-        await subirPDF(justificarId, archivoJustificar);
+        await subirPDFAusencia(justificarId, archivoJustificar);
       }
 
       setShowJustificar(false);
@@ -215,7 +195,7 @@ function MisAusencias({ usuario, onLogout }) {
   // ── Eliminar ──────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
-      await eliminarAusenciaService(id);
+      await eliminarAusencia(id);
       setAusencias((prev) => prev.filter((a) => a.id_ausencia !== id));
     } catch (e) {
       setError(e.message);
@@ -322,7 +302,7 @@ function MisAusencias({ usuario, onLogout }) {
                         </td>
                         <td>
                           {a.justificacion?.documento_respaldo
-                            ? <a href={`${API_BASE}${a.justificacion.documento_respaldo}`} target="_blank" rel="noopener noreferrer"><FileText size={16} color="#4F46E5" /></a>
+                            ? <a href={getFileUrl(a.justificacion.documento_respaldo)} target="_blank" rel="noopener noreferrer"><FileText size={16} color="#4F46E5" /></a>
                             : <span style={{ color: '#d1d5db' }}>—</span>}
                         </td>
                         {hayAccionesVisibles && (

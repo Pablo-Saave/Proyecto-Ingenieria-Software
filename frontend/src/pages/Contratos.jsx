@@ -798,7 +798,7 @@ function Contratos({ usuario, onLogout }) {
 
             <div className="contratos-header">
               <div>
-                <h1 className="vista-general-title">Contratos</h1>
+                <h1 className="vista-general-title">Contratos laborales</h1>
                 <p className="vista-general-subtitle">Gestiona y consulta todos los contratos laborales.</p>
               </div>
               <button className="btn-nuevo-contrato" onClick={() => setModalNuevo(true)}>

@@ -140,7 +140,7 @@ function Clientes({ usuario, onLogout }) {
           <div className="vista-general-header">
             <div>
               <h1 className="vista-general-title">Clientes</h1>
-              <p className="vista-general-subtitle">Gestion de clientes y empresas asociadas</p>
+              <p className="vista-general-subtitle">Gestión de clientes y empresas asociadas</p>
             </div>
             <div className="tw-header-actions">
               <button className="btn-nuevo-trabajador" onClick={openCrear}>

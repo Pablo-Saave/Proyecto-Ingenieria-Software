@@ -58,3 +58,25 @@ export const revisarAusencia = (id, datos) =>
 // Eliminar ausencia
 export const eliminarAusencia = (id) =>
   apiFetch(`/api/ausencias/${id}`, { method: 'DELETE' });
+
+// Cuadrillas del supervisor junto con sus integrantes
+export const getMisCuadrillas = () =>
+  apiFetch('/api/cuadrilla/supervisor/misCuadrillasAndIntegrantes');
+
+export const getFileUrl = (path) => {
+  if (!path) return '';
+  return `${API_BASE}${path}`;
+};
+
+// subirPDF
+export const subirPDFAusencia = (idAusencia, archivo) => {
+  if (!archivo) return;
+
+  const formData = new FormData();
+  formData.append('archivo', archivo);
+
+  return apiFetch(`/api/ausencias/${idAusencia}/documento`, {
+    method: 'POST',
+    body: formData,
+  });
+};

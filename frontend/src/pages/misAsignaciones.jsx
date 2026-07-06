@@ -121,7 +121,7 @@ function MisAsignaciones({ usuario, onLogout }) {
               <h1 className="vista-general-title">Mis Asignaciones</h1>
               <p className="vista-general-subtitle">
                 {esSupervisor
-                  ? 'Proyectos que supervisas actualmente y tu historial'
+                  ? 'Proyectos que supervisas actualmente'
                   : 'Tu proyecto y cuadrilla actual'}
               </p>
             </div>
@@ -382,57 +382,6 @@ function MisAsignaciones({ usuario, onLogout }) {
                   )}
                 </div>
               )}
-
-              {/* ── Historial ────────────────────────────────────────────── */}
-              <div>
-                <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
-                  Historial
-                </h2>
-
-                {esTrabajador ? (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                    background: '#eff6ff', border: '1px solid #bfdbfe',
-                    borderRadius: '10px', padding: '14px 18px',
-                  }}>
-                    <Info size={20} color="#2563eb" style={{ flexShrink: 0 }} />
-                    <p style={{ margin: 0, fontSize: '13px', color: '#1e40af' }}>
-                      Por ahora el sistema solo registra tu cuadrilla actual. El historial de
-                      asignaciones pasadas todavía no está disponible.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="tw-table-card">
-                    {!data?.historial || data.historial.length === 0 ? (
-                      <div className="tw-empty">
-                        <Clock size={40} />
-                        <p>Aún no tienes proyectos en tu historial.</p>
-                      </div>
-                    ) : (
-                      <table className="tw-table">
-                        <thead>
-                          <tr>
-                            <th>Proyecto</th>
-                            <th>Dirección</th>
-                            <th>Fecha creación</th>
-                            <th>Estado</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {data.historial.map((p) => (
-                            <tr key={p.id_proyecto}>
-                              <td>{p.nombre_proyecto}</td>
-                              <td style={{ fontSize: '13px', color: '#6b7280' }}>{p.direccion ?? '—'}</td>
-                              <td>{formatFecha(p.fecha_creacion)}</td>
-                              <td><span className={`tw-badge ${estadoBadgeClass(p.estado)}`}>{p.estado}</span></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                )}
-              </div>
             </>
           )}
         </div>

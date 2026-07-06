@@ -14,27 +14,23 @@ import {
   agregarTrabajadorCuadrilla,
   eliminarTrabajadorCuadrilla,
   inactivarCuadrilla,
-  reactivarCuadrilla
+  reactivarCuadrilla,
+  eliminarCuadrilla
 } from '../services/cuadrillasService';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-const POR_PAGINA = 10;
+import {
+  getLosProyectos
+} from '../services/proyectosService';
 
-async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...options,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || err.error || `Error ${res.status}`);
-  }
-  return res.json();
-}
+import {
+  getMisAsignaciones,
+} from '../services/asignacionesService';
+
+import {
+  getTrabajadoresSinCuadrilla,
+} from '../services/trabajadoresService';
+
+const POR_PAGINA = 10;
 
 const JORNADAS = ['Diurna', 'Nocturna', 'Mixta'];
 
@@ -95,20 +91,22 @@ function Asignaciones({ usuario, onLogout }) {
   const [confirmDelete, setConfirmDelete]     = useState(null);
 
   // ── Carga base ────────────────────────────────────────────────────────────
-  const fetchBase = async () => {
-    try {
-      const resP = await apiFetch('/api/proyectos');
-      const ps = Array.isArray(resP) ? resP : resP.data ?? [];
-      setProyectos(ps);
-      await fetchTrabajadoresSinCuadrilla();
-      const primero = ps.find((p) => p.estado === 'activo') ?? ps[0];
-      if (primero) await selectProject(primero, ps);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
+const fetchBase = async () => {
+  try {
+    const resP = await getLosProyectos();
+    const ps = Array.isArray(resP) ? resP : resP.data ?? [];
+    setProyectos(ps);
+    await fetchTrabajadoresSinCuadrilla();
+    const primero = ps.find((p) => p.estado === 'activo') ?? ps[0];
+    if (primero) {
+      await selectProject(primero, ps);
     }
-  };
+  } catch (e) {
+    setError(e.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => { fetchBase(); }, []);
 
@@ -139,7 +137,7 @@ function Asignaciones({ usuario, onLogout }) {
 
   const fetchTrabajadoresSinCuadrilla = async () => {
     try {
-      const res = await apiFetch('/api/trabajadores/sinCuadrilla');
+      const res = await getTrabajadoresSinCuadrilla();
       setTrabajadores(Array.isArray(res) ? res : res.data ?? []);
     } catch (e) {
       setError(e.message);
@@ -258,9 +256,12 @@ function Asignaciones({ usuario, onLogout }) {
     if (!confirmDelete) return;
     try {
       if (confirmDelete.tipo === 'cuadrilla') {
-        await apiFetch(`/api/cuadrilla/${confirmDelete.id_cuadrilla}`, { method: 'DELETE' });
+        await eliminarCuadrilla(confirmDelete.id_cuadrilla);
       } else {
-        await eliminarTrabajadorCuadrilla(confirmDelete.id_trabajador, confirmDelete.id_cuadrilla);
+        await eliminarTrabajadorCuadrilla(
+          confirmDelete.id_trabajador,
+          confirmDelete.id_cuadrilla
+        );
       }
       await Promise.all([
         reloadCuadrillas(),
@@ -272,7 +273,6 @@ function Asignaciones({ usuario, onLogout }) {
       setConfirmDelete(null);
     }
   };
-
 
   const handleCambiarEstadoCuadrilla = async (cuadrilla) => {
     try {

@@ -28,6 +28,11 @@ export async function getTrabajadorById(id) {
   return res.data;
 }
 
+// Obtener trabajadores sin cuadrilla
+export const getTrabajadoresSinCuadrilla = () =>
+  apiFetch('/api/trabajadores/sinCuadrilla');
+
+
 export async function createTrabajador(data) {
   const res = await apiFetch('/api/auth/register', {
     method: 'POST',

@@ -24,6 +24,11 @@ export async function getProyectos({ page = 1, limit = 8, orden = 'nombre_proyec
   return apiFetch(`/api/proyectos/?${params}`); // { data, meta }
 }
 
+// Obtener proyectos
+export const getLosProyectos = () =>
+  apiFetch('/api/proyectos');
+
+
 export async function crearProyecto(data) {
   const res = await apiFetch('/api/proyectos/', {
     method: 'POST',

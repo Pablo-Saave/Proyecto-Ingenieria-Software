@@ -325,7 +325,7 @@ export default function Proyectos({ usuario, onLogout }) {
           {/* ── TOPE ─────────────────────────────────────────────────── */}
           <div className="proy-tope">
             <div className="proy-tope-title">
-              <h1>Módulo Proyectos</h1>
+              <h1>Proyectos</h1>
               <p>Administración de proyectos del sistema</p>
             </div>
             <button className="proy-btn-primary" onClick={abrirModalCrear}>

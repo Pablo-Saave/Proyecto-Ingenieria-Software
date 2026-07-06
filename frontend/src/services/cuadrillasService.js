@@ -32,6 +32,12 @@ export async function inactivarCuadrilla(id_cuadrilla) {
   });
 }
 
+// Eliminar una cuadrilla
+export const eliminarCuadrilla = (idCuadrilla) =>
+  apiFetch(`/api/cuadrilla/${idCuadrilla}`, {
+    method: 'DELETE',
+  });
+
 export async function reactivarCuadrilla(id_cuadrilla) {
   return apiFetch("/api/cuadrilla/reactivar/", {
     method: "PATCH",

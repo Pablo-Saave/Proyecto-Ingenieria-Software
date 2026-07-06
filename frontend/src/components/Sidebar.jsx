@@ -6,15 +6,15 @@ import { LayoutDashboard, Users, Clock, FileText, DollarSign, CalendarOff, Brief
 // Menu por tipo de usuario
 const MENU_POR_ROL = {
   administrador: [
-    { id: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, path: '/admin' },
-    { id: 'trabajadores', label: 'Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
-    { id: 'clientes',     label: 'Clientes',        icon: Building2,       path: '/admin/clientes' },
-    { id: 'proyectos',    label: 'Proyectos',       icon: Building2,       path: '/admin/proyectos'},
-    { id: 'contratos',    label: 'Contratos Laborales',       icon: FileText,        path: '/admin/contratos' },
-    { id: 'contratos-proyecto', label: 'Contratos de Proyecto', icon: ClipboardList, path: '/admin/contratos-proyecto' },
-    { id: 'pagos',        label: 'Remuneraciones',  icon: DollarSign,      path: '/admin/pagos' },
+    { id: 'dashboard',    label: 'Dashboard Administrativo',       icon: LayoutDashboard, path: '/admin' },
+    { id: 'trabajadores', label: 'Gestión de Trabajadores',    icon: Users,           path: '/admin/trabajadores' },
+    { id: 'clientes',     label: 'Gestión de Clientes',        icon: Building2,       path: '/admin/clientes' },
+    { id: 'proyectos',    label: 'Gestión de Proyectos',       icon: Building2,       path: '/admin/proyectos'},
+    { id: 'contratos',    label: 'Gestión de Contratos Laborales',       icon: FileText,        path: '/admin/contratos' },
+    { id: 'contratos-proyecto', label: 'Gestión de Contratos de Proyecto', icon: ClipboardList, path: '/admin/contratos-proyecto' },
+    { id: 'pagos',        label: 'Gestión de Remuneraciones',  icon: DollarSign,      path: '/admin/pagos' },
     { id: 'ausencias',    label: 'Ausencias',       icon: CalendarOff,     path: '/admin/ausencias' },
-    { id: 'asignaciones', label: 'Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
+    { id: 'asignaciones', label: 'Gestión de Cuadrillas',    icon: Users,           path: '/admin/asignaciones' },
     { id: 'avisos',       label: 'Canales de Avisos', icon: Bell,          path: '/admin/avisos' },
     { id: 'accidentes-laborales', label: 'Accidentes', icon: Accessibility, path: '/admin/accidentes-laborales'}
   ],
