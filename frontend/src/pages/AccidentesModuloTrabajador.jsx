@@ -121,11 +121,6 @@ function AccidentesModuloTrabajador({ usuario, onLogout }) {
             <div>
               <h1 className="vista-general-title">
                 Mis Accidentes Laborales
-                {usuario?.nombres && (
-                  <span className="al-tope-trabajador">
-                    {' '}— {usuario.nombres} {usuario.apellidos}
-                  </span>
-                )}
               </h1>
               <p className="vista-general-subtitle">
                 Consulta de accidentes laborales registrados
