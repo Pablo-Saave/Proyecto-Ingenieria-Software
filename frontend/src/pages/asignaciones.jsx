@@ -410,10 +410,7 @@ const fetchBase = async () => {
             ) : cuadrillasFiltradas.length === 0 ? (
               <div className="asig-empty-state">
                 <Users size={40} />
-                <p>No hay asignaciones en este proyecto</p>
-                <button className="btn-nueva-asignacion" onClick={handleNuevaAsignacionClick} style={{ marginTop: '6px' }}>
-                  <Plus size={16} /> Nueva Asignación
-                </button>
+                <p>No hay cuadrillas en este proyecto</p>
               </div>
             ) : (
               <>
