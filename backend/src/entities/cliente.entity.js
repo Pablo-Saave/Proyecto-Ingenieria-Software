@@ -18,7 +18,7 @@ export const ClienteSchema = new EntitySchema({
 
     apellidos: { 
       type: "varchar",
-      nullabe: false
+      nullable: false
     },
 
     tipo_cliente: {

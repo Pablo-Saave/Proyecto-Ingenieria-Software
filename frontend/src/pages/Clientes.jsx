@@ -248,7 +248,7 @@ function Clientes({ usuario, onLogout }) {
                 {[
                   { label: 'Nombres *', name: 'nombres', type: 'text', required: true, placeholder: 'Maria Jose', span: 1 },
                   { label: 'Apellidos *', name: 'apellidos', type: 'text', required: true, placeholder: 'Rojas Perez', span: 1 },
-                  { label: 'Tipo de cliente *', name: 'tipo_cliente', type: 'text', required: true, placeholder: 'Ej: Empresa, Particular', span: 1 },
+                  { label: 'Tipo de cliente *', name: 'tipo_cliente', type: 'text', required: true, placeholder: 'Empresa, Persona u Organizacion', span: 1 },
                   { label: 'Rubro *', name: 'rubro', type: 'text', required: true, placeholder: 'Ej: Retail, Salud, Educacion', span: 1 },
                   { label: 'Telefono *', name: 'telefono', type: 'text', required: true, placeholder: '+56 9 1234 5678', span: 1 },
                   { label: 'Correo *', name: 'correo', type: 'email', required: true, placeholder: 'cliente@empresa.cl', span: 1 },
