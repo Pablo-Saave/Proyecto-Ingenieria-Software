@@ -11,6 +11,11 @@ import {
   updateTrabajador,
   deleteTrabajador,
 } from '../services/trabajadoresService';
+import {
+  validarCrearTrabajador,
+  validarActualizarTrabajador,
+} from '../validations/trabajador.validation.js';
+import { formatearRut } from '../validations/formatos.validation.js';
 
 const EMPTY_FORM = {
   nombres: '',
@@ -112,13 +117,32 @@ function Trabajadores({ usuario, onLogout }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
+
+    // 1) Validación de formato en el frontend -- espejo de
+    //    validations/trabajador.validation.js del backend. Si algo está
+    //    mal, cortamos ACÁ y ni siquiera llamamos al backend.
+    const { valido, mensaje } =
+      modalMode === 'crear'
+        ? validarCrearTrabajador(formData)
+        : validarActualizarTrabajador(formData);
+
+    if (!valido) {
+      setFormError(mensaje);
+      return;
+    }
+
+    // 2) Normalizamos el RUT a "XXXXXXXX-X" recién ahora que ya sabemos
+    //    que es válido -- así en la base de datos siempre queda guardado
+    //    en el mismo formato, sin importar cómo lo haya tipeado el usuario.
+    const datosAEnviar = { ...formData, rut: formatearRut(formData.rut) };
+
     setSaving(true);
     try {
       if (modalMode === 'crear') {
-        const item = await createTrabajador(formData);
+        const item = await createTrabajador(datosAEnviar);
         setTrabajadores((prev) => [...prev, item]);
       } else {
-        const item = await updateTrabajador(selectedId, formData);
+        const item = await updateTrabajador(selectedId, datosAEnviar);
         setTrabajadores((prev) =>
           prev.map((t) => (t.id_trabajador === selectedId ? item : t))
         );

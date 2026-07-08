@@ -239,6 +239,7 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
             type="date"
             name="fecha_inicio"
             value={form.fecha_inicio}
+            min={contratoEdit ? undefined : hoy}
             onChange={handleChange}
             disabled={!!contratoEdit}
             title={contratoEdit ? 'Se necesita crear un anexo para modificar esto' : ''}

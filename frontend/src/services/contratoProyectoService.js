@@ -117,6 +117,8 @@ export function validarFormContratoProyecto(form, esEdicion = false) {
   }
   if (!form.fecha_inicio) {
     errores.push("La fecha de inicio es obligatoria");
+  } else if (!esEdicion && form.fecha_inicio < hoyLocal()) {
+    errores.push("La fecha de inicio no puede ser anterior a hoy");
   }
   if (!form.fecha_termino) {
     errores.push("La fecha de término es obligatoria");

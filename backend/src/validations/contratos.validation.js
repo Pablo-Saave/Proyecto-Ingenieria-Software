@@ -28,64 +28,89 @@ function esFechaValida(str) {
   return !isNaN(d.getTime());
 }
 
-export function validarCrearContrato(req, res, next) {
-  const errores = [];
-  const { tipo_contrato, estado_contrato, fecha_inicio, fecha_termino, monto, id_trabajador } = req.body;
+export async function validarCrearContrato(req, res, next) {
+  try {
+    const errores = [];
+    const { tipo_contrato, estado_contrato, fecha_inicio, fecha_termino, monto, id_trabajador } = req.body;
 
-  if (!tipo_contrato)   errores.push('El campo tipo_contrato es obligatorio.');
-  if (!estado_contrato) errores.push('El campo estado_contrato es obligatorio.');
-  if (!fecha_inicio)    errores.push('El campo fecha_inicio es obligatorio.');
-  if (monto === undefined || monto === null || monto === '') errores.push('El campo monto es obligatorio.');
-  if (!id_trabajador)   errores.push('El campo id_trabajador es obligatorio.');
+    if (!tipo_contrato)   errores.push('El campo tipo_contrato es obligatorio.');
+    if (!estado_contrato) errores.push('El campo estado_contrato es obligatorio.');
+    if (!fecha_inicio)    errores.push('El campo fecha_inicio es obligatorio.');
+    if (monto === undefined || monto === null || monto === '') errores.push('El campo monto es obligatorio.');
+    if (!id_trabajador)   errores.push('El campo id_trabajador es obligatorio.');
 
-  if (errores.length) {
-    return res.status(400).json({ status: 'error', message: errores.join(' ') });
-  }
-
-  if (!TIPOS_CONTRATO.includes(tipo_contrato)) {
-    errores.push(`tipo_contrato inválido. Valores permitidos: ${TIPOS_CONTRATO.join(', ')}.`);
-  }
-
-  if (!ESTADOS_CONTRATO.includes(estado_contrato)) {
-    errores.push(`estado_contrato inválido. Valores permitidos: ${ESTADOS_CONTRATO.join(', ')}.`);
-  }
-
-  // Esta validación de "no anterior a hoy" SOLO aplica al crear.
-  if (!esFechaValida(fecha_inicio)) {
-    errores.push('fecha_inicio no es una fecha válida (formato YYYY-MM-DD).');
-  } else if (fecha_inicio < hoyLocal()) {
-    errores.push('La fecha de inicio no puede ser anterior a hoy.');
-  }
-
-  if (monto !== undefined && monto !== null && monto !== '' && Number.isNaN(Number(monto))) {
-    errores.push('monto debe ser numérico.');
-  }
-
-  if (tipo_contrato === 'Indefinido' && fecha_termino) {
-    errores.push('Un contrato Indefinido no puede tener fecha de término.');
-  }
-
-  if (tipo_contrato === 'Plazo Fijo') {
-    if (!fecha_termino) {
-      errores.push('Un contrato de Plazo Fijo debe tener fecha de término.');
-    } else if (!esFechaValida(fecha_termino)) {
-      errores.push('fecha_termino no es una fecha válida (formato YYYY-MM-DD).');
-    } else if (esFechaValida(fecha_inicio) && fecha_termino <= fecha_inicio) {
-      errores.push('La fecha de término debe ser posterior a la fecha de inicio.');
+    if (errores.length) {
+      return res.status(400).json({ status: 'error', message: errores.join(' ') });
     }
+
+    if (!TIPOS_CONTRATO.includes(tipo_contrato)) {
+      errores.push(`tipo_contrato inválido. Valores permitidos: ${TIPOS_CONTRATO.join(', ')}.`);
+    }
+
+    if (!ESTADOS_CONTRATO.includes(estado_contrato)) {
+      errores.push(`estado_contrato inválido. Valores permitidos: ${ESTADOS_CONTRATO.join(', ')}.`);
+    }
+
+    // Esta validación de "no anterior a hoy" SOLO aplica al crear.
+    if (!esFechaValida(fecha_inicio)) {
+      errores.push('fecha_inicio no es una fecha válida (formato YYYY-MM-DD).');
+    } else if (fecha_inicio < hoyLocal()) {
+      errores.push('La fecha de inicio no puede ser anterior a hoy.');
+    }
+
+    if (monto !== undefined && monto !== null && monto !== '' && Number.isNaN(Number(monto))) {
+      errores.push('monto debe ser numérico.');
+    }
+
+    if (tipo_contrato === 'Indefinido' && fecha_termino) {
+      errores.push('Un contrato Indefinido no puede tener fecha de término.');
+    }
+
+    if (tipo_contrato === 'Plazo Fijo') {
+      if (!fecha_termino) {
+        errores.push('Un contrato de Plazo Fijo debe tener fecha de término.');
+      } else if (!esFechaValida(fecha_termino)) {
+        errores.push('fecha_termino no es una fecha válida (formato YYYY-MM-DD).');
+      } else if (esFechaValida(fecha_inicio) && fecha_termino <= fecha_inicio) {
+        errores.push('La fecha de término debe ser posterior a la fecha de inicio.');
+      }
+    }
+
+    if (errores.length) {
+      return res.status(400).json({ status: 'error', message: errores.join(' ') });
+    }
+
+    // Regla de negocio: un trabajador solo puede tener UN contrato vigente
+    // a la vez (Activo o Por vencer); puede tener varios Inactivos, que
+    // funcionan como historial. Si ya tiene uno vigente, no se puede crear
+    // otro sin antes cerrarlo (inactivar vía anexo de término).
+    if (estado_contrato !== 'Inactivo') {
+      const repo = AppDataSource.getRepository('ContratoTrabajador');
+      const contratoVigente = await repo.findOne({
+        where: [
+          { id_trabajador: Number(id_trabajador), estado_contrato: 'Activo' },
+          { id_trabajador: Number(id_trabajador), estado_contrato: 'Por vencer' },
+        ],
+      });
+
+      if (contratoVigente) {
+        return res.status(409).json({
+          status: 'error',
+          message: `Este trabajador ya tiene un contrato vigente (estado "${contratoVigente.estado_contrato}").`,
+        });
+      }
+    }
+
+    if (tipo_contrato === 'Indefinido') req.body.fecha_termino = null;
+
+    if (monto !== undefined && monto !== null && monto !== '') {
+      req.body.monto = Number(monto);
+    }
+
+    next();
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
   }
-
-  if (errores.length) {
-    return res.status(400).json({ status: 'error', message: errores.join(' ') });
-  }
-
-  if (tipo_contrato === 'Indefinido') req.body.fecha_termino = null;
-
-  if (monto !== undefined && monto !== null && monto !== '') {
-    req.body.monto = Number(monto);
-  }
-
-  next();
 }
 
 /**
