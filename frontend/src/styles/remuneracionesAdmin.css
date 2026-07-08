@@ -1,0 +1,439 @@
+/* ─── Two-column layout ─────────────────────────────────────────────────── */
+.rm-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* ─── Toolbar rows ──────────────────────────────────────────────────────── */
+.rm-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rm-toolbar-row + .rm-toolbar-row {
+  margin-top: 8px;
+}
+
+/* ─── Filter select ─────────────────────────────────────────────────────── */
+.rm-select {
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #374151;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.rm-select:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.rm-select-active {
+  border-color: #4f46e5;
+  color: #4f46e5;
+  background: #eef2ff;
+}
+
+/* ─── Search button ─────────────────────────────────────────────────────── */
+.rm-btn-search {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #4f46e5;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.rm-btn-search:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.rm-btn-search:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── Sin remuneración toggle ───────────────────────────────────────────── */
+.rm-btn-sin-rem {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 13px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.rm-btn-sin-rem:hover {
+  border-color: #f59e0b;
+  color: #d97706;
+}
+
+.rm-btn-sin-rem-active {
+  background: #fffbeb;
+  border-color: #f59e0b;
+  color: #92400e;
+  font-weight: 600;
+}
+
+/* ─── Disabled filter group ─────────────────────────────────────────────── */
+.rm-filters-disabled {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+/* ─── Left panel pagination ─────────────────────────────────────────────── */
+.rm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 4px;
+  margin-top: 4px;
+}
+
+.rm-pagination-info {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.rm-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rm-page-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 6px;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.rm-page-btn:hover:not(:disabled) {
+  border-color: #4f46e5;
+  color: #4f46e5;
+}
+
+.rm-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ─── Left table: clickable / selected row ──────────────────────────────── */
+.rm-row-clickable {
+  cursor: pointer;
+}
+
+.rm-row-selected {
+  background: #eef2ff !important;
+}
+
+.rm-row-selected td,
+.rm-row-selected .tw-fullname {
+  color: #4338ca !important;
+}
+
+/* ─── Right panel card ──────────────────────────────────────────────────── */
+.rm-panel {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 180px);
+  overflow: hidden;
+}
+
+.rm-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
+}
+
+.rm-panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.rm-panel-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.rm-panel-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ─── Empty right panel ─────────────────────────────────────────────────── */
+.rm-empty-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 24px;
+  color: #9ca3af;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ─── Contract list ─────────────────────────────────────────────────────── */
+.rm-contract-header {
+  display: grid;
+  grid-template-columns: 52px 1fr 88px 88px 96px;
+  gap: 6px;
+  padding: 9px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rm-contract-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 88px 88px 96px;
+  gap: 6px;
+  align-items: center;
+  padding: 11px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 13px;
+  color: #374151;
+}
+
+.rm-contract-row:last-child {
+  border-bottom: none;
+}
+
+.rm-contract-row:hover {
+  background: #f9fafb;
+}
+
+/* Red background for contracts with no remuneraciones */
+.rm-contract-sin-rem {
+  background: #fff5f5;
+  border-left: 3px solid #fca5a5;
+}
+
+.rm-contract-sin-rem:hover {
+  background: #fee2e2 !important;
+}
+
+/* ─── Contract detail: top zone ─────────────────────────────────────────── */
+.rm-detail-top {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
+}
+
+.rm-detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.rm-btn-back {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.rm-btn-back:hover {
+  background: #e5e7eb;
+}
+
+.rm-btn-crear {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  background: #4f46e5;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.rm-btn-crear:hover {
+  background: #4338ca;
+}
+
+/* Info cards grid */
+.rm-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.rm-info-item {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+
+.rm-info-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.rm-info-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.rm-info-value-accent {
+  color: #4f46e5;
+}
+
+.rm-info-note {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+/* ─── Contract detail: bottom zone ─────────────────────────────────────── */
+.rm-detail-bottom {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+}
+
+.rm-detail-bottom-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+/* Remuneraciones table */
+.rm-rem-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.rm-rem-table thead tr {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rm-rem-table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.rm-rem-table td {
+  padding: 9px 10px;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.rm-rem-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rm-rem-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.rm-rem-total {
+  font-weight: 700;
+  color: #065f46;
+}
+
+/* ─── Badge variants not in trabajadores.css ────────────────────────────── */
+.badge-pendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-pagado {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-atrasado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-por-vencer {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+/* ─── Create modal: monto label ─────────────────────────────────────────── */
+.rm-monto-label {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.rm-field-readonly {
+  background: #f9fafb !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  border-color: #e5e7eb !important;
+}
