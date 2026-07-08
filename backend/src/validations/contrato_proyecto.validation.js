@@ -2,6 +2,14 @@
 
 export const ESTADOS_VALIDOS = ["activo", "por_vencer", "inactivo"];
 
+function hoyLocal() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 // Campos que SÍ se pueden editar directamente en un contrato existente.
 // fecha_inicio, fecha_termino y monto requieren crear un anexo.
 // estado_contrato también queda bloqueado para edición directa: la única
@@ -47,6 +55,13 @@ export function validarCrearContratoProyecto(body) {
 
   if (fecha_termino && fecha_inicio && new Date(fecha_termino) <= new Date(fecha_inicio)) {
     errores.push("fecha_termino debe ser posterior a fecha_inicio");
+  }
+
+  // Esta validación de "no anterior a hoy" SOLO aplica al crear (igual que
+  // en ContratoTrabajador). Al editar no se toca fecha_inicio directamente
+  // (va bloqueada en CAMPOS_SOLO_VIA_ANEXO), así que no aplica ahí.
+  if (fecha_inicio && fecha_inicio < hoyLocal()) {
+    errores.push("La fecha de inicio no puede ser anterior a hoy");
   }
 
   return errores;

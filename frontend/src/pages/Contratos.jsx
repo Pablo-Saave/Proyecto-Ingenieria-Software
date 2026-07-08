@@ -361,6 +361,13 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
       if (name === 'tipo_contrato_nuevo' && value === 'Indefinido') {
         next.fecha_termino_nueva = '';
       }
+      // Si se marca "este anexo termina el contrato" y ya había seleccionado
+      // Indefinido como nuevo tipo, lo limpiamos: no tiene sentido declarar
+      // que el contrato pasa a Indefinido (sin fecha de término) en el mismo
+      // anexo que le está poniendo una fecha real de término.
+      if (name === 'es_anexo_termino' && checked && prev.tipo_contrato_nuevo === 'Indefinido') {
+        next.tipo_contrato_nuevo = '';
+      }
       return next;
     });
     setErrores([]);
@@ -472,8 +479,26 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
           <textarea name="descripcion_modificacion" value={form.descripcion_modificacion}
             onChange={handleChange} rows={3} placeholder="Detalle de lo que cambia..." />
 
-          <label>Nuevo tipo de contrato (opcional)</label>
-          <select name="tipo_contrato_nuevo" value={form.tipo_contrato_nuevo} onChange={handleChange}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Nuevo tipo de contrato (opcional)
+            {form.es_anexo_termino && (
+              <span style={{
+                fontSize: '11px', color: '#6b7280',
+                background: '#f3f4f6', borderRadius: '4px',
+                padding: '2px 6px', fontWeight: 500,
+              }}>
+                No aplica al terminar el contrato
+              </span>
+            )}
+          </label>
+          <select
+            name="tipo_contrato_nuevo"
+            value={form.tipo_contrato_nuevo}
+            onChange={handleChange}
+            disabled={form.es_anexo_termino}
+            title={form.es_anexo_termino ? 'No aplica: el contrato queda Inactivo, no tiene sentido cambiarle el tipo' : ''}
+            style={form.es_anexo_termino ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+          >
             <option value="">— Sin cambio —</option>
             {TIPOS_CONTRATO.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
