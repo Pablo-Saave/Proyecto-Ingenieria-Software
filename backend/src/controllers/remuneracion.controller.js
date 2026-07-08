@@ -222,7 +222,7 @@ export async function getRemuneracionesAndContratos(req, res) {
           .select("1")
           .from("contratos_trabajadores", "ct")
           .where("ct.id_trabajador = t.id_trabajador")
-          .andWhere("ct.estado_contrato = 'Activo'")
+          .andWhere("ct.estado_contrato IN ('Activo', 'Por vencer')")
           .andWhere(sq2 =>
             "NOT EXISTS " +
             sq2.subQuery()

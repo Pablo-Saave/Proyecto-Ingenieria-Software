@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Search, ArrowLeft, Plus, Edit2,
+  Search, ArrowLeft, Plus, Edit2, Trash2,
   ChevronLeft, ChevronRight, X, AlertCircle, FileText,
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
@@ -9,6 +9,7 @@ import {
   getRemuneraciones,
   crearRemuneracion,
   actualizarRemuneracion,
+  eliminarRemuneracion
 } from '../services/remuneracionesAdminService';
 import '../styles/remuneracionesAdmin.css';
 
@@ -110,6 +111,12 @@ function RemuneracionesAdmin({ usuario, onLogout }) {
   const [editForm,   setEditForm]   = useState({ bono: '', descuento: '', estado_pago: '' });
   const [editError,  setEditError]  = useState(null);
   const [saving,     setSaving]     = useState(false);
+
+  // ==========================
+  // Estados: Modal Eliminar
+  // ==========================
+  const [deleteTarget, setDeleteTarget] = useState(null); // remuneracion object
+  const [deleting,     setDeleting]     = useState(false);
 
   // ==========================
   // Effect 1: Fetch al cambiar filtros o página
@@ -316,6 +323,24 @@ function RemuneracionesAdmin({ usuario, onLogout }) {
   };
 
   // ==========================
+  // Handlers: Delete
+  // ==========================
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await eliminarRemuneracion(deleteTarget.id_remuneracion);
+      setDeleteTarget(null);
+      setRefetchTrigger((t) => t + 1);
+    } catch (e) {
+      setError(e.message);
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // ==========================
   // Valores derivados
   // ==========================
 
@@ -482,13 +507,14 @@ function RemuneracionesAdmin({ usuario, onLogout }) {
                         <span className={badgePago(rem.estado_pago)}>{rem.estado_pago}</span>
                       </td>
                       <td>
-                        <button
-                          className="tw-btn-edit"
-                          onClick={() => openEdit(rem)}
-                          title="Modificar"
-                        >
-                          <Edit2 size={12} />
-                        </button>
+                        <div className="tw-actions">
+                          <button className="tw-btn-edit" onClick={() => openEdit(rem)} title="Modificar">
+                            <Edit2 size={12} />
+                          </button>
+                          <button className="tw-btn-delete" onClick={() => setDeleteTarget(rem)} title="Eliminar">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -633,6 +659,42 @@ function RemuneracionesAdmin({ usuario, onLogout }) {
       </div>
     );
   };
+
+  // ==========================
+  // Render: Modal Eliminar
+  // ==========================
+
+  const renderDeleteModal = () => {
+    if (!deleteTarget) return null;
+    return (
+      <div className="tw-modal-overlay" onClick={() => setDeleteTarget(null)}>
+        <div className="tw-modal tw-modal-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="tw-modal-header">
+            <h2>Eliminar Remuneración</h2>
+            <button className="tw-modal-close" onClick={() => setDeleteTarget(null)}>
+              <X size={15} />
+            </button>
+          </div>
+
+          <p className="tw-confirm-text">
+            ¿Estás seguro de que deseas eliminar la remuneración{' '}
+            <strong>#{deleteTarget.id_remuneracion}</strong> con fecha de pago{' '}
+            <strong>{formatDate(deleteTarget.fecha_pago)}</strong>? Esta acción no se puede deshacer.
+          </p>
+
+          <div className="tw-modal-footer">
+            <button className="tw-btn-cancel" onClick={() => setDeleteTarget(null)}>
+              Cancelar
+            </button>
+            <button className="tw-btn-delete-confirm" onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Eliminando...' : <><Trash2 size={13} /> Eliminar</>}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
 
   // ==========================
   // Render principal
@@ -850,6 +912,7 @@ function RemuneracionesAdmin({ usuario, onLogout }) {
       {/* Modales fuera del layout para que el overlay cubra toda la pantalla */}
       {renderCreateModal()}
       {renderEditModal()}
+      {renderDeleteModal()}
     </div>
   );
 }

@@ -49,3 +49,9 @@ export async function actualizarRemuneracion(id, data) {
   });
   return res.data;
 }
+
+// Elimina una remuneracion
+export async function eliminarRemuneracion(id) {
+  await apiFetch(`/api/remuneraciones/${id}`, { method: 'DELETE' });
+  return true;
+}
