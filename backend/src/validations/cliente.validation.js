@@ -7,7 +7,7 @@ import {
   soloLetras,
 } from "./formatos.validation.js";
 
-const TIPOS_CLIENTE_VALIDOS = ["Persona", "Empresa,", "Organización"];
+const TIPOS_CLIENTE_VALIDOS = ["Persona", "Empresa", "Organización"];
 
 // "empresa" -> "Empresa", "PERSONA" -> "Persona", " persona " -> "Persona"
 function capitalizar(texto) {
