@@ -60,6 +60,12 @@ export const ContratoTrabajadorSchema = new EntitySchema({
       target: "AnexoContrato", // Referencia "name" en anexo_contrato.entity.js
       inverseSide: "contrato",
     },
+
+    remuneraciones: {
+      type: "one-to-many",
+      target: "Remuneracion",
+      inverseSide: "contrato",
+    },
   },
 
 });

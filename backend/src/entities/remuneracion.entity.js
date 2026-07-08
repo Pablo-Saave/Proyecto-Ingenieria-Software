@@ -16,24 +16,34 @@ export const RemuneracionSchema = new EntitySchema({
       nullable: false,
     },
 
+    id_contrato: {
+      type: "int",
+      nullable: false,
+    },
+
     fecha_pago: {
-      type: "varchar"
+      type: "varchar",
+      nullable: false
     },
 
     sueldo: {
-      type: "int"
+      type: "int",
+      nullable: false
     },
 
     bono: {
-      type: "int"
+      type: "int",
+      default: 0
     },
 
     descuento: {
-      type: "int"
+      type: "int",
+      default: 0
     },
     
     estado_pago: {
-      type: "varchar"
+      type: "varchar",
+      default: "pendiente"
     },
   },
 
@@ -42,6 +52,13 @@ export const RemuneracionSchema = new EntitySchema({
       type: "many-to-one",
       target: "Trabajador",
       joinColumn: { name: "id_trabajador" },
+      inverseSide: "remuneraciones",
+      nullable: false,
+    },
+    contrato: {
+      type: "many-to-one",
+      target: "ContratoTrabajador",
+      joinColumn: { name: "id_contrato" },
       inverseSide: "remuneraciones",
       nullable: false,
     },

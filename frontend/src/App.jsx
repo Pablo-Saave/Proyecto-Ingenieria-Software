@@ -11,7 +11,6 @@ import ContratosTrabajador    from './pages/ContratosTrabajador'; // Trabajador
 import Trabajadores           from './pages/trabajadores';
 import Clientes               from './pages/Clientes'; // Administrador
 import Ausencias              from './pages/ausencias';
-import { Pagos }              from './pages/Pagos';
 import PagosSupervisor        from './pages/PagosSupervisor'; // Supervisor
 import PagosTrabajador        from './pages/PagosTrabajador'; // Trabajador
 import Asignaciones           from './pages/asignaciones';
@@ -25,6 +24,8 @@ import AccidentesModuloTrabajador from './pages/AccidentesModuloTrabajador';
 import AccidentesModuloSupervisor from './pages/AccidentesModuloSupervisor';
 import CambiarPassword from './pages/CambiarPassword';
 import Proyectos  from './pages/Proyectos';
+import RemuneracionesAdmin from './pages/RemuneracionesAdmin';
+
 
 
 import { getUsuarioLocal, logoutClean } from './services/authService';
@@ -82,7 +83,7 @@ function App() {
         <Route path="/admin/clientes"     element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Clientes {...pageProps} /></RolRoute>} />
         <Route path="/admin/contratos"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Contratos {...pageProps} /></RolRoute>} />
         <Route path="/admin/contratos-proyecto" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><ContratoProyectos {...pageProps} /></RolRoute>} />
-        <Route path="/admin/pagos"        element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Pagos {...pageProps} usuario={usuario} /></RolRoute>} />
+        <Route path="/admin/pagos"        element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><RemuneracionesAdmin {...pageProps} ></RemuneracionesAdmin></RolRoute>} />
         <Route path="/admin/asignaciones" element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Asignaciones {...pageProps} /></RolRoute>} />
         <Route path="/admin/avisos"       element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><CanalesAvisosAdmin {...pageProps} /></RolRoute>} />
         <Route path="/admin/proyectos"    element={<RolRoute isLoggedIn={isLoggedIn} usuario={usuario} rolesPermitidos={['administrador']}><Proyectos {...pageProps} ></Proyectos></RolRoute>}/>

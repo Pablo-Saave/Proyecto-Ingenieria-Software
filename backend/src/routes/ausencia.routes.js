@@ -54,7 +54,7 @@ router.get('/',               autorizar('ausencias:ver_todas'),                 
 router.get('/trabajador/:id', autorizar('ausencias:ver_propias'),                     obtenerAusenciasPorTrabajador);
 router.get('/pendientes',     autorizar('ausencias:ver_todas'),                       obtenerAusenciasPendientes);
 router.put('/:id/revisar',    autorizar('ausencias:revisar'),                         validarRevisionAusencia, revisarAusencia);
-router.delete('/:id',         autorizar('ausencias:eliminar'),                        eliminarAusencia);
+router.delete('/:id',                                                                 eliminarAusencia);
 
 router.post('/:id/documento', autorizar('ausencias:crear'), uploadPDF, subirDocumento);
 

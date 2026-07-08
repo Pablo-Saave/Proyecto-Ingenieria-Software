@@ -4,15 +4,17 @@ import { Router } from "express";
 
 import {
   getRemuneraciones,
-  crearRemuneracion,
-  actualizarRemuneracion,
-  eliminarRemuneracion,
   getRemuneracionesPaginadas,
   getRemuneracion,
   getMiRemuneracion,
+  crearRemuneracion,
+  actualizarRemuneracion,
+  eliminarRemuneracion,
+  getRemuneracionesAndContratos
 } from "../controllers/remuneracion.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { autorizar } from "../middlewares/autorizar.middleware.js";
+import { validateActualizarRemuneracion, validateCrearRemuneracion, validateGetRemuneraciones } from "../validations/remuneracion.validation.js";
 
 const router = Router();
 
@@ -26,8 +28,12 @@ router.get("/mi-pago", autorizar("pagos:ver_propios"), getMiRemuneracion);
 router.get("/", autorizar("pagos:ver_todos"), getRemuneraciones);
 router.get("/paginadas/", autorizar("pagos:ver_todos"), getRemuneracionesPaginadas);
 router.post("/get", autorizar("pagos:ver_todos"), getRemuneracion);
-router.post("/", autorizar("pagos:gestionar"), crearRemuneracion);
-router.patch("/:id", autorizar("pagos:gestionar"), actualizarRemuneracion);
-router.delete("/:id", autorizar("pagos:gestionar"), eliminarRemuneracion);
+
+// Admin
+router.get("/all/", authMiddleware, validateGetRemuneraciones, getRemuneracionesAndContratos);
+router.post("/", authMiddleware, validateCrearRemuneracion, crearRemuneracion);
+router.patch("/:id_remuneracion", authMiddleware, validateActualizarRemuneracion, actualizarRemuneracion);
+router.delete("/:id_remuneracion", authMiddleware, eliminarRemuneracion);
+
 
 export default router;

@@ -16,6 +16,8 @@ import notificacionRoutes from "./routes/notificacion.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import inventarioRoutes from "./routes/inventario.routes.js"
 import { iniciarCronContratos } from "./jobs/contratosCron.js";
+import { iniciarJobRemuneraciones } from "./jobs/remuneracion.job.js";
+import resetPasswordRoutes from './routes/resetPasswordRoutes.js';
 import resetPasswordRoutes from './routes/resetPassword.routes.js';
 import accidenteLaboralRoutes from './routes/accidente_laboral.routes.js'
 
@@ -39,6 +41,8 @@ export async function initializeApp() {
 
     // Iniciar job de contratos DESPUÉS de que la BD esté lista
     iniciarCronContratos();
+    // Iniciar job de remuneraciones para marcar atrasos en pagos
+    iniciarJobRemuneraciones();
 
   } catch (error) {
     console.error("Error durante la inicialización:", error);
