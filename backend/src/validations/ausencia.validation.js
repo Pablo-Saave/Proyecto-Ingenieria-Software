@@ -18,7 +18,7 @@ export const validarCrearAusencia = (req, res, next) => {
   next();
 };
 
-export const validarCrearAusenciaSupervisor = (req, res, next) => { //CODIGO MUERTO: SUPERVISOR YA NO CREA AUSENCIAS, SOLO LAS REVISA. SE DEJA POR SI SE REQUIERE EN EL FUTURO
+export const validarCrearAusenciaSupervisor = (req, res, next) => {
   const { fecha_inicio, fecha_termino, id_trabajador } = req.body;
 
   if (!fecha_inicio)
@@ -43,7 +43,7 @@ export const validarJustificarAusencia = (req, res, next) => {
   next();
 };
 
-// El resvisor se toma de req.user en el controlador.
+// El resvisor se toma de req.user en el controlador
 
 export const validarRevisionAusencia = (req, res, next) => {
   const { estado_aprobacion, comentario_revision } = req.body;
