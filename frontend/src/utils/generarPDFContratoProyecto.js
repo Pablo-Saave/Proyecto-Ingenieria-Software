@@ -23,7 +23,6 @@ function getDatosCliente(contrato) {
   const nombre = `${cli.nombres || ''} ${cli.apellidos || ''}`.trim() || 'Sin cliente';
   return {
     nombre,
-    rut: cli.rut || '-',
     correo: cli.correo || '',
     telefono: cli.telefono || '',
   };
@@ -80,7 +79,6 @@ export function generarPDFContratoProyecto(contrato) {
 
   const cliente = getDatosCliente(contrato);
   fila(doc, 14, y, ancho, 'Nombre completo', cliente.nombre, GRIS_OSC, GRIS_MED); y += 9;
-  fila(doc, 14, y, ancho, 'RUT', cliente.rut, GRIS_OSC, GRIS_MED); y += 9;
   if (cliente.correo) {
     fila(doc, 14, y, ancho, 'Correo', cliente.correo, GRIS_OSC, GRIS_MED); y += 9;
   }
