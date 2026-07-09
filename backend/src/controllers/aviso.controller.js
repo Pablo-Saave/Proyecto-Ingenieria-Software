@@ -67,14 +67,11 @@ export const verAvisos = async (req, res) => {
     const { id_cuadrilla } = req.params;
     const { id_trabajador, tipo_usuario } = req.user;
 
-    // Valida que el id de cuadrilla venga bien formado
     const errId = validarIdCuadrilla(id_cuadrilla);
     if (errId) return res.status(400).json({ message: errId });
 
-   S
     const { page, limit } = normalizarPaginacion(req.query);
 
-    // El service revisa permisos según el rol y devuelve los avisos 
     const { avisos, ...meta } = await avisoService.listarAvisosDeCuadrilla({
       id_cuadrilla, id_trabajador, tipo_usuario, page, limit,
     });

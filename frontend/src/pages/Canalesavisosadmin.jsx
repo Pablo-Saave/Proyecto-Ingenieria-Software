@@ -1,5 +1,3 @@
-// pages/CanalesAvisosAdmin.jsx
-// Admin: ve todos los avisos, puede publicar en cualquier cuadrilla y eliminar cualquier aviso.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';

@@ -7,9 +7,9 @@ import { crearNotificacion } from "../services/notificacion.service.js";
 const repo = AppDataSource.getRepository(AusenciaSchema);
 const repoJustificacion = AppDataSource.getRepository(JustificacionAusenciaSchema);
 
-// ── CREAR AUSENCIA (Flujo normal: El empleado avisa que faltara) ──────────────
+// CREAR AUSENCIA (Flujo normal q el empleado avisa que faltara)
 // El trabajador entrega el motivo al momento de crearla, así que se guarda de una
-// vez una JustificacionAusencia asociada (estado_revision "Pendiente"), para que
+// vez una JustificacionAusencia asociada, para que
 // el resto del sistema pueda leer siempre el motivo desde 'ausencia.justificacion.motivo',
 // sea cual sea el flujo (anticipado por el trabajador o detectado por el supervisor)
 export const crearAusencia = async (req, res) => {
@@ -34,7 +34,7 @@ export const crearAusencia = async (req, res) => {
       const nueva = repo.create({
         fecha_inicio,
         fecha_termino,
-        estado: "Pendiente", // Nace pendiente de aprobación por el supervisor
+        estado: "Pendiente",
         trabajador: { id_trabajador },
         cuadrilla: { id_cuadrilla },
       });
@@ -51,8 +51,6 @@ export const crearAusencia = async (req, res) => {
       return ausenciaGuardada;
     });
 
-    // Notificar al supervisor del proyecto de esa cuadrilla que hay una
-    // nueva ausencia pendiente de revisión.
     try {
       const cuadrillaConProyecto = await AppDataSource.getRepository("Cuadrilla").findOne({
         where: { id_cuadrilla },
@@ -70,7 +68,6 @@ export const crearAusencia = async (req, res) => {
         });
       }
     } catch (notifError) {
-      // La notificación nunca debe romper el flujo principal de creación de la ausencia.
       console.error("Error al notificar nueva ausencia:", notifError);
     }
 
@@ -80,12 +77,11 @@ export const crearAusencia = async (req, res) => {
   }
 };
 
-// ── CREAR AUSENCIA POR SUPERVISOR (flujo espontaneo) ─────────────────────────
+// CREAR AUSENCIA POR SUPERVISOR
 export const crearAusenciaPorSupervisor = async (req, res) => {
   try {
     const { fecha_inicio, fecha_termino, id_trabajador, id_cuadrilla } = req.body;
 
-    // El usuario debe ser supervisor del proyecto al que pertenece la cuadrilla
     const cuadrilla = await AppDataSource.getRepository("Cuadrilla").findOne({
       where: { id_cuadrilla: Number(id_cuadrilla) },
       relations: ["proyecto"],
@@ -99,7 +95,6 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
       return res.status(403).json({ error: "No eres supervisor autorizado de esta cuadrilla" });
     }
 
-    // El trabajador afectado debe pertenecer a esa misma cuadrilla
     const verifTrabajador = await AppDataSource.getRepository("Asignado").findOne({
       where: { id_trabajador, id_cuadrilla },
     });
@@ -111,7 +106,6 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
     const nueva = repo.create({
       fecha_inicio,
       fecha_termino,
-      // Nace "Por Justificar" pq el supervisor la detectó, pero es el trabajador quien apela
       estado: "Por Justificar",
       trabajador: { id_trabajador },
       cuadrilla: { id_cuadrilla },
@@ -119,7 +113,6 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
 
     const resultado = await repo.save(nueva);
 
-    // Notificar al trabajador que se le registró una inasistencia y debe justificarla.
     try {
       await crearNotificacion({
         id_trabajador,
@@ -140,7 +133,7 @@ export const crearAusenciaPorSupervisor = async (req, res) => {
   }
 };
 
-// ── JUSTIFICAR AUSENCIA ─────────────────────
+// JUSTIFICAR AUSENCIA 
 export const justificarAusencia = async (req, res) => {
   try {
     const { motivo, documento_respaldo } = req.body;
@@ -175,12 +168,10 @@ export const justificarAusencia = async (req, res) => {
       });
       await transactionalEntityManager.save(JustificacionAusenciaSchema, nuevaJustificacion);
  
-      // "Justificada"
       ausencia.estado = "Justificada";
       await transactionalEntityManager.save(AusenciaSchema, ausencia);
     });
 
-    // Notificar al supervisor del proyecto que hay una justificación pendiente de revisar
     try {
       if (ausencia.cuadrilla?.proyecto?.id_supervisor) {
         await crearNotificacion({
@@ -202,12 +193,11 @@ export const justificarAusencia = async (req, res) => {
   }
 };
 
-// ── OBTENER TODAS LAS AUSENCIAS ────────────────────────────────────────────
+// OBTENER TODAS LAS AUSENCIAS
 export const obtenerAusencias = async (req, res) => {
   try {
     const { id_trabajador, tipo_usuario } = req.user;
 
-    // Administrador: ve todas las ausencias del sistema
     if (tipo_usuario === "administrador") {
       const ausencias = await repo.find({
         relations: ["trabajador", "cuadrilla", "justificacion", "justificacion.revisor"],
@@ -215,7 +205,6 @@ export const obtenerAusencias = async (req, res) => {
       return res.json(ausencias);
     }
 
-    // Supervisor solo ve las ausencias de las cuadrillas de los proyectos que supervisa
     if (tipo_usuario === "supervisor") {
       const proyectos = await AppDataSource.getRepository("Proyecto").find({
         where: { id_supervisor: id_trabajador },
@@ -238,7 +227,6 @@ export const obtenerAusencias = async (req, res) => {
       return res.json(ausencias);
     }
 
-    // Trabajador: ve las ausencias de la cuadrilla que pertenece
     const asignaciones = await AppDataSource.getRepository("Asignado").find({
       where: { id_trabajador },
     });
@@ -255,7 +243,7 @@ export const obtenerAusencias = async (req, res) => {
   }
 };
 
-// ── ELIMINAR AUSENCIA ─────────────────────────────────────────────────────────
+// ELIMINAR AUSENCIA
 export const eliminarAusencia = async (req, res) => {
   try {
     const ausencia = await repo.findOne({
@@ -271,7 +259,6 @@ export const eliminarAusencia = async (req, res) => {
       return res.status(400).json({ error: 'No se puede eliminar una ausencia ya procesada o cerrada' });
     }
  
-    // Se borra primero la justificación asociada por el tema de la FK 
     await AppDataSource.transaction(async (transactionalEntityManager) => {
       if (ausencia.justificacion) {
         await transactionalEntityManager.remove(JustificacionAusenciaSchema, ausencia.justificacion);
@@ -285,7 +272,7 @@ export const eliminarAusencia = async (req, res) => {
   }
 };
 
-// ── OBTENER AUSENCIAS POR TRABAJADOR ─────────────────────────────────────────
+// OBTENER AUSENCIAS POR TRABAJADOR
 export const obtenerAusenciasPorTrabajador = async (req, res) => {
   try {
     const datos = await repo.find({
@@ -298,7 +285,7 @@ export const obtenerAusenciasPorTrabajador = async (req, res) => {
   }
 };
 
-// ── OBTENER AUSENCIAS PENDIENTES ─────────────────────────────────────────────
+// OBTENER AUSENCIAS PENDIENTES
 export const obtenerAusenciasPendientes = async (req, res) => {
   try {
     const datos = await repo.find({
@@ -311,7 +298,7 @@ export const obtenerAusenciasPendientes = async (req, res) => {
   }
 };
 
-// ── REVISAR O EVALUAR AUSENCIA  ────────────────────────────────────
+// REVISAR O EVALUAR AUSENCIA
 export const revisarAusencia = async (req, res) => {
   try {
     const { estado_aprobacion, comentario_revision } = req.body; // 'Aprobado' o 'Rechazado'
@@ -361,12 +348,10 @@ export const revisarAusencia = async (req, res) => {
         await transactionalEntityManager.save(JustificacionAusenciaSchema, ausencia.justificacion);
       }
  
-      // Estado final
       ausencia.estado = estado_aprobacion;
       await transactionalEntityManager.save(AusenciaSchema, ausencia);
     });
 
-    // Notificar al trabajador
     try {
       await crearNotificacion({
         id_trabajador: ausencia.trabajador.id_trabajador,

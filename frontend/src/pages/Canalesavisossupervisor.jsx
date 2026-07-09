@@ -1,5 +1,3 @@
-// pages/CanalesAvisosSupervisor.jsx
-// Puede ver y publicar avisos en cualquier cuadrilla activa del proyecto que supervisa.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';

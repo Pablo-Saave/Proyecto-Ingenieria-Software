@@ -1,5 +1,3 @@
-// pages/CanalesAvisosTrabajador.jsx
-// Solo lectura: ve los avisos de su cuadrilla, sin poder publicar.
 import React, { useEffect, useMemo, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
