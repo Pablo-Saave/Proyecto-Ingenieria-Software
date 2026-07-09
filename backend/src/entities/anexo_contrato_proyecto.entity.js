@@ -1,4 +1,3 @@
-// anexo_contrato_proyecto.entity.js
 import { EntitySchema } from "typeorm";
 
 export const AnexoContratoProyectoSchema = new EntitySchema({
@@ -27,19 +26,13 @@ export const AnexoContratoProyectoSchema = new EntitySchema({
       nullable: false,
     },
 
-    // Ya no se exige desde el form ni se usa en el backend; se deja nullable
-    // en vez de eliminar la columna para no requerir una migración destructiva.
+    // Columna legacy: queda nullable para evitar una migracion destructiva.
     fecha_vigencia: {
       type: "date",
       nullable: true,
     },
 
-  
-    // fecha_vigencia es desde cuándo rige el anexo.
-    // fecha_termino_nueva es hasta cuándo queda extendido el contrato a partir de ese anexo.
-    // Si el anexo no toca el plazo (ej: solo cambia el monto o la
-    // descripción), este campo queda null y no se actualiza
-    
+    // Nueva fecha vigente cuando el anexo modifica el plazo.
     fecha_termino_nueva: {
       type: "date",
       nullable: true,

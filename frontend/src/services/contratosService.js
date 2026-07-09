@@ -1,6 +1,6 @@
 const API_BASE = 'http://localhost:3000';
 
-export const TIPOS_CONTRATO   = ['Indefinido', 'Plazo Fijo'];
+export const TIPOS_CONTRATO = ['Indefinido', 'Plazo Fijo'];
 export const ESTADOS_CONTRATO = ['Activo', 'Inactivo', 'Por vencer'];
 
 async function apiFetch(path, options = {}) {
@@ -12,10 +12,12 @@ async function apiFetch(path, options = {}) {
     },
     ...options,
   });
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || `Error ${res.status}`);
   }
+
   return res.json();
 }
 
@@ -31,50 +33,43 @@ export function validarFormContrato(form, esEdicion = false) {
   const errores = [];
   const { tipo_contrato, estado_contrato, fecha_inicio, fecha_termino, monto, id_trabajador } = form;
 
-  if (!esEdicion && !id_trabajador)   errores.push('Debes seleccionar un trabajador.');
-  if (!tipo_contrato)                 errores.push('El tipo de contrato es obligatorio.');
-  if (!estado_contrato)               errores.push('El estado del contrato es obligatorio.');
-  if (!fecha_inicio)                  errores.push('La fecha de inicio es obligatoria.');
-  if (monto === '' || monto === null || monto === undefined)
+  if (!esEdicion && !id_trabajador) errores.push('Debes seleccionar un trabajador.');
+  if (!tipo_contrato) errores.push('El tipo de contrato es obligatorio.');
+  if (!estado_contrato) errores.push('El estado del contrato es obligatorio.');
+  if (!fecha_inicio) errores.push('La fecha de inicio es obligatoria.');
+
+  if (monto === '' || monto === null || monto === undefined) {
     errores.push('El monto del contrato es obligatorio.');
-  else if (Number.isNaN(Number(monto)))
-    errores.push('El monto del contrato debe ser numérico.');
+  } else if (Number.isNaN(Number(monto))) {
+    errores.push('El monto del contrato debe ser numerico.');
+  }
 
-  if (tipo_contrato && !TIPOS_CONTRATO.includes(tipo_contrato))
-    errores.push(`Tipo inválido. Opciones: ${TIPOS_CONTRATO.join(', ')}.`);
+  if (tipo_contrato && !TIPOS_CONTRATO.includes(tipo_contrato)) {
+    errores.push(`Tipo invalido. Opciones: ${TIPOS_CONTRATO.join(', ')}.`);
+  }
 
-  if (estado_contrato && !ESTADOS_CONTRATO.includes(estado_contrato))
-    errores.push(`Estado inválido. Opciones: ${ESTADOS_CONTRATO.join(', ')}.`);
+  if (estado_contrato && !ESTADOS_CONTRATO.includes(estado_contrato)) {
+    errores.push(`Estado invalido. Opciones: ${ESTADOS_CONTRATO.join(', ')}.`);
+  }
 
-  if (fecha_inicio && !esEdicion && fecha_inicio < hoyLocal())
+  if (fecha_inicio && !esEdicion && fecha_inicio < hoyLocal()) {
     errores.push('La fecha de inicio no puede ser anterior a hoy.');
+  }
 
-  if (tipo_contrato === 'Indefinido' && fecha_termino)
-    errores.push('Un contrato Indefinido no puede tener fecha de término.');
+  if (tipo_contrato === 'Indefinido' && fecha_termino) {
+    errores.push('Un contrato Indefinido no puede tener fecha de termino.');
+  }
 
   if (tipo_contrato === 'Plazo Fijo') {
-    if (!fecha_termino)
-      errores.push('Un contrato de Plazo Fijo debe tener fecha de término.');
-    else if (fecha_inicio && fecha_termino <= fecha_inicio)
-      errores.push('La fecha de término debe ser posterior a la fecha de inicio.');
+    if (!fecha_termino) {
+      errores.push('Un contrato de Plazo Fijo debe tener fecha de termino.');
+    } else if (fecha_inicio && fecha_termino <= fecha_inicio) {
+      errores.push('La fecha de termino debe ser posterior a la fecha de inicio.');
+    }
   }
 
   return errores;
 }
-
-// ─── Estado calculado a partir de la fecha ────────────────────────────────────
-// Si la fecha_termino ya pasó → Inactivo (automático)
-// Si vence en ≤ 30 días       → Por vencer
-// Si no tiene fecha (Indefinido) o queda tiempo → Activo
-export function calcularEstadoVisual(fechaTermino) {
-  if (!fechaTermino) return 'Activo';
-  const dias = Math.ceil((new Date(fechaTermino) - new Date()) / (1000 * 60 * 60 * 24));
-  if (dias <= 0)  return 'Inactivo';
-  if (dias <= 30) return 'Por vencer';
-  return 'Activo';
-}
-
-// ─── CRUD ──────────────────────────────────────────────────────────────────────
 
 export async function getContratos() {
   const res = await apiFetch('/api/contratos');
@@ -117,15 +112,6 @@ export async function getTrabajadores() {
   return Array.isArray(res.data) ? res.data : [];
 }
 
-// ─── Anexos ────────────────────────────────────────────────────────────────────
-// Igual patrón que contratoProyectoService: cambios de tipo_contrato, fechas o
-// monto se hacen creando un anexo, no editando el contrato directamente.
-
-export async function getAnexosContrato(idContrato) {
-  const res = await apiFetch(`/api/contratos/${idContrato}/anexos`);
-  return Array.isArray(res.data) ? res.data : [];
-}
-
 export async function createAnexoContrato(idContrato, payload) {
   const res = await apiFetch(`/api/contratos/${idContrato}/anexos`, {
     method: 'POST',
@@ -134,42 +120,36 @@ export async function createAnexoContrato(idContrato, payload) {
   return res.data;
 }
 
-// La eliminación de anexos está deshabilitada a propósito (ver
-// anexo_contrato.controller.js): un anexo aplicó cambios reales al
-// contrato y borrarlo dejaría esos cambios sin respaldo en el historial.
-
 export function validarFormAnexoContrato(form) {
   const errores = [];
 
-  if (!form.fecha_anexo) errores.push('La fecha del anexo es obligatoria.');
-  // fecha_anexo la fija el propio form como hoy y es de solo lectura, pero
-  // igual se valida acá por si algo la altera (ej. relojes desincronizados
-  // o manipulación del estado). El backend valida lo mismo, así que esto es
-  // solo para dar feedback rápido al usuario.
-  else if (form.fecha_anexo !== hoyLocal()) {
+  if (!form.fecha_anexo) {
+    errores.push('La fecha del anexo es obligatoria.');
+  } else if (form.fecha_anexo !== hoyLocal()) {
     errores.push('La fecha del anexo debe ser hoy.');
   }
+
   if (!form.motivo || !form.motivo.trim()) errores.push('El motivo es obligatorio.');
   if (!form.descripcion_modificacion || !form.descripcion_modificacion.trim()) {
-    errores.push('La descripción de la modificación es obligatoria.');
+    errores.push('La descripcion de la modificacion es obligatoria.');
   }
 
   if (form.tipo_contrato_nuevo && !TIPOS_CONTRATO.includes(form.tipo_contrato_nuevo)) {
-    errores.push(`Tipo inválido. Opciones: ${TIPOS_CONTRATO.join(', ')}.`);
+    errores.push(`Tipo invalido. Opciones: ${TIPOS_CONTRATO.join(', ')}.`);
   }
   if (form.tipo_contrato_nuevo === 'Plazo Fijo' && !form.fecha_termino_nueva) {
-    errores.push('Si cambia el tipo a Plazo Fijo debe indicar la nueva fecha de término.');
+    errores.push('Si cambia el tipo a Plazo Fijo debe indicar la nueva fecha de termino.');
   }
   if (form.tipo_contrato_nuevo === 'Indefinido' && form.fecha_termino_nueva) {
-    errores.push('Un contrato Indefinido no puede tener fecha de término.');
+    errores.push('Un contrato Indefinido no puede tener fecha de termino.');
   }
   if (
     form.monto_nuevo !== '' &&
     form.monto_nuevo !== undefined &&
     form.monto_nuevo !== null &&
-    isNaN(Number(form.monto_nuevo))
+    Number.isNaN(Number(form.monto_nuevo))
   ) {
-    errores.push('El nuevo monto debe ser numérico.');
+    errores.push('El nuevo monto debe ser numerico.');
   }
 
   return errores;

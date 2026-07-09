@@ -173,10 +173,6 @@ export async function deleteContrato(req, res) {
         where: { id_contrato: req.contrato.id_contrato },
       });
 
-      console.log(
-        `[deleteContrato] Contrato ${req.contrato.id_contrato}: eliminando ${remuneraciones.length} remuneracion(es) y ${anexos.length} anexo(s) asociados antes del contrato.`
-      );
-
       if (remuneraciones.length > 0) {
         await remuneracionRepo.remove(remuneraciones);
       }

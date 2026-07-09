@@ -16,14 +16,8 @@ import {
   validarFormContratoProyecto,
   validarFormAnexo,
   hoyLocal,
+  ESTADOS_CONTRATO_PROYECTO,
 } from '../services/contratoProyectoService';
-
-// Estados válidos para Contrato de Proyecto (alineados con Contratos normales)
-const ESTADOS_CONTRATO_PROYECTO = [
-  { value: 'activo',     label: 'Activo' },
-  { value: 'por_vencer', label: 'Por vencer' },
-  { value: 'inactivo',   label: 'Inactivo' },
-];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -41,6 +35,11 @@ function calcularDiasRestantes(fechaTermino, fechaExtension) {
   if (!fechaEfectiva) return 0;
   const diff = Math.ceil((new Date(fechaEfectiva) - new Date()) / (1000 * 60 * 60 * 24));
   return Math.max(0, diff);
+}
+
+function calcularEstadoInicial(fechaTermino) {
+  const dias = Math.ceil((new Date(fechaTermino) - new Date(hoyLocal())) / (1000 * 60 * 60 * 24));
+  return dias <= 30 ? 'por_vencer' : 'activo';
 }
 
 function getEstadoLabel(value) {
@@ -150,7 +149,7 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
         await createContratoProyecto({
           id_proyecto:     Number(form.id_proyecto),
           descripcion:     form.descripcion,
-          estado_contrato: form.estado_contrato,
+          estado_contrato: calcularEstadoInicial(form.fecha_termino),
           fecha_inicio:    form.fecha_inicio,
           fecha_termino:   form.fecha_termino,
           monto:           form.monto === '' ? null : Number(form.monto),

@@ -16,7 +16,6 @@ import {
   hoyLocal,
   TIPOS_CONTRATO,
   ESTADOS_CONTRATO,
-  getAnexosContrato,
   createAnexoContrato,
   validarFormAnexoContrato,
 } from '../services/contratosService';
