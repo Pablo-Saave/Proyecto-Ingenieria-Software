@@ -47,11 +47,6 @@ export const ContratoProyectoSchema = new EntitySchema({
       nullable: false
     }
 
-    // NOTA: se eliminó la columna varchar "anexos" que existía aquí antes.
-    // Colisionaba de nombre con la relación "anexos" de más abajo (ambas
-    // intentaban ocupar la misma propiedad en la entidad). Los anexos reales
-    // ahora viven exclusivamente como registros en la tabla
-    // "anexo_contrato_proyecto", accesibles a través de la relación.
   },
 
   relations: {

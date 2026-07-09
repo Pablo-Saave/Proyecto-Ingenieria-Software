@@ -1,14 +1,13 @@
-// jobs/contratosCron.js
-// Ejecuta cada día a medianoche:
-//  1) Marca como "Inactivo" los contratos de Plazo Fijo cuya fecha_termino ya pasó.
-//  2) Detecta contratos de Plazo Fijo que vencen dentro de 30 días y notifica
-//     al trabajador y a los administradores. Para evitar notificar el mismo
-//     contrato todos los días, al detectarlo se cambia su estado a
-//     "Por vencer" (así deja de matchear el filtro estado_contrato = 'Activo').
-
 import cron from 'node-cron';
 import { AppDataSource } from '../config/configDb.js';
 import { crearNotificacion, crearNotificacionMasiva } from '../services/notificacion.service.js';
+
+function hoyLocal(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 export function iniciarCronContratos() {
 
@@ -17,9 +16,9 @@ export function iniciarCronContratos() {
 
     try {
       const repo = AppDataSource.getRepository('ContratoTrabajador');
-      const hoy  = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
+      const hoy  = hoyLocal();
 
-      // ── 1. Marcar como Inactivo los contratos ya vencidos ───────────────
+      //1. Marcar como Inactivo los contratos ya vencidos
       const vencidos = await repo
         .createQueryBuilder('contrato')
         .where('contrato.tipo_contrato = :tipo',       { tipo: 'Plazo Fijo' })
@@ -41,10 +40,10 @@ export function iniciarCronContratos() {
         console.log('[CRON] No hay contratos vencidos por actualizar.');
       }
 
-      // ── 2. Detectar y notificar contratos "por vencer" (próximos 30 días) ──
+      //2. Detectar y notificar contratos "por vencer" (próximos 30 días)
       const en30dias = new Date();
       en30dias.setDate(en30dias.getDate() + 30);
-      const fechaLimite = en30dias.toISOString().split('T')[0];
+      const fechaLimite = hoyLocal(en30dias);
 
       const porVencer = await repo
         .createQueryBuilder('contrato')
@@ -103,13 +102,10 @@ export function iniciarCronContratos() {
     }
   }
 
-  // '0 0 * * *' → todos los días a las 00:00
+  //todos los días a las 00:00
   cron.schedule('0 0 * * *', verificarContratos);
 
-  // Corre una vez de inmediato al levantar el servidor, para no depender
-  // de esperar hasta la próxima medianoche (soluciona que un contrato
-  // recién creado con pocos días de vigencia se muestre "Activo" en vez
-  // de "Por vencer" hasta el día siguiente).
+  // Ejecuta el cron al iniciar el servidor para actualizar estados de inmediato.
   verificarContratos();
 
   console.log('[CRON] Job de contratos iniciado (corre al iniciar el server y todos los días a medianoche).');

@@ -1,4 +1,3 @@
-// services/aviso.service.js
 import { AppDataSource } from "../config/configDb.js";
 import { crearNotificacionMasiva } from "./notificacion.service.js";
 
@@ -7,7 +6,6 @@ const trabajadorRepository = AppDataSource.getRepository("Trabajador");
 const cuadrillaRepository  = AppDataSource.getRepository("Cuadrilla");
 const asignadoRepository   = AppDataSource.getRepository("Asignado");
 
-// ─── Queries internas ──────────────────────────────────────────────────────────
 
 const getAsignacionActiva = (id_trabajador) =>
   asignadoRepository.findOne({
@@ -30,14 +28,14 @@ const getCuadrillaOperativa = async (id_cuadrilla) => {
 
 // El supervisor tiene acceso a una cuadrilla si es el id_supervisor del
 // proyecto al que esa cuadrilla pertenece (ya no depende de una asignación
-// puntual del supervisor a una única cuadrilla).
+// puntual del supervisor a una única cuadrilla como antes).
 const assertSupervisorDelProyectoDeCuadrilla = (id_trabajador, proyecto) => {
   if (!proyecto || proyecto.id_supervisor !== id_trabajador) {
     throw { status: 403, message: "No es supervisor del proyecto al que pertenece esta cuadrilla" };
   }
 };
 
-// ─── Servicios públicos ────────────────────────────────────────────────────────
+//Servicios públicos 
 
 export const listarCuadrillas = () =>
   cuadrillaRepository.find({

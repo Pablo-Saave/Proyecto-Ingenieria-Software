@@ -1,4 +1,3 @@
-// controllers/contrato.controller.js
 "use strict";
 import { AppDataSource } from "../config/configDb.js";
 import { crearNotificacion } from "../services/notificacion.service.js";
@@ -42,8 +41,6 @@ export async function getContratoById(req, res) {
 
 // GET /api/contratos/mis-contratos/:id_trabajador
 // Solo devuelve contratos del trabajador autenticado.
-// El middleware de ruta ya garantiza que el rol tiene contratos:ver_propios,
-// pero además verificamos que el id pedido coincida con el usuario del token.
 export async function getContratosByTrabajador(req, res) {
   try {
     const idSolicitado = parseInt(req.params.id_trabajador);
@@ -149,15 +146,7 @@ export async function updateContrato(req, res) {
 }
 
 // DELETE /api/contratos/:id
-// IMPORTANTE: Este controlador espera que el middleware validarEliminarContrato
-// ya haya verificado que req.contrato existe y que su estado permite eliminarlo.
-// Para eso el router llama primero a un loader que adjunta req.contrato.
-//
-// El loader está definido abajo y el router lo usa antes de validarEliminarContrato.
-//
-// Cascada manual: se eliminan primero las remuneraciones del contrato, luego
-// sus anexos, y por último el contrato. El orden importa porque tanto
-// remuneracion como anexo_contrato tienen FK hacia contratos_trabajadores.
+// Elimina un contrato y sus registros relacionados en el orden correcto. primero remun dps anexos y al final contrato
 export async function deleteContrato(req, res) {
   try {
     // req.contrato viene del loader cargarContrato
@@ -190,10 +179,6 @@ export async function deleteContrato(req, res) {
   }
 }
 
-/**
- * Middleware loader: carga el contrato de la BD y lo adjunta en req.contrato.
- * Se usa en la ruta DELETE antes de validarEliminarContrato.
- */
 export async function cargarContrato(req, res, next) {
   try {
     const repo = getRepo();

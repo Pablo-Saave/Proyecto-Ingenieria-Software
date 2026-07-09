@@ -1,4 +1,3 @@
-// sockets/socket.js
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 
@@ -12,8 +11,7 @@ export function initSocket(httpServer) {
     },
   });
 
-  // Middleware de autenticación del handshake: el cliente debe mandar { auth: { token } }
-  // Mismo secreto y mismo payload que usa auth.middleware.js para las rutas HTTP.
+// Valida el token del cliente al establecer la conexión con Socket.IO.
   io.use((socket, next) => {
     try {
       const token = socket.handshake.auth?.token;
@@ -40,7 +38,7 @@ export function initSocket(httpServer) {
     socket.join(`trabajador_${id_trabajador}`);
 
     socket.on("disconnect", () => {
-      // no hace falta hacer nada explícito, socket.io limpia la room solo
+      
     });
   });
 

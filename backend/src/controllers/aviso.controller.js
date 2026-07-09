@@ -1,4 +1,3 @@
-// controllers/aviso.controller.js
 import * as avisoService from "../services/aviso.service.js";
 import {
   validarCamposCrear,
@@ -10,7 +9,7 @@ import {
   normalizarPaginacion,
 } from "../validations/aviso.validation.js";
 
-// Maneja errores inesperados o errores con status propio (ej: error.status = 404)
+// Maneja errores inesperados o errores con status propio ( error.status = 404)
 const manejarError = (res, error, contexto) => {
   if (error.status) return res.status(error.status).json({ message: error.message });
   console.error(`Error en ${contexto}:`, error);
@@ -49,11 +48,11 @@ export const getTodosLosAvisos = async (req, res) => {
   }
 };
 
-// GET /avisos/mi-unidad  (Admin / Supervisor / Trabajador)
+// GET /avisos/de sus cuadrillas (Admin / Supervisor / Trabajador)
 
 export const getAvisosMiUnidad = async (req, res) => {
   try {
-    // Trae los avisos de la cuadrilla/unidad a la que pertenece el usuario logueado
+    // Trae los avisos de la cuadrilla a la que pertenece el usuario logueado
     const { unidad, avisos } = await avisoService.listarAvisosMiUnidad(req.user.id_trabajador);
     return res.status(200).json({ unidad, data: avisos });
   } catch (error) {
@@ -61,7 +60,7 @@ export const getAvisosMiUnidad = async (req, res) => {
   }
 };
 
-// GET /avisos/cuadrilla/:id_cuadrilla  (Admin / Supervisor / Trabajador)
+// GET /avisos/cuadrilla/:id_cuadrilla 
 
 export const verAvisos = async (req, res) => {
   try {
@@ -72,10 +71,10 @@ export const verAvisos = async (req, res) => {
     const errId = validarIdCuadrilla(id_cuadrilla);
     if (errId) return res.status(400).json({ message: errId });
 
-    // Normaliza page/limit que llegan por query string
+   S
     const { page, limit } = normalizarPaginacion(req.query);
 
-    // El service revisa permisos según el rol y devuelve los avisos + datos de paginación
+    // El service revisa permisos según el rol y devuelve los avisos 
     const { avisos, ...meta } = await avisoService.listarAvisosDeCuadrilla({
       id_cuadrilla, id_trabajador, tipo_usuario, page, limit,
     });
@@ -86,7 +85,7 @@ export const verAvisos = async (req, res) => {
   }
 };
 
-//POST /avisos  o  POST /avisos/cuadrilla/:id_cuadrilla  (Admin / Supervisor) 
+//POST /avisos   (Admin / Supervisor) 
 
 export const crearAviso = async (req, res) => {
   try {
@@ -101,7 +100,7 @@ export const crearAviso = async (req, res) => {
     const errCampos = validarCamposCrear({ titulo, contenido, prioridad });
     if (errCampos) return res.status(400).json({ message: errCampos });
 
-    // El id_cuadrilla puede venir por la URL o por el body, según la ruta usada
+
     const id_cuadrilla = req.params.id_cuadrilla ?? req.body.id_cuadrilla;
 
     const data = await avisoService.crearAviso({
@@ -115,7 +114,7 @@ export const crearAviso = async (req, res) => {
   }
 };
 
-// PATCH /avisos/:id_aviso  (solo el autor) 
+// PATCH /avisos/:id_aviso  para editar aviso (Admin / Supervisor)
 
 export const editarAviso = async (req, res) => {
   try {

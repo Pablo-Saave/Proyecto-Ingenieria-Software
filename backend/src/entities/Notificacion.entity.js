@@ -17,7 +17,7 @@ export const NotificacionSchema = new EntitySchema({
     },
 
     tipo: {
-      // 'aviso' | 'contrato_por_vencer' | 'ausencia_aprobada' | 'ausencia_rechazada' | 'nueva_asignacion' | ...
+      
       type: "varchar",
       nullable: false,
     },
@@ -33,7 +33,7 @@ export const NotificacionSchema = new EntitySchema({
     },
 
     referencia_tipo: {
-      // 'aviso' | 'contrato' | 'ausencia' | 'asignacion' — para saber a qué pantalla llevar
+    
       type: "varchar",
       nullable: true,
     },
@@ -62,9 +62,7 @@ export const NotificacionSchema = new EntitySchema({
       target: "Trabajador",
       joinColumn: { name: "id_trabajador" },
       nullable: false,
-      // NOTA: sin inverseSide a propósito. Si agregas una relación "notificaciones"
-      // en trabajador.entity.js más adelante, agrega aquí inverseSide: "notificaciones"
-      // Y agrega en Trabajador: notificaciones: { type:"one-to-many", target:"Notificacion", inverseSide:"trabajador" }
+    
     },
   },
 });

@@ -26,7 +26,7 @@ export const AnexoContratoProyectoSchema = new EntitySchema({
       nullable: false,
     },
 
-    // Columna legacy: queda nullable para evitar una migracion destructiva.
+    // queda nullable para evitar dato innecesario y que no lo pida el backend
     fecha_vigencia: {
       type: "date",
       nullable: true,
