@@ -12,8 +12,7 @@ import { crearNotificacion, crearNotificacionMasiva } from '../services/notifica
 
 export function iniciarCronContratos() {
 
-  // '0 0 * * *' → todos los días a las 00:00
-  cron.schedule('0 0 * * *', async () => {
+  async function verificarContratos() {
     console.log('[CRON] Verificando contratos...');
 
     try {
@@ -102,7 +101,16 @@ export function iniciarCronContratos() {
     } catch (error) {
       console.error('[CRON] Error al actualizar contratos:', error.message);
     }
-  });
+  }
 
-  console.log('[CRON] Job de contratos iniciado (corre todos los días a medianoche).');
+  // '0 0 * * *' → todos los días a las 00:00
+  cron.schedule('0 0 * * *', verificarContratos);
+
+  // Corre una vez de inmediato al levantar el servidor, para no depender
+  // de esperar hasta la próxima medianoche (soluciona que un contrato
+  // recién creado con pocos días de vigencia se muestre "Activo" en vez
+  // de "Por vencer" hasta el día siguiente).
+  verificarContratos();
+
+  console.log('[CRON] Job de contratos iniciado (corre al iniciar el server y todos los días a medianoche).');
 }

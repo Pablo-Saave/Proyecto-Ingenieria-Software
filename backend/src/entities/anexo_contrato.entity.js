@@ -44,9 +44,11 @@ export const AnexoContratoSchema = new EntitySchema({
       nullable: false,
     },
 
+    // Ya no se exige desde el form ni se usa en el backend; se deja nullable
+    // en vez de eliminar la columna para no requerir una migración destructiva.
     fecha_vigencia: {
       type: "date",
-      nullable: false,
+      nullable: true,
     },
 
     motivo: {

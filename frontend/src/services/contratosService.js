@@ -134,22 +134,20 @@ export async function createAnexoContrato(idContrato, payload) {
   return res.data;
 }
 
-export async function deleteAnexoContrato(idAnexo) {
-  await apiFetch(`/api/contratos/anexos/${idAnexo}`, { method: 'DELETE' });
-  return true;
-}
+// La eliminación de anexos está deshabilitada a propósito (ver
+// anexo_contrato.controller.js): un anexo aplicó cambios reales al
+// contrato y borrarlo dejaría esos cambios sin respaldo en el historial.
 
 export function validarFormAnexoContrato(form) {
   const errores = [];
 
   if (!form.fecha_anexo) errores.push('La fecha del anexo es obligatoria.');
-  if (!form.fecha_vigencia) errores.push('La fecha de vigencia es obligatoria.');
-  if (
-    form.fecha_anexo &&
-    form.fecha_vigencia &&
-    new Date(form.fecha_vigencia) < new Date(form.fecha_anexo)
-  ) {
-    errores.push('La fecha de vigencia no puede ser anterior a la fecha del anexo.');
+  // fecha_anexo la fija el propio form como hoy y es de solo lectura, pero
+  // igual se valida acá por si algo la altera (ej. relojes desincronizados
+  // o manipulación del estado). El backend valida lo mismo, así que esto es
+  // solo para dar feedback rápido al usuario.
+  else if (form.fecha_anexo !== hoyLocal()) {
+    errores.push('La fecha del anexo debe ser hoy.');
   }
   if (!form.motivo || !form.motivo.trim()) errores.push('El motivo es obligatorio.');
   if (!form.descripcion_modificacion || !form.descripcion_modificacion.trim()) {

@@ -154,19 +154,32 @@ export async function updateContrato(req, res) {
 // Para eso el router llama primero a un loader que adjunta req.contrato.
 //
 // El loader está definido abajo y el router lo usa antes de validarEliminarContrato.
+//
+// Cascada manual: se eliminan primero las remuneraciones del contrato, luego
+// sus anexos, y por último el contrato. El orden importa porque tanto
+// remuneracion como anexo_contrato tienen FK hacia contratos_trabajadores.
 export async function deleteContrato(req, res) {
   try {
     // req.contrato viene del loader cargarContrato
     await AppDataSource.transaction(async (transactionalEntityManager) => {
       const anexoRepo = transactionalEntityManager.getRepository("AnexoContrato");
+      const remuneracionRepo = transactionalEntityManager.getRepository("Remuneracion");
+
+      const remuneraciones = await remuneracionRepo.find({
+        where: { id_contrato: req.contrato.id_contrato },
+      });
 
       const anexos = await anexoRepo.find({
         where: { id_contrato: req.contrato.id_contrato },
       });
 
       console.log(
-        `[deleteContrato] Contrato ${req.contrato.id_contrato}: eliminando ${anexos.length} anexo(s) asociados antes del contrato.`
+        `[deleteContrato] Contrato ${req.contrato.id_contrato}: eliminando ${remuneraciones.length} remuneracion(es) y ${anexos.length} anexo(s) asociados antes del contrato.`
       );
+
+      if (remuneraciones.length > 0) {
+        await remuneracionRepo.remove(remuneraciones);
+      }
 
       if (anexos.length > 0) {
         await anexoRepo.remove(anexos);

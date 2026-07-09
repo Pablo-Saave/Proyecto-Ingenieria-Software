@@ -5,6 +5,10 @@ export const TIPOS_CONTRATO   = ['Indefinido', 'Plazo Fijo'];
 export const ESTADOS_CONTRATO = ['Activo', 'Inactivo', 'Por vencer'];
 export const ESTADOS_ELIMINABLES = ['Inactivo'];
 
+// Umbral (en días) para que el cron marque un contrato como "Por vencer".
+// Usado también como referencia por el frontend para mostrar el badge.
+export const DIAS_UMBRAL_POR_VENCER = 30;
+
 // Campos que SÍ se pueden editar directamente en un contrato existente.
 // Todo lo demás (tipo_contrato, fecha_inicio, fecha_termino, monto,
 // estado_contrato) requiere crear un anexo. En particular, para pasar a
@@ -19,6 +23,13 @@ function hoyLocal() {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function hoyLocalDesde(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
 
@@ -107,6 +118,23 @@ export async function validarCrearContrato(req, res, next) {
       req.body.monto = Number(monto);
     }
 
+    // Si el contrato nace ya dentro del umbral de "por vencer" (p.ej. un
+    // Plazo Fijo de pocos días), corregimos el estado aquí mismo en vez de
+    // esperar a que el cron corra en la próxima medianoche.
+    if (
+      req.body.estado_contrato !== 'Inactivo' &&
+      tipo_contrato === 'Plazo Fijo' &&
+      req.body.fecha_termino
+    ) {
+      const limite = new Date();
+      limite.setDate(limite.getDate() + DIAS_UMBRAL_POR_VENCER);
+      const limiteStr = hoyLocalDesde(limite);
+
+      if (req.body.fecha_termino <= limiteStr) {
+        req.body.estado_contrato = 'Por vencer';
+      }
+    }
+
     next();
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -114,10 +142,9 @@ export async function validarCrearContrato(req, res, next) {
 }
 
 /**
- * Actualizar contrato: SOLO permite estado_contrato y observaciones.
- * Si el frontend manda tipo_contrato, fecha_inicio, fecha_termino o monto
- * (aunque sea el mismo valor que ya tenía), avisamos que esos cambios
- * deben hacerse mediante un anexo, no aquí.
+ * Actualizar contrato: SOLO permite estado_contrato y observaciones... y
+ * ni siquiera eso si el contrato ya está Inactivo (es historial cerrado,
+ * no se toca nada, ni observaciones).
  *
  * IMPORTANTE: comparamos contra req.contratoActual (adjuntado por un loader,
  * igual que cargarContrato en las rutas de DELETE) para no explotar si el
@@ -126,6 +153,15 @@ export async function validarCrearContrato(req, res, next) {
 export function validarActualizarContrato(req, res, next) {
   const errores = [];
   const contratoActual = req.contratoActual; // ver nota en las rutas más abajo
+
+  // Un contrato Inactivo es historial cerrado: se bloquea CUALQUIER edición,
+  // incluidas las observaciones.
+  if (contratoActual && contratoActual.estado_contrato === 'Inactivo') {
+    return res.status(400).json({
+      status: 'error',
+      message: 'No se puede modificar un contrato Inactivo.',
+    });
+  }
 
   for (const campo of CAMPOS_SOLO_VIA_ANEXO) {
     if (req.body[campo] === undefined) continue;
@@ -151,10 +187,6 @@ export function validarActualizarContrato(req, res, next) {
         ? 'No se puede modificar "estado_contrato" desde la edición directa. Para inactivar el contrato debes crear un anexo de término (es_anexo_termino).'
         : `No se puede modificar "${campo}" desde la edición directa. Para cambiar tipo de contrato, fechas o monto debes crear un anexo.`
     );
-  }
-
-  if (errores.length) {
-    return res.status(400).json({ status: 'error', message: errores.join(' ') });
   }
 
   if (errores.length) {
