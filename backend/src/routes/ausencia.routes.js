@@ -29,33 +29,21 @@ const router = Router();
 
 router.use(authMiddleware);
 
-// Flujo normal — trabajador solicita con anticipación
-router.post('/',
-  autorizar('ausencias:crear'),
-  validarCrearAusencia,
-  crearAusencia
-);
+// Flujo normal — trabajador solicita de antes
+router.post('/', autorizar('ausencias:crear'), validarCrearAusencia, crearAusencia);
 
-// Flujo espontáneo — supervisor registra inasistencia detectada
-router.post('/supervisor',
-  autorizar('ausencias:revisar'), // mismo permiso que revisar (solo supervisor/admin)
-  validarCrearAusenciaSupervisor,
-  crearAusenciaPorSupervisor
-);
+// Flujo espontaneo — supervisor registra inasistencia detectada
+router.post('/supervisor', autorizar('ausencias:revisar'), validarCrearAusenciaSupervisor, crearAusenciaPorSupervisor);
 
-// El trabajador completa su justificación
-router.put('/:id/justificar',
-  autorizar('ausencias:crear'), // cualquier rol que pueda tener ausencias propias
-  validarJustificarAusencia,
-  justificarAusencia
-);
+// El trabajador completa su justificacion o apelacion
+router.put('/:id/justificar', autorizar('ausencias:crear'), validarJustificarAusencia, justificarAusencia);
 
-router.get('/',               autorizar('ausencias:ver_todas'),                       obtenerAusencias);
-router.get('/trabajador/:id', autorizar('ausencias:ver_propias'),                     obtenerAusenciasPorTrabajador);
-router.get('/pendientes',     autorizar('ausencias:ver_todas'),                       obtenerAusenciasPendientes);
-router.put('/:id/revisar',    autorizar('ausencias:revisar'),                         validarRevisionAusencia, revisarAusencia);
-router.delete('/:id',                                                                 eliminarAusencia);
-
+// Otros:
+router.get('/',               autorizar('ausencias:ver_todas'), obtenerAusencias);
+router.get('/trabajador/:id', autorizar('ausencias:ver_propias'), obtenerAusenciasPorTrabajador);
+router.get('/pendientes',     autorizar('ausencias:ver_todas'), obtenerAusenciasPendientes);
+router.put('/:id/revisar',    autorizar('ausencias:revisar'), validarRevisionAusencia, revisarAusencia);
+router.delete('/:id', eliminarAusencia);
 router.post('/:id/documento', autorizar('ausencias:crear'), uploadPDF, subirDocumento);
 
 export default router;

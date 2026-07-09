@@ -13,18 +13,11 @@ import {
   updateContratoProyecto,
   deleteContratoProyecto,
   createAnexo,
-  deleteAnexo,
   validarFormContratoProyecto,
   validarFormAnexo,
   hoyLocal,
+  ESTADOS_CONTRATO_PROYECTO,
 } from '../services/contratoProyectoService';
-
-// Estados válidos para Contrato de Proyecto (alineados con Contratos normales)
-const ESTADOS_CONTRATO_PROYECTO = [
-  { value: 'activo',     label: 'Activo' },
-  { value: 'por_vencer', label: 'Por vencer' },
-  { value: 'inactivo',   label: 'Inactivo' },
-];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -35,10 +28,18 @@ function formatearFecha(fecha) {
   });
 }
 
-function calcularDiasRestantes(fechaTermino) {
-  if (!fechaTermino) return 0;
-  const diff = Math.ceil((new Date(fechaTermino) - new Date()) / (1000 * 60 * 60 * 24));
+function calcularDiasRestantes(fechaTermino, fechaExtension) {
+  // La fecha que manda es la extensión vigente (si algún anexo la corrió
+  // hacia adelante); si no hay extensión, se usa la fecha pactada original.
+  const fechaEfectiva = fechaExtension || fechaTermino;
+  if (!fechaEfectiva) return 0;
+  const diff = Math.ceil((new Date(fechaEfectiva) - new Date()) / (1000 * 60 * 60 * 24));
   return Math.max(0, diff);
+}
+
+function calcularEstadoInicial(fechaTermino) {
+  const dias = Math.ceil((new Date(fechaTermino) - new Date(hoyLocal())) / (1000 * 60 * 60 * 24));
+  return dias <= 30 ? 'por_vencer' : 'activo';
 }
 
 function getEstadoLabel(value) {
@@ -76,7 +77,7 @@ function mapContrato(c) {
       cliente: `${cli.nombres || ''} ${cli.apellidos || ''}`.trim() || 'Sin cliente',
       cliente_iniciales: getIniciales(cli.nombres, cli.apellidos),
     },
-    diasRestantes: calcularDiasRestantes(c.fecha_termino),
+    diasRestantes: calcularDiasRestantes(c.fecha_termino, c.fecha_extension),
   };
 }
 
@@ -148,7 +149,7 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
         await createContratoProyecto({
           id_proyecto:     Number(form.id_proyecto),
           descripcion:     form.descripcion,
-          estado_contrato: form.estado_contrato,
+          estado_contrato: calcularEstadoInicial(form.fecha_termino),
           fecha_inicio:    form.fecha_inicio,
           fecha_termino:   form.fecha_termino,
           monto:           form.monto === '' ? null : Number(form.monto),
@@ -287,8 +288,7 @@ function ContratoProyectoModal({ onClose, onGuardado, contratoEdit, proyectosDis
 // ─── Modal Agregar Anexo ───────────────────────────────────────────────────────
 
 const ANEXO_VACIO = {
-  fecha_anexo: '',
-  fecha_vigencia: '',
+  fecha_anexo: '', // se completa con hoy al abrir el modal, ver useState en AnexoModal
   motivo: '',
   descripcion_modificacion: '',
   monto_nuevo: '',
@@ -298,14 +298,36 @@ const ANEXO_VACIO = {
 };
 
 function AnexoModal({ idContrato, onClose, onGuardado }) {
-  const [form, setForm]       = useState(ANEXO_VACIO);
+  const hoy = hoyLocal();
+  // fecha_anexo siempre nace en hoy y no es editable por el usuario: es la
+  // fecha de firma/registro del anexo, no tiene sentido que sea otra.
+  const [form, setForm]       = useState({ ...ANEXO_VACIO, fecha_anexo: hoy });
   const [guardando, setGuardando] = useState(false);
   const [errores,   setErrores]   = useState([]);
-  const hoy = hoyLocal();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    setForm((prev) => {
+      const next = { ...prev, [name]: type === 'checkbox' ? checked : value };
+
+      if (name === 'finaliza_contrato') {
+        if (checked) {
+          // Este anexo inactiva el contrato AHORA, al guardar, sin importar
+          // qué fecha se escriba (no existe un mecanismo que difiera la
+          // inactivación a una fecha futura). Por eso la fecha real de
+          // término es siempre hoy: se autocompleta y se bloquea para no
+          // dar a entender lo contrario. Monto y observaciones tampoco
+          // aplican al cerrar el contrato, así que se limpian.
+          next.fecha_termino_nueva = hoy;
+          next.monto_nuevo = '';
+          next.observaciones = '';
+        } else {
+          next.fecha_termino_nueva = '';
+        }
+      }
+
+      return next;
+    });
     setErrores([]);
   };
 
@@ -318,7 +340,6 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
     try {
       await createAnexo(idContrato, {
         fecha_anexo: form.fecha_anexo,
-        fecha_vigencia: form.fecha_vigencia,
         motivo: form.motivo,
         descripcion_modificacion: form.descripcion_modificacion,
         monto_nuevo: form.monto_nuevo === '' ? null : Number(form.monto_nuevo),
@@ -351,20 +372,37 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
             </div>
           )}
 
-          <label>Fecha del anexo *</label>
-          <input type="date" name="fecha_anexo" value={form.fecha_anexo} max={hoy} onChange={handleChange} />
+          <label>Fecha del anexo</label>
+          <input
+            type="date"
+            name="fecha_anexo"
+            value={form.fecha_anexo}
+            disabled
+            readOnly
+            style={{ opacity: 0.7, cursor: 'not-allowed', background: '#f9fafb' }}
+            title="La fecha del anexo siempre es hoy, no se puede modificar"
+          />
 
-          <label>Fecha de vigencia (nueva fecha de término efectiva) *</label>
-          <input type="date" name="fecha_vigencia" value={form.fecha_vigencia}
-            min={form.fecha_anexo || undefined} onChange={handleChange} />
-
-          <label>Nueva fecha de término del contrato (opcional)</label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Nueva fecha de término del contrato (opcional)
+            {form.finaliza_contrato && (
+              <span style={{
+                fontSize: '11px', color: '#6b7280',
+                background: '#f3f4f6', borderRadius: '4px',
+                padding: '2px 6px', fontWeight: 500,
+              }}>
+                Siempre hoy: el contrato se inactiva al guardar
+              </span>
+            )}
+          </label>
           <input
             type="date"
             name="fecha_termino_nueva"
             value={form.fecha_termino_nueva}
-            min={form.fecha_vigencia || undefined}
+            min={hoy}
+            disabled={form.finaliza_contrato}
             onChange={handleChange}
+            style={form.finaliza_contrato ? { opacity: 0.4, cursor: 'not-allowed', background: '#f9fafb' } : {}}
           />
           <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '-4px' }}>
             Déjalo vacío si este anexo no modifica el plazo del contrato (ej: solo cambia el monto o la descripción).
@@ -387,6 +425,12 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
               Este anexo termina el contrato (pasará a Inactivo)
             </span>
           </label>
+          {form.finaliza_contrato && (
+            <p style={{ fontSize: '12px', color: '#991b1b', margin: '2px 0 8px' }}>
+              La fecha de término se fija en hoy automáticamente. Una vez guardado, el contrato
+              quedará <strong>Inactivo</strong> de inmediato y no se podrán agregar más anexos.
+            </p>
+          )}
 
           <label>Motivo *</label>
           <input type="text" name="motivo" value={form.motivo}
@@ -396,12 +440,48 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
           <textarea name="descripcion_modificacion" value={form.descripcion_modificacion}
             onChange={handleChange} rows={3} placeholder="Detalle de lo que cambia..." />
 
-          <label>Monto nuevo (opcional)</label>
-          <input type="number" name="monto_nuevo" value={form.monto_nuevo} onChange={handleChange} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Monto nuevo (opcional)
+            {form.finaliza_contrato && (
+              <span style={{
+                fontSize: '11px', color: '#6b7280',
+                background: '#f3f4f6', borderRadius: '4px',
+                padding: '2px 6px', fontWeight: 500,
+              }}>
+                No aplica al terminar el contrato
+              </span>
+            )}
+          </label>
+          <input
+            type="number"
+            name="monto_nuevo"
+            value={form.monto_nuevo}
+            onChange={handleChange}
+            disabled={form.finaliza_contrato}
+            style={form.finaliza_contrato ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+          />
 
-          <label>Observaciones</label>
-          <textarea name="observaciones" value={form.observaciones}
-            onChange={handleChange} rows={2} placeholder="Notas adicionales..." />
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Observaciones
+            {form.finaliza_contrato && (
+              <span style={{
+                fontSize: '11px', color: '#6b7280',
+                background: '#f3f4f6', borderRadius: '4px',
+                padding: '2px 6px', fontWeight: 500,
+              }}>
+                No aplica al terminar el contrato
+              </span>
+            )}
+          </label>
+          <textarea
+            name="observaciones"
+            value={form.observaciones}
+            onChange={handleChange}
+            rows={2}
+            placeholder="Notas adicionales..."
+            disabled={form.finaliza_contrato}
+            style={form.finaliza_contrato ? { opacity: 0.6, cursor: 'not-allowed', background: '#f9fafb' } : {}}
+          />
         </div>
 
         <div className="modal-footer">
@@ -421,7 +501,6 @@ function DetalleModal({ contratoResumen, onClose, onCambio }) {
   const [contrato, setContrato] = useState(null);
   const [loading,  setLoading]  = useState(true);
   const [modalAnexo, setModalAnexo] = useState(false);
-  const [eliminandoAnexoId, setEliminandoAnexoId] = useState(null);
 
   const cargar = async () => {
     setLoading(true);
@@ -436,20 +515,6 @@ function DetalleModal({ contratoResumen, onClose, onCambio }) {
   };
 
   useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleEliminarAnexo = async (id_anexo_contrato_proyecto) => {
-    if (!window.confirm('¿Eliminar este anexo? Esta acción no se puede deshacer.')) return;
-    setEliminandoAnexoId(id_anexo_contrato_proyecto);
-    try {
-      await deleteAnexo(id_anexo_contrato_proyecto);
-      await cargar();
-      onCambio();
-    } catch (e) {
-      alert(e.message);
-    } finally {
-      setEliminandoAnexoId(null);
-    }
-  };
 
   return (
     <div className="modal-overlay">
@@ -474,7 +539,7 @@ function DetalleModal({ contratoResumen, onClose, onCambio }) {
                   {getEstadoLabel(contrato.estado_contrato)}
                 </span>
               </div>
-              <div><span className="detalle-label">Días restantes</span><span>{calcularDiasRestantes(contrato.fecha_termino)} días</span></div>
+              <div><span className="detalle-label">Días restantes</span><span>{calcularDiasRestantes(contrato.fecha_termino, contrato.fecha_extension)} días</span></div>
               <div><span className="detalle-label">Fecha inicio</span><span>{formatearFecha(contrato.fecha_inicio)}</span></div>
               <div><span className="detalle-label">Fecha término</span><span>{formatearFecha(contrato.fecha_termino)}</span></div>
               <div><span className="detalle-label">Fecha extensión vigente</span><span>{formatearFecha(contrato.fecha_extension)}</span></div>
@@ -488,7 +553,13 @@ function DetalleModal({ contratoResumen, onClose, onCambio }) {
             <div className="anexos-section">
               <div className="anexos-header">
                 <h3>Anexos ({contrato.anexos?.length || 0})</h3>
-                <button className="btn-agregar-anexo" onClick={() => setModalAnexo(true)}>
+                <button
+                  className="btn-agregar-anexo"
+                  onClick={() => setModalAnexo(true)}
+                  disabled={contrato.estado_contrato === 'inactivo'}
+                  title={contrato.estado_contrato === 'inactivo' ? 'No se pueden agregar anexos a un contrato Inactivo.' : ''}
+                  style={contrato.estado_contrato === 'inactivo' ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                >
                   <FilePlus size={14} /> Agregar anexo
                 </button>
               </div>
@@ -502,18 +573,9 @@ function DetalleModal({ contratoResumen, onClose, onCambio }) {
                       <div className="anexo-item-header">
                         <span className="anexo-fecha">{formatearFecha(a.fecha_anexo)}</span>
                         <span className="anexo-motivo">{a.motivo}</span>
-                        <button
-                          className="btn-eliminar-anexo"
-                          onClick={() => handleEliminarAnexo(a.id_anexo_contrato_proyecto)}
-                          disabled={eliminandoAnexoId === a.id_anexo_contrato_proyecto}
-                          title="Eliminar anexo"
-                        >
-                          <X size={14} />
-                        </button>
                       </div>
                       <p className="anexo-descripcion">{a.descripcion_modificacion}</p>
                       <div className="anexo-meta">
-                        <span>Vigencia hasta: {formatearFecha(a.fecha_vigencia)}</span>
                         {a.monto_nuevo !== null && a.monto_nuevo !== undefined && (
                           <span>Monto nuevo: ${Number(a.monto_nuevo).toLocaleString('es-CL')}</span>
                         )}
@@ -578,10 +640,19 @@ function ConfirmModal({ contrato, onClose, onConfirmar, eliminando }) {
 // ─── Menú contextual ──────────────────────────────────────────────────────────
 
 function ContextMenu({ contrato, onEditar, onEliminar, onCerrar }) {
-  const puedeEliminar = contrato.estado_contrato === 'inactivo';
+  const esInactivo = contrato.estado_contrato === 'inactivo';
+  const puedeEliminar = esInactivo;
+  const puedeEditar = !esInactivo;
   return (
     <div className="context-menu" onMouseLeave={onCerrar}>
-      <button onClick={() => { onEditar(contrato); onCerrar(); }}>Editar</button>
+      <button
+        disabled={!puedeEditar}
+        title={puedeEditar ? '' : 'No se puede modificar un contrato Inactivo.'}
+        style={!puedeEditar ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+        onClick={() => { if (puedeEditar) { onEditar(contrato); onCerrar(); } }}
+      >
+        Editar
+      </button>
       <button
         className="ctx-danger"
         disabled={!puedeEliminar}

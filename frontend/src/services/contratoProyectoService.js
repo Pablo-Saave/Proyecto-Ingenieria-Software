@@ -1,18 +1,16 @@
-// services/contratoProyectoService.js
 const API_BASE = 'http://localhost:3000';
-const API_PATH = "/api/contratos-proyecto";
+const API_PATH = '/api/contratos-proyecto';
 
 export const ESTADOS_CONTRATO_PROYECTO = [
-  { value: "activo", label: "Activo" },
-  { value: "por_vencer", label: "Por vencer" },
-  { value: "vencido", label: "Vencido" },
-  { value: "terminado", label: "Terminado" },
+  { value: 'activo', label: 'Activo' },
+  { value: 'por_vencer', label: 'Por vencer' },
+  { value: 'inactivo', label: 'Inactivo' },
 ];
 
 function authHeaders() {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   return {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
@@ -20,7 +18,7 @@ function authHeaders() {
 async function manejarRespuesta(res) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.message || "Ocurrió un error al comunicarse con el servidor");
+    throw new Error(data.message || 'Ocurrio un error al comunicarse con el servidor');
   }
   return data;
 }
@@ -33,8 +31,8 @@ export function hoyLocal() {
 
 export async function getContratosProyecto({ page = 1, limit = 10, estado, search } = {}) {
   const params = new URLSearchParams({ page, limit });
-  if (estado && estado !== "Todos") params.append("estado", estado);
-  if (search) params.append("search", search);
+  if (estado && estado !== 'Todos') params.append('estado', estado);
+  if (search) params.append('search', search);
 
   const res = await fetch(`${API_BASE}${API_PATH}?${params.toString()}`, {
     headers: authHeaders(),
@@ -56,7 +54,7 @@ export async function getProyectosDisponibles() {
 
 export async function createContratoProyecto(payload) {
   const res = await fetch(`${API_BASE}${API_PATH}`, {
-    method: "POST",
+    method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(payload),
   });
@@ -65,7 +63,7 @@ export async function createContratoProyecto(payload) {
 
 export async function updateContratoProyecto(id, payload) {
   const res = await fetch(`${API_BASE}${API_PATH}/${id}`, {
-    method: "PATCH",
+    method: 'PATCH',
     headers: authHeaders(),
     body: JSON.stringify(payload),
   });
@@ -74,14 +72,7 @@ export async function updateContratoProyecto(id, payload) {
 
 export async function deleteContratoProyecto(id) {
   const res = await fetch(`${API_BASE}${API_PATH}/${id}`, {
-    method: "DELETE",
-    headers: authHeaders(),
-  });
-  return manejarRespuesta(res);
-}
-
-export async function getAnexosContrato(idContrato) {
-  const res = await fetch(`${API_BASE}${API_PATH}/${idContrato}/anexos`, {
+    method: 'DELETE',
     headers: authHeaders(),
   });
   return manejarRespuesta(res);
@@ -89,54 +80,41 @@ export async function getAnexosContrato(idContrato) {
 
 export async function createAnexo(idContrato, payload) {
   const res = await fetch(`${API_BASE}${API_PATH}/${idContrato}/anexos`, {
-    method: "POST",
+    method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(payload),
   });
   return manejarRespuesta(res);
 }
 
-export async function deleteAnexo(idAnexo) {
-  const res = await fetch(`${API_BASE}${API_PATH}/anexos/${idAnexo}`, {
-    method: "DELETE",
-    headers: authHeaders(),
-  });
-  return manejarRespuesta(res);
-}
-
-// ─── Validaciones de formulario ─────────────────────────────────────────────
-
 export function validarFormContratoProyecto(form, esEdicion = false) {
   const errores = [];
 
-  if (!esEdicion && !form.id_proyecto) {
-    errores.push("Debe seleccionar un proyecto");
-  }
-  if (!form.descripcion || !form.descripcion.trim()) {
-    errores.push("La descripción es obligatoria");
-  }
+  if (!esEdicion && !form.id_proyecto) errores.push('Debe seleccionar un proyecto');
+  if (!form.descripcion || !form.descripcion.trim()) errores.push('La descripcion es obligatoria');
+
   if (!form.fecha_inicio) {
-    errores.push("La fecha de inicio es obligatoria");
+    errores.push('La fecha de inicio es obligatoria');
   } else if (!esEdicion && form.fecha_inicio < hoyLocal()) {
-    errores.push("La fecha de inicio no puede ser anterior a hoy");
+    errores.push('La fecha de inicio no puede ser anterior a hoy');
   }
-  if (!form.fecha_termino) {
-    errores.push("La fecha de término es obligatoria");
-  }
+
+  if (!form.fecha_termino) errores.push('La fecha de termino es obligatoria');
+
   if (
     form.fecha_inicio &&
     form.fecha_termino &&
     new Date(form.fecha_termino) <= new Date(form.fecha_inicio)
   ) {
-    errores.push("La fecha de término debe ser posterior a la fecha de inicio");
+    errores.push('La fecha de termino debe ser posterior a la fecha de inicio');
   }
-  if (!form.estado_contrato) {
-    errores.push("Debe seleccionar un estado");
-  }
-  if (form.monto === "" || form.monto === null || form.monto === undefined) {
-    errores.push("El monto es obligatorio");
+
+  if (!form.estado_contrato) errores.push('Debe seleccionar un estado');
+
+  if (form.monto === '' || form.monto === null || form.monto === undefined) {
+    errores.push('El monto es obligatorio');
   } else if (Number.isNaN(Number(form.monto))) {
-    errores.push("El monto debe ser numérico");
+    errores.push('El monto debe ser numerico');
   }
 
   return errores;
@@ -145,28 +123,23 @@ export function validarFormContratoProyecto(form, esEdicion = false) {
 export function validarFormAnexo(form) {
   const errores = [];
 
-  if (!form.fecha_anexo) errores.push("La fecha del anexo es obligatoria");
-  if (!form.fecha_vigencia) errores.push("La fecha de vigencia es obligatoria");
-  if (
-    form.fecha_anexo &&
-    form.fecha_vigencia &&
-    new Date(form.fecha_vigencia) < new Date(form.fecha_anexo)
-  ) {
-    errores.push("La fecha de vigencia no puede ser anterior a la fecha del anexo");
+  if (!form.fecha_anexo) {
+    errores.push('La fecha del anexo es obligatoria');
+  } else if (form.fecha_anexo !== hoyLocal()) {
+    errores.push('La fecha del anexo debe ser hoy');
   }
-  if (!form.motivo || !form.motivo.trim()) errores.push("El motivo es obligatorio");
+
+  if (!form.motivo || !form.motivo.trim()) errores.push('El motivo es obligatorio');
   if (!form.descripcion_modificacion || !form.descripcion_modificacion.trim()) {
-    errores.push("La descripción de la modificación es obligatoria");
+    errores.push('La descripcion de la modificacion es obligatoria');
   }
-  if (form.monto_nuevo !== "" && form.monto_nuevo !== undefined && isNaN(Number(form.monto_nuevo))) {
-    errores.push("El monto nuevo debe ser numérico");
+
+  if (form.monto_nuevo !== '' && form.monto_nuevo !== undefined && Number.isNaN(Number(form.monto_nuevo))) {
+    errores.push('El monto nuevo debe ser numerico');
   }
-  if (
-    form.fecha_termino_nueva &&
-    form.fecha_vigencia &&
-    new Date(form.fecha_termino_nueva) < new Date(form.fecha_vigencia)
-  ) {
-    errores.push("La nueva fecha de término no puede ser anterior a la fecha de vigencia");
+
+  if (form.fecha_termino_nueva && form.fecha_anexo && form.fecha_termino_nueva < form.fecha_anexo) {
+    errores.push('La nueva fecha de termino no puede ser anterior a la fecha del anexo');
   }
 
   return errores;

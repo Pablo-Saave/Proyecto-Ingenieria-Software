@@ -52,18 +52,6 @@ export const editarNombreCuadrilla = (datos) =>
     body: JSON.stringify(datos),
   });
 
-// ASIGNACIÓN DE SUPERVISOR (Paso 2 del Administrador)
-export const agregarSupervisorCuadrilla = (id_trabajador, id_cuadrilla, cargo_operativo = '', tipo_jornada = 'Diurna') =>
-  apiFetch('/api/cuadrilla/supervisor', {
-    method: 'POST',
-    body: JSON.stringify({ id_trabajador, id_cuadrilla, cargo_operativo, tipo_jornada }),
-  });
-
-export const eliminarSupervisorCuadrilla = (id_trabajador, id_cuadrilla) =>
-  apiFetch('/api/cuadrilla/supervisor', {
-    method: 'DELETE',
-    body: JSON.stringify({ id_trabajador, id_cuadrilla }),
-  });
 
 // Ver todas las cuadrillas de un proyecto (Vista Admin)
 export const getAllCuadrillasAndWorkersByIdProyecto = (id_proyecto) =>
@@ -84,20 +72,6 @@ export const eliminarTrabajadorCuadrilla = (id_trabajador, id_cuadrilla) =>
     method: 'DELETE',
     body: JSON.stringify({ id_trabajador, id_cuadrilla }),
   });
-
-// Roles especiales dentro del equipo (Bodeguero)
-export const asignarBodeguero = (id_trabajador, id_cuadrilla) =>
-  apiFetch('/api/cuadrilla/bodeguero', {
-    method: 'POST',
-    body: JSON.stringify({ id_trabajador, id_cuadrilla }),
-  });
-
-export const despojarBodeguero = (id_trabajador, id_cuadrilla) =>
-  apiFetch('/api/cuadrilla/bodeguero', {
-    method: 'DELETE',
-    body: JSON.stringify({ id_trabajador, id_cuadrilla }),
-  });
-
 
 // ── CONSULTAS GENERALES ─────────────────────────────────────────────────────
 

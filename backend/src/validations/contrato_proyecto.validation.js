@@ -1,8 +1,10 @@
 "use strict";
 
 export const ESTADOS_VALIDOS = ["activo", "por_vencer", "inactivo"];
+export const DIAS_UMBRAL_POR_VENCER = 30;
+export const CAMPOS_SOLO_VIA_ANEXO = ["fecha_inicio", "fecha_termino", "monto", "estado_contrato"];
 
-function hoyLocal() {
+export function hoyLocal() {
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -10,18 +12,20 @@ function hoyLocal() {
   return `${y}-${m}-${day}`;
 }
 
-// Campos que SÍ se pueden editar directamente en un contrato existente.
-// fecha_inicio, fecha_termino y monto requieren crear un anexo.
-// estado_contrato también queda bloqueado para edición directa: la única
-// forma de pasar un contrato a "inactivo" es a través de un anexo (mismo
-// patrón que ContratoTrabajador). Esto evita que el admin cierre un
-// contrato sin dejar registro del motivo/fecha de término real.
-export const CAMPOS_SOLO_VIA_ANEXO = ["fecha_inicio", "fecha_termino", "monto", "estado_contrato"];
+export function normalizarPaginacion({ page = 1, limit = 10 }) {
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
 
-/***
- * Valida el body para crear un contrato de proyecto.
- * Devuelve { errores: string[] } — si errores.length === 0, el body es válido.
- */
+  return {
+    page: Number.isNaN(pageNum) || pageNum < 1 ? 1 : pageNum,
+    limit: Number.isNaN(limitNum) || limitNum < 1 ? 10 : limitNum,
+  };
+}
+
+export function validarIdNumerico(id, nombre = "id") {
+  return Number.isNaN(Number(id)) ? [`${nombre} debe ser numerico`] : [];
+}
+
 export function validarCrearContratoProyecto(body) {
   const errores = [];
   const {
@@ -41,8 +45,8 @@ export function validarCrearContratoProyecto(body) {
     return errores;
   }
 
-  if (isNaN(Number(id_proyecto))) {
-    errores.push("id_proyecto debe ser numérico");
+  if (Number.isNaN(Number(id_proyecto))) {
+    errores.push("id_proyecto debe ser numerico");
   }
 
   if (!ESTADOS_VALIDOS.includes(estado_contrato)) {
@@ -50,16 +54,13 @@ export function validarCrearContratoProyecto(body) {
   }
 
   if (Number.isNaN(Number(monto))) {
-    errores.push("monto debe ser numérico");
+    errores.push("monto debe ser numerico");
   }
 
   if (fecha_termino && fecha_inicio && new Date(fecha_termino) <= new Date(fecha_inicio)) {
     errores.push("fecha_termino debe ser posterior a fecha_inicio");
   }
 
-  // Esta validación de "no anterior a hoy" SOLO aplica al crear (igual que
-  // en ContratoTrabajador). Al editar no se toca fecha_inicio directamente
-  // (va bloqueada en CAMPOS_SOLO_VIA_ANEXO), así que no aplica ahí.
   if (fecha_inicio && fecha_inicio < hoyLocal()) {
     errores.push("La fecha de inicio no puede ser anterior a hoy");
   }
@@ -67,17 +68,6 @@ export function validarCrearContratoProyecto(body) {
   return errores;
 }
 
-/***
- * Valida el body para actualizar (edición directa) un contrato de proyecto.
- * Recibe el contrato actual (de BD) para poder comparar valores y detectar
- * intentos reales de cambio en campos bloqueados.
- *
- * Muta req.body: elimina los campos bloqueados cuando llegan con el mismo
- * valor que ya tenían (reenvíos silenciosos del frontend), y deja el resto
- * intacto para que el controller los aplique.
- *
- * Devuelve { errores: string[] }.
- */
 export function validarActualizarContratoProyecto(contrato, body) {
   const errores = [];
 
@@ -96,40 +86,28 @@ export function validarActualizarContratoProyecto(contrato, body) {
       continue;
     }
 
-    if (campo === "estado_contrato") {
-      errores.push(
-        'No se puede modificar "estado_contrato" desde la edición directa. Para inactivar (o reactivar) el contrato debes crear un anexo.'
-      );
-    } else {
-      errores.push(
-        `No se puede modificar "${campo}" desde la edición directa. Para cambiar fechas o monto debes crear un anexo.`
-      );
-    }
+    errores.push(
+      campo === "estado_contrato"
+        ? 'No se puede modificar "estado_contrato" desde la edicion directa. Para inactivar (o reactivar) el contrato debes crear un anexo.'
+        : `No se puede modificar "${campo}" desde la edicion directa. Para cambiar fechas o monto debes crear un anexo.`
+    );
   }
 
   if (errores.length) return errores;
 
-  const { descripcion } = body;
-
-  if (descripcion === undefined) {
+  if (body.descripcion === undefined) {
     errores.push("Debe enviar al menos un campo para actualizar (descripcion)");
   }
 
   return errores;
 }
 
-/***
- * Valida que un contrato de proyecto pueda ser eliminado.
- * Regla de negocio: solo se pueden eliminar contratos en estado "inactivo".
- * Para inactivar un contrato activo/por_vencer, se debe crear un anexo que
- * lo marque como finalizado (ver anexo_contrato_proyecto.validation.js).
- */
 export function validarEliminarContratoProyecto(contrato) {
   const errores = [];
 
   if (contrato.estado_contrato !== "inactivo") {
     errores.push(
-      "Solo se pueden eliminar contratos en estado Inactivo. Para inactivar este contrato, crea un anexo marcando la opción de finalizar el contrato."
+      "Solo se pueden eliminar contratos en estado Inactivo. Para inactivar este contrato, crea un anexo marcando la opcion de finalizar el contrato."
     );
   }
 

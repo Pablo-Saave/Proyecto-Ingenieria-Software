@@ -1,13 +1,9 @@
-// services/notificacion.service.js
 import { AppDataSource } from "../config/configDb.js";
 import { getIO } from "../sockets/socket.js";
 
 const notificacionRepository = AppDataSource.getRepository("Notificacion");
 
-/**
- * Crea una notificación en BD y la emite en tiempo real (si el usuario está conectado).
- * Uso típico: await crearNotificacion({ id_trabajador, tipo, titulo, mensaje, referencia_tipo, referencia_id });
- */
+//Crea y envía una notificación en tiempo real al usuario.
 export const crearNotificacion = async ({
   id_trabajador,
   tipo,
@@ -29,7 +25,7 @@ export const crearNotificacion = async ({
   await notificacionRepository.save(notificacion);
 
   // Emitir en tiempo real al usuario si tiene un socket abierto.
-  // getIO() puede devolver null si el socket aún no se inicializó (ej: en tests) — no debe romper el flujo normal.
+  // getIO() puede devolver null si el socket aún no se inicializó 
   const io = getIO();
   if (io) {
     io.to(`trabajador_${id_trabajador}`).emit("notificacion:nueva", notificacion);

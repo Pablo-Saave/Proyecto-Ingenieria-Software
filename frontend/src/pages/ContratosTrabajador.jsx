@@ -42,14 +42,6 @@ function calcularAntiguedad(fechaInicio) {
   return `${years} año${years !== 1 ? 's' : ''}, ${months} mes${months !== 1 ? 'es' : ''}`;
 }
 
-function calcularEstado(fechaTermino) {
-  if (!fechaTermino) return 'Activo';
-  const dias = calcularDiasRestantes(fechaTermino);
-  if (dias <= 0) return 'Inactivo';
-  if (dias <= 30) return 'Por vencer';
-  return 'Activo';
-}
-
 function getEstadoBadgeStyle(estado) {
   if (estado === 'Activo' || estado === 'Vigente') {
     return { background: '#D1FAE5', color: '#065F46', borderRadius: '999px', padding: '2px 9px', fontSize: '11px', fontWeight: 600 };
@@ -78,7 +70,9 @@ function mapContrato(c) {
       correo: t.correo || '',
       telefono: t.telefono || '',
     },
-    estado: calcularEstado(c.fecha_termino),
+    // Estado real: viene del backend (actualizado por el cron con umbral
+    // de 30 días), no se recalcula por fecha en el front.
+    estado: c.estado_contrato || 'Activo',
     diasRestantes: calcularDiasRestantes(c.fecha_termino),
   };
 }

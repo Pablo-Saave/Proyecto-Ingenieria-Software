@@ -1,6 +1,5 @@
 const API_URL = 'http://localhost:3000/api/auth';
 
-// Ampliar cuando las páginas de trabajador y supervisor estén listas
 const TIPOS_CON_ACCESO = ['administrador', 'supervisor', 'trabajador'];
 
 export const loginRequest = async (correo, password) => {

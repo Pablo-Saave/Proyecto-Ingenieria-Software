@@ -1,4 +1,3 @@
-// src/services/notificacionService.js
 const API_BASE = "http://localhost:3000";
 
 async function apiFetch(path, options = {}) {
