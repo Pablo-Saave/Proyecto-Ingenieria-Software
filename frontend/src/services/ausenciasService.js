@@ -2,17 +2,25 @@ const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');
+
+  const headers = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.body instanceof FormData
+      ? {}
+      : { 'Content-Type': 'application/json' }),
+    ...(options.headers || {}),
+  };
+
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
     ...options,
+    headers,
   });
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || err.error || `Error ${res.status}`);
   }
+
   return res.json();
 }
 
