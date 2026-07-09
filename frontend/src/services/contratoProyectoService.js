@@ -1,11 +1,13 @@
 const API_BASE = 'http://localhost:3000';
 const API_PATH = "/api/contratos-proyecto";
 
+// Debe calzar exactamente con ESTADOS_VALIDOS del backend
+// (contrato_proyecto.validation.js). "vencido" y "terminado" no existen
+// ahí — el único estado final es "inactivo".
 export const ESTADOS_CONTRATO_PROYECTO = [
   { value: "activo", label: "Activo" },
   { value: "por_vencer", label: "Por vencer" },
-  { value: "vencido", label: "Vencido" },
-  { value: "terminado", label: "Terminado" },
+  { value: "inactivo", label: "Inactivo" },
 ];
 
 function authHeaders() {
@@ -95,13 +97,9 @@ export async function createAnexo(idContrato, payload) {
   return manejarRespuesta(res);
 }
 
-export async function deleteAnexo(idAnexo) {
-  const res = await fetch(`${API_BASE}${API_PATH}/anexos/${idAnexo}`, {
-    method: "DELETE",
-    headers: authHeaders(),
-  });
-  return manejarRespuesta(res);
-}
+// La eliminación de anexos está deshabilitada a propósito (ver
+// anexo_contrato_proyecto.controller.js): un anexo aplicó cambios reales
+// al contrato y borrarlo dejaría esos cambios sin respaldo en el historial.
 
 // ─── Validaciones de formulario ─────────────────────────────────────────────
 
@@ -144,14 +142,13 @@ export function validarFormContratoProyecto(form, esEdicion = false) {
 export function validarFormAnexo(form) {
   const errores = [];
 
-  if (!form.fecha_anexo) errores.push("La fecha del anexo es obligatoria");
-  if (!form.fecha_vigencia) errores.push("La fecha de vigencia es obligatoria");
-  if (
-    form.fecha_anexo &&
-    form.fecha_vigencia &&
-    new Date(form.fecha_vigencia) < new Date(form.fecha_anexo)
-  ) {
-    errores.push("La fecha de vigencia no puede ser anterior a la fecha del anexo");
+  if (!form.fecha_anexo) {
+    errores.push("La fecha del anexo es obligatoria");
+  } else if (form.fecha_anexo !== hoyLocal()) {
+    // fecha_anexo la fija el propio form como hoy y es de solo lectura,
+    // pero se valida igual acá por si algo la altera. El backend valida
+    // lo mismo; esto es solo para feedback rápido al usuario.
+    errores.push("La fecha del anexo debe ser hoy");
   }
   if (!form.motivo || !form.motivo.trim()) errores.push("El motivo es obligatorio");
   if (!form.descripcion_modificacion || !form.descripcion_modificacion.trim()) {
@@ -162,10 +159,10 @@ export function validarFormAnexo(form) {
   }
   if (
     form.fecha_termino_nueva &&
-    form.fecha_vigencia &&
-    new Date(form.fecha_termino_nueva) < new Date(form.fecha_vigencia)
+    form.fecha_anexo &&
+    form.fecha_termino_nueva < form.fecha_anexo
   ) {
-    errores.push("La nueva fecha de término no puede ser anterior a la fecha de vigencia");
+    errores.push("La nueva fecha de término no puede ser anterior a la fecha del anexo");
   }
 
   return errores;

@@ -1,11 +1,23 @@
 "use strict";
 
+function hoyLocal() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 /***
  * Valida el body para crear un anexo de contrato de proyecto.
  * Devuelve { errores: string[] } — si errores.length === 0, el body es válido.
  *
  * Campos:
- * - fecha_anexo, fecha_vigencia, motivo, descripcion_modificacion: obligatorios
+ * - fecha_anexo, motivo, descripcion_modificacion: obligatorios.
+ *   fecha_anexo es la fecha de firma/registro del anexo: debe ser HOY,
+ *   nunca pasada ni futura (mismo criterio que ContratoTrabajador). Como
+ *   los efectos se aplican de inmediato al guardar, no tiene sentido que
+ *   sea otra fecha.
  * - monto_nuevo: opcional, numérico
  * - observaciones: opcional
  * - fecha_termino_nueva: opcional (date). Si viene, el controller debe
@@ -22,7 +34,6 @@ export function validarCrearAnexo(body) {
   const errores = [];
   const {
     fecha_anexo,
-    fecha_vigencia,
     motivo,
     descripcion_modificacion,
     monto_nuevo,
@@ -30,15 +41,16 @@ export function validarCrearAnexo(body) {
     finaliza_contrato,
   } = body;
 
-  if (!fecha_anexo || !fecha_vigencia || !motivo || !descripcion_modificacion) {
+  if (!fecha_anexo || !motivo || !descripcion_modificacion) {
     errores.push(
-      "Los campos fecha_anexo, fecha_vigencia, motivo y descripcion_modificacion son obligatorios"
+      "Los campos fecha_anexo, motivo y descripcion_modificacion son obligatorios"
     );
     return errores;
   }
 
-  if (new Date(fecha_vigencia) < new Date(fecha_anexo)) {
-    errores.push("fecha_vigencia no puede ser anterior a fecha_anexo");
+  if (fecha_anexo !== hoyLocal()) {
+    errores.push("fecha_anexo debe ser la fecha de hoy");
+    return errores;
   }
 
   if (monto_nuevo !== undefined && monto_nuevo !== null && monto_nuevo !== "" && isNaN(Number(monto_nuevo))) {
@@ -48,8 +60,8 @@ export function validarCrearAnexo(body) {
   if (fecha_termino_nueva !== undefined && fecha_termino_nueva !== null && fecha_termino_nueva !== "") {
     if (isNaN(new Date(fecha_termino_nueva).getTime())) {
       errores.push("fecha_termino_nueva debe ser una fecha válida");
-    } else if (new Date(fecha_termino_nueva) < new Date(fecha_vigencia)) {
-      errores.push("fecha_termino_nueva no puede ser anterior a fecha_vigencia");
+    } else if (fecha_termino_nueva < fecha_anexo) {
+      errores.push("fecha_termino_nueva no puede ser anterior a fecha_anexo");
     }
   }
 

@@ -7,12 +7,28 @@ import {
   validarCrearAnexo,
   validarContratoParaAnexo,
 } from "../validations/anexo_contrato_proyecto.validation.js";
+import { DIAS_UMBRAL_POR_VENCER } from "../validations/contrato_proyecto.validation.js";
 
 const anexoRepository = AppDataSource.getRepository(AnexoContratoProyectoSchema);
 const contratoProyectoRepository = AppDataSource.getRepository(ContratoProyectoSchema);
 
 function esAdministrador(req) {
   return req.user?.tipo_usuario === "administrador";
+}
+
+// Misma regla que usa el cron: si la fecha de término efectiva (extensión
+// si existe, si no la original) cae dentro del umbral, no esperamos a la
+// corrida de medianoche para reflejarlo.
+function calcularEstadoDesdeFechaTermino(fechaTermino) {
+  const hoy = new Date().toISOString().slice(0, 10);
+  if (!fechaTermino) return "activo";
+  if (fechaTermino < hoy) return "inactivo";
+
+  const limite = new Date();
+  limite.setDate(limite.getDate() + DIAS_UMBRAL_POR_VENCER);
+  const limiteStr = limite.toISOString().slice(0, 10);
+
+  return fechaTermino <= limiteStr ? "por_vencer" : "activo";
 }
 
 /***
@@ -94,7 +110,6 @@ export const crearAnexo = async (req, res) => {
 
     const {
       fecha_anexo,
-      fecha_vigencia,
       motivo,
       descripcion_modificacion,
       monto_nuevo,
@@ -118,7 +133,6 @@ export const crearAnexo = async (req, res) => {
     const nuevoAnexo = anexoRepository.create({
       id_contrato_proyecto: Number(id_contrato_proyecto),
       fecha_anexo,
-      fecha_vigencia,
       motivo,
       descripcion_modificacion,
       monto_nuevo: monto_nuevo !== undefined && monto_nuevo !== null && monto_nuevo !== ""
@@ -135,6 +149,12 @@ export const crearAnexo = async (req, res) => {
     }
     if (finaliza_contrato === true) {
       contrato.estado_contrato = "inactivo";
+    } else {
+      // Recalcula el estado en base a la fecha de término vigente
+      // (extensión si existe, si no la original), igual regla que el cron,
+      // para no esperar a medianoche.
+      const fechaTerminoVigente = contrato.fecha_extension || contrato.fecha_termino;
+      contrato.estado_contrato = calcularEstadoDesdeFechaTermino(fechaTerminoVigente);
     }
     await contratoProyectoRepository.save(contrato);
 
@@ -149,36 +169,19 @@ export const crearAnexo = async (req, res) => {
 };
 
 /***
- * Elimina un anexo de contrato de proyecto.
- * Validaciones:
- * - El que hace la peticion debe tener tipo_usuario = administrador
- * - El anexo debe existir
+ * Eliminar un anexo está deshabilitado a propósito: un anexo aplicó
+ * cambios reales al contrato (extensión de plazo, monto o incluso su
+ * cierre a inactivo). Borrarlo dejaría esos cambios sin ningún respaldo
+ * en el historial. Si algo quedó mal registrado, se corrige creando OTRO
+ * anexo, nunca eliminando el original.
+ *
+ * Se deja el endpoint (en vez de sacar la ruta) para responder con un
+ * mensaje explícito por si queda algún llamado antiguo desde el front.
  */
 export const eliminarAnexo = async (req, res) => {
-  try {
-    if (!esAdministrador(req)) {
-      return res.status(403).json({
-        message: "No tiene permisos para realizar esta acción",
-      });
-    }
-
-    const { id_anexo } = req.params;
-    if (isNaN(Number(id_anexo))) {
-      return res.status(400).json({ message: "id_anexo debe ser numérico" });
-    }
-
-    const anexo = await anexoRepository.findOne({
-      where: { id_anexo_contrato_proyecto: Number(id_anexo) },
-    });
-    if (!anexo) {
-      return res.status(404).json({ message: "Anexo no encontrado" });
-    }
-
-    await anexoRepository.remove(anexo);
-
-    return res.status(200).json({ message: "Anexo eliminado correctamente" });
-  } catch (error) {
-    console.error("Error en eliminarAnexo:", error);
-    return res.status(500).json({ message: "Error interno del servidor", error: error.message });
-  }
+  return res.status(403).json({
+    message:
+      "Los anexos no se pueden eliminar: forman parte del historial del contrato. " +
+      "Si hay un error, corrígelo creando un nuevo anexo.",
+  });
 };

@@ -2,6 +2,11 @@
 
 export const ESTADOS_VALIDOS = ["activo", "por_vencer", "inactivo"];
 
+// Umbral (en días) para considerar un contrato "por_vencer". Lo usa tanto
+// el cron (revisión diaria) como el controller de anexos (recálculo
+// inmediato al guardar), para no depender de esperar a medianoche.
+export const DIAS_UMBRAL_POR_VENCER = 30;
+
 function hoyLocal() {
   const d = new Date();
   const y = d.getFullYear();
