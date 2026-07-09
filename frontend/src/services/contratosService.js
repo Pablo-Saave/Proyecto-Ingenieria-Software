@@ -1,5 +1,3 @@
-// src/services/contratosService.js
-
 const API_BASE = 'http://localhost:3000';
 
 export const TIPOS_CONTRATO   = ['Indefinido', 'Plazo Fijo'];
