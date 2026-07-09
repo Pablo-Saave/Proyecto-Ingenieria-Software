@@ -46,8 +46,8 @@
 .rm-btn-search {
   padding: 8px 14px;
   border-radius: 8px;
-  border: 1px solid #4f46e5;
-  background: #4f46e5;
+  border: 1px solid #4466ff;
+  background: #4466ff;
   color: #fff;
   font-size: 13px;
   font-weight: 600;
@@ -57,7 +57,8 @@
 }
 
 .rm-btn-search:hover:not(:disabled) {
-  background: #4338ca;
+  background: #2244cc;
+  border-color: #2244cc;
 }
 
 .rm-btn-search:disabled {
@@ -291,7 +292,7 @@
   align-items: center;
   gap: 5px;
   padding: 7px 14px;
-  background: #4f46e5;
+  background: #4466ff;
   border: none;
   border-radius: 8px;
   font-size: 13px;
@@ -302,7 +303,20 @@
 }
 
 .rm-btn-crear:hover {
-  background: #4338ca;
+  background: #2244cc;
+}
+
+/* Botón "Crear" del modal de nueva remuneración (mismo color, sin tocar
+   tw-btn-save globalmente porque esa clase también la usan otros modales
+   de la app que no deben cambiar de color). */
+.rm-btn-crear-submit {
+  background: #4466ff !important;
+  border-color: #4466ff !important;
+}
+
+.rm-btn-crear-submit:hover:not(:disabled) {
+  background: #2244cc !important;
+  border-color: #2244cc !important;
 }
 
 /* Info cards grid */

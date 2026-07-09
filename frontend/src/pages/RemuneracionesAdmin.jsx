@@ -578,7 +578,7 @@ function RemuneracionesAdmin({ usuario, onLogout }) {
 
           <div className="tw-modal-footer">
             <button className="tw-btn-cancel" onClick={closeCreate}>Cancelar</button>
-            <button className="tw-btn-save" onClick={handleCreate} disabled={creating}>
+            <button className="tw-btn-save rm-btn-crear-submit" onClick={handleCreate} disabled={creating}>
               {creating ? 'Creando...' : <><Plus size={13} /> Crear</>}
             </button>
           </div>

@@ -9,7 +9,7 @@ import '../styles/Avisosfiltros.css';
 import { AlertCircle, Bell, Edit2, Filter, MessageSquare, MoreVertical, Plus, Send, Tag, Trash2, X } from 'lucide-react';
 import { getAvisosDeCuadrilla, getMisCuadrillasSupervisor, crearAviso, editarAviso, eliminarAviso } from '../services/avisosService';
 
-const EMPTY_FORM = { titulo: '', contenido: '', prioridad: 'normal' };
+const EMPTY_FORM = { titulo: '', contenido: '', prioridad: 'normal', id_cuadrilla: '' };
 const PRIORIDAD_LABEL = { baja: 'Baja', normal: 'Normal', alta: 'Alta', urgente: 'Urgente' };
 const CONTENIDO_MAX = 500;
 
@@ -64,19 +64,20 @@ function SelectFiltro({ label, value, onChange, options }) {
   );
 }
 
-// ─── Barra de filtros (incluye selector de cuadrilla del proyecto) ──────────
-function BarraFiltros({ filtros, setFiltros, filtrosActivos, onFiltrar, cuadrillas, cuadrillaId, onCuadrillaChange }) {
+// ─── Barra de filtros (solo filtra la vista, no afecta dónde se publica) ────
+// Igual que en Admin: el selector de cuadrilla acá es un FILTRO más, separado
+// por completo del selector de cuadrilla que aparece dentro del modal
+// "Nuevo aviso". Cambiar este selector no hace nada hasta apretar "Filtrar".
+function BarraFiltros({ cuadrillas, filtros, setFiltros, filtrosActivos, onFiltrar }) {
   return (
     <div className="avisos-filters">
       <div className="avisos-filter-controls">
-        {cuadrillas.length > 0 && (
-          <SelectFiltro
-            label="Cuadrilla"
-            value={cuadrillaId ?? ''}
-            onChange={onCuadrillaChange}
-            options={cuadrillas.map((c) => ({ value: String(c.id_cuadrilla), label: c.nombre_cuadrilla }))}
-          />
-        )}
+        <SelectFiltro
+          label="Cuadrilla"
+          value={filtros.cuadrilla}
+          onChange={(v) => setFiltros((p) => ({ ...p, cuadrilla: v }))}
+          options={[{ value: 'todas', label: 'Todas las cuadrillas' }, ...cuadrillas.map((c) => ({ value: String(c.id_cuadrilla), label: c.nombre_cuadrilla }))]}
+        />
         <SelectFiltro
           label="Prioridad"
           value={filtros.prioridad}
@@ -101,7 +102,9 @@ function BarraFiltros({ filtros, setFiltros, filtrosActivos, onFiltrar, cuadrill
 }
 
 // ─── Modal nuevo / editar aviso ──────────────────────────────────────────────
-function ModalNuevoAviso({ modo = 'crear', form, setForm, unidad, saving, onClose, onSubmit }) {
+// Al crear, pide la cuadrilla dentro del propio modal (como Admin), no
+// depende del filtro de arriba. Al editar no se puede cambiar de cuadrilla.
+function ModalNuevoAviso({ modo = 'crear', form, setForm, cuadrillas, saving, onClose, onSubmit }) {
   const esEdicion = modo === 'editar';
   return (
     <div
@@ -117,7 +120,7 @@ function ModalNuevoAviso({ modo = 'crear', form, setForm, unidad, saving, onClos
             <div>
               <h2 style={{ margin: 0, fontSize: 16, color: '#111827' }}>{esEdicion ? 'Editar aviso' : 'Nuevo aviso'}</h2>
               <p style={{ margin: '2px 0 0', fontSize: 12.5, color: '#6B7280' }}>
-                {esEdicion ? 'Actualiza el contenido de este aviso' : `Publica información para ${unidad?.nombre_cuadrilla ?? 'tu cuadrilla'}`}
+                {esEdicion ? 'Actualiza el contenido de este aviso' : 'Publica información para una cuadrilla de tu proyecto'}
               </p>
             </div>
           </div>
@@ -127,19 +130,25 @@ function ModalNuevoAviso({ modo = 'crear', form, setForm, unidad, saving, onClos
         </div>
 
         <form onSubmit={onSubmit} style={{ padding: '0 22px 22px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginBottom: 14 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>
-                Título *
-              </label>
-              <input
-                value={form.titulo}
-                onChange={(e) => setForm((p) => ({ ...p, titulo: e.target.value }))}
-                placeholder="Ej: Cambio de turno"
-                required
-                style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 9, padding: '10px 12px', fontSize: 13.5, boxSizing: 'border-box' }}
-              />
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: esEdicion ? '1fr' : '2fr 1fr', gap: 12, marginBottom: 14 }}>
+            {!esEdicion && (
+              <div>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+                  Cuadrilla *
+                </label>
+                <select
+                  value={form.id_cuadrilla}
+                  onChange={(e) => setForm((p) => ({ ...p, id_cuadrilla: e.target.value }))}
+                  required
+                  style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 9, padding: '10px 12px', fontSize: 13.5, boxSizing: 'border-box', background: '#fff' }}
+                >
+                  <option value="">Selecciona una cuadrilla</option>
+                  {cuadrillas.map((c) => (
+                    <option key={c.id_cuadrilla} value={c.id_cuadrilla}>{c.nombre_cuadrilla}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>
                 Prioridad
@@ -157,6 +166,19 @@ function ModalNuevoAviso({ modo = 'crear', form, setForm, unidad, saving, onClos
             </div>
           </div>
 
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+              Título *
+            </label>
+            <input
+              value={form.titulo}
+              onChange={(e) => setForm((p) => ({ ...p, titulo: e.target.value }))}
+              placeholder="Ej: Cambio de turno"
+              required
+              style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 9, padding: '10px 12px', fontSize: 13.5, boxSizing: 'border-box' }}
+            />
+          </div>
+
           <div style={{ marginBottom: 6 }}>
             <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>
               Contenido *
@@ -164,7 +186,7 @@ function ModalNuevoAviso({ modo = 'crear', form, setForm, unidad, saving, onClos
             <textarea
               value={form.contenido}
               onChange={(e) => setForm((p) => ({ ...p, contenido: e.target.value.slice(0, CONTENIDO_MAX) }))}
-              placeholder="Escribe el aviso para tu cuadrilla..."
+              placeholder="Escribe el aviso..."
               required
               rows={4}
               style={{ width: '100%', resize: 'vertical', border: '1px solid #E5E7EB', borderRadius: 9, padding: '10px 12px', fontSize: 13.5, boxSizing: 'border-box' }}
@@ -264,15 +286,13 @@ function MenuAcciones({ onEditar, onEliminar }) {
 function CanalesAvisosSupervisor({ usuario, onLogout }) {
   const [cuadrillas, setCuadrillas] = useState([]);       // cuadrillas activas del proyecto supervisado
   const [sinProyecto, setSinProyecto] = useState(false);  // supervisor sin proyecto asignado
-  const [cuadrillaId, setCuadrillaId] = useState(null);   // id_cuadrilla seleccionada
-  const [avisos,    setAvisos]    = useState([]);
-  const [loading,   setLoading]   = useState(true);       // carga inicial de cuadrillas
-  const [loadingAvisos, setLoadingAvisos] = useState(false); // carga de avisos de la cuadrilla elegida
+  const [avisos,    setAvisos]    = useState([]);         // avisos de TODAS sus cuadrillas
+  const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState(null);
   const [form,      setForm]      = useState(EMPTY_FORM);
   const [saving,    setSaving]    = useState(false);
   const [showForm,  setShowForm]  = useState(false);
-  const [filtros,   setFiltros]   = useState({ prioridad: 'todas', fecha: 'todos' });
+  const [filtros,   setFiltros]   = useState({ cuadrilla: 'todas', prioridad: 'todas', fecha: 'todos' });
   const [filtrosActivos, setFiltrosActivos] = useState(false);
   const [avisoDelete, setAvisoDelete] = useState(null);
   const [eliminando,  setEliminando]  = useState(false);
@@ -280,49 +300,42 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
   const [formEditar,  setFormEditar]  = useState(EMPTY_FORM);
   const [guardandoEdicion, setGuardandoEdicion] = useState(false);
 
-  const cuadrillaActual = useMemo(
-    () => cuadrillas.find((c) => String(c.id_cuadrilla) === String(cuadrillaId)) ?? null,
-    [cuadrillas, cuadrillaId]
-  );
-
-  // Carga el proyecto (implícito) y las cuadrillas activas que le pertenecen
-  const cargarCuadrillas = () => {
+  // Carga las cuadrillas activas del proyecto y los avisos de TODAS ellas
+  // de una sola vez (igual que Admin trae todo y filtra en el front).
+  const cargar = () => {
     setLoading(true);
     setError(null);
     getMisCuadrillasSupervisor()
-      .then((data) => {
+      .then(async (data) => {
         const activas = (data ?? []).filter((c) => c.estado === 'activa');
         setCuadrillas(activas);
         setSinProyecto(false);
-        setCuadrillaId((prev) => {
-          if (prev && activas.some((c) => String(c.id_cuadrilla) === String(prev))) return prev;
-          return activas[0]?.id_cuadrilla ?? null;
-        });
-        if (activas.length === 0) setAvisos([]);
+
+        if (activas.length === 0) {
+          setAvisos([]);
+          return;
+        }
+
+        const resultados = await Promise.all(
+          activas.map((c) =>
+            getAvisosDeCuadrilla(c.id_cuadrilla).then(({ avisos }) =>
+              (avisos ?? []).map((a) => ({ ...a, id_cuadrilla: a.id_cuadrilla ?? c.id_cuadrilla }))
+            )
+          )
+        );
+        setAvisos(resultados.flat());
       })
-      .catch((e) => {
+      .catch(() => {
         // Si el supervisor no tiene proyecto asignado, el backend responde 403
         setSinProyecto(true);
         setCuadrillas([]);
-        setCuadrillaId(null);
         setAvisos([]);
         setError(null);
       })
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { cargarCuadrillas(); }, []);
-
-  // Carga los avisos de la cuadrilla seleccionada dentro del proyecto
-  useEffect(() => {
-    if (!cuadrillaId) return;
-    setLoadingAvisos(true);
-    setError(null);
-    getAvisosDeCuadrilla(cuadrillaId)
-      .then(({ avisos }) => setAvisos(avisos))
-      .catch((e) => setError(e.message))
-      .finally(() => setLoadingAvisos(false));
-  }, [cuadrillaId]);
+  useEffect(() => { cargar(); }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -330,14 +343,14 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
       setError('Título y contenido son obligatorios.');
       return;
     }
-    if (!cuadrillaId) {
-      setError('Selecciona una cuadrilla para publicar el aviso.');
+    if (!form.id_cuadrilla) {
+      setError('Debes seleccionar una cuadrilla.');
       return;
     }
     setSaving(true);
     setError(null);
     try {
-      const nuevo = await crearAviso({ ...form, id_cuadrilla: cuadrillaId });
+      const nuevo = await crearAviso(form);
       setAvisos((prev) => [nuevo, ...prev]);
       setForm(EMPTY_FORM);
       setShowForm(false);
@@ -364,7 +377,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
 
   const abrirEditar = (aviso) => {
     setAvisoEditar(aviso);
-    setFormEditar({ titulo: aviso.titulo, contenido: aviso.contenido, prioridad: aviso.prioridad });
+    setFormEditar({ titulo: aviso.titulo, contenido: aviso.contenido, prioridad: aviso.prioridad, id_cuadrilla: aviso.id_cuadrilla });
   };
 
   const handleEditarSubmit = async (e) => {
@@ -390,6 +403,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
   const avisosFiltrados = useMemo(() => {
     return avisos.filter((a) => {
       if (!filtrosActivos) return true;
+      if (filtros.cuadrilla !== 'todas' && String(a.id_cuadrilla) !== String(filtros.cuadrilla)) return false;
       if (filtros.prioridad !== 'todas' && String(a.prioridad).toLowerCase() !== filtros.prioridad) return false;
       if (filtros.fecha !== 'todos' && a.fecha_publicacion) {
         const lim = getFechaLimite(filtros.fecha);
@@ -399,7 +413,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
     });
   }, [avisos, filtros, filtrosActivos]);
 
-  const hayFiltrosActivos = filtrosActivos && (filtros.prioridad !== 'todas' || filtros.fecha !== 'todos');
+  const hayFiltrosActivos = filtrosActivos && (filtros.cuadrilla !== 'todas' || filtros.prioridad !== 'todas' || filtros.fecha !== 'todos');
 
   return (
     <div className="dashboard-wrapper">
@@ -413,7 +427,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
               <h1 className="vista-general-title">Canales de Avisos</h1>
               <p className="vista-general-subtitle">Gestiona las comunicaciones de las cuadrillas de tu proyecto</p>
             </div>
-            {cuadrillaId && (
+            {cuadrillas.length > 0 && (
               <button className="btn-nuevo-trabajador" onClick={() => setShowForm(true)}>
                 <Plus size={18} /> Nuevo aviso
               </button>
@@ -424,19 +438,18 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
 
           {cuadrillas.length > 0 && (
             <BarraFiltros
+              cuadrillas={cuadrillas}
               filtros={filtros}
               setFiltros={setFiltros}
               filtrosActivos={filtrosActivos}
               onFiltrar={() => setFiltrosActivos((p) => !p)}
-              cuadrillas={cuadrillas}
-              cuadrillaId={cuadrillaId}
-              onCuadrillaChange={(v) => setCuadrillaId(v)}
             />
           )}
 
-          {cuadrillaId && !loadingAvisos && (
+          {!loading && cuadrillas.length > 0 && (
             <div className="avisos-count">
               {avisosFiltrados.length} aviso{avisosFiltrados.length !== 1 ? 's' : ''}
+              {hayFiltrosActivos && filtros.cuadrilla !== 'todas' && ` · ${cuadrillas.find(c => String(c.id_cuadrilla) === String(filtros.cuadrilla))?.nombre_cuadrilla ?? ''}`}
               {hayFiltrosActivos && filtros.prioridad !== 'todas' && ` · ${PRIORIDAD_OPCIONES.find(o => o.value === filtros.prioridad)?.label}`}
               {hayFiltrosActivos && filtros.fecha  !== 'todos' && ` · ${FECHA_OPCIONES.find(o => o.value === filtros.fecha)?.label}`}
             </div>
@@ -452,8 +465,6 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
             <div className="tw-empty" style={{ padding: '60px 20px' }}>
               <Tag size={40} /><p>Tu proyecto no tiene cuadrillas activas todavía.</p>
             </div>
-          ) : loadingAvisos ? (
-            <div className="tw-loading"><div className="tw-spinner" /> Cargando avisos...</div>
           ) : avisosFiltrados.length === 0 ? (
             <div className="tw-empty" style={{ padding: '60px 20px' }}>
               <Bell size={40} /><p>{hayFiltrosActivos ? 'No hay avisos que coincidan con los filtros.' : 'No hay avisos publicados aún. ¡Crea el primero!'}</p>
@@ -487,7 +498,9 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
                     {aviso.contenido}
                   </p>
                   <div style={{ marginTop: 12 }}>
-                    <span className="tw-etiqueta-badge">{aviso.cuadrilla?.nombre_cuadrilla ?? cuadrillaActual?.nombre_cuadrilla}</span>
+                    <span className="tw-etiqueta-badge">
+                      {aviso.cuadrilla?.nombre_cuadrilla ?? cuadrillas.find(c => String(c.id_cuadrilla) === String(aviso.id_cuadrilla))?.nombre_cuadrilla ?? '—'}
+                    </span>
                   </div>
                 </article>
               ))}
@@ -501,7 +514,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
           modo="crear"
           form={form}
           setForm={setForm}
-          unidad={cuadrillaActual}
+          cuadrillas={cuadrillas}
           saving={saving}
           onClose={() => { setShowForm(false); setForm(EMPTY_FORM); }}
           onSubmit={handleSubmit}
@@ -513,7 +526,7 @@ function CanalesAvisosSupervisor({ usuario, onLogout }) {
           modo="editar"
           form={formEditar}
           setForm={setFormEditar}
-          unidad={cuadrillaActual}
+          cuadrillas={cuadrillas}
           saving={guardandoEdicion}
           onClose={() => setAvisoEditar(null)}
           onSubmit={handleEditarSubmit}
