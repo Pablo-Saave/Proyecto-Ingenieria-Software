@@ -2,7 +2,7 @@ import { AppDataSource } from "../config/configDb.js";
 import { AusenciaSchema } from "../entities/ausencia.entity.js";
 import { JustificacionAusenciaSchema } from "../entities/justificacion_ausencia.entity.js"; // Asegúrate de importar esto
 import { In } from "typeorm";
-import { crearNotificacion } from "../services/notificacion.service.js";
+import { crearNotificacion } from "../services/Notificacion.service.js";
 
 const repo = AppDataSource.getRepository(AusenciaSchema);
 const repoJustificacion = AppDataSource.getRepository(JustificacionAusenciaSchema);
