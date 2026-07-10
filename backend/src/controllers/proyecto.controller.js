@@ -89,8 +89,6 @@ export async function crearProyecto(req, res) {
 
 
 
-
-
 /*
  * getAllProyectos
  * Retorna todos los proyectos del sistema con su cliente, inventarios
@@ -180,14 +178,6 @@ export async function getAllProyectos(req, res) {
 
 
 
-
-
-
-
-
-
-
-
 /*
  * Cambia el estado de un proyecto a "inactivo" y todas sus cuadrillas a "inactiva".
  * Ademas remueve a todos los trabajadores de sus cuadrillas, y al supervisor del proyecto.
@@ -255,15 +245,6 @@ export async function inactivarProyecto(req, res) {
 
 
 
-
-
-
-
-
-
-
-
-
 /*
  * Cambia el estado de un proyecto a "activo".
  *
@@ -293,13 +274,6 @@ export async function reactivarProyecto(req, res) {
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
-
-
-
-
-
-
-
 
 
 
@@ -334,10 +308,6 @@ export async function cambiarSupervisorProyecto(req, res) {
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
-
-
-
-
 
 
 
@@ -389,9 +359,6 @@ export async function actualizarProyecto(req, res) {
 
 
 
-
-
-
 /*
  * Establece id_supervisor en null en un proyecto inactivo.
  *
@@ -421,17 +388,6 @@ export async function removerSupervisorDeProyecto(req, res) {
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 

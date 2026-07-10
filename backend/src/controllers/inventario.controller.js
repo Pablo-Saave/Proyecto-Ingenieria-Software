@@ -5,6 +5,9 @@ import { MaterialLimpiezaSchema } from "../entities/material_limpieza.entity.js"
 const inventarioRepo = AppDataSource.getRepository(InventarioSchema);
 const materialRepo = AppDataSource.getRepository(MaterialLimpiezaSchema);
 
+
+
+
 /*
  * Crea un inventario asociado al proyecto activo del supervisor autenticado.
  *
@@ -40,6 +43,9 @@ export async function crearInventario(req, res) {
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
+
+
+
 
 /*
  * Elimina físicamente un inventario y todos sus materiales asociados.
@@ -88,6 +94,9 @@ export async function eliminarInventario(req, res) {
   }
 }
 
+
+
+
 /*
  * Retorna todos los inventarios del proyecto supervisado por el usuario autenticado.
  *
@@ -134,6 +143,9 @@ export async function getAllInventariosFromMyProyecto(req, res) {
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
+
+
+
 
 /*
  * Retorna los inventarios del proyecto supervisado que tengan al menos
@@ -186,6 +198,9 @@ export async function getAllLowStockInventariosFromMyProyecto(req, res) {
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
+
+
+
 
 /*
  * Retorna todos los materiales de un inventario específico.
@@ -250,6 +265,9 @@ export async function getAllMaterialesFromAnInventario(req, res) {
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
+
+
+
 
 /*
  * Actualiza los campos de un material de limpieza de un inventario.
@@ -334,6 +352,9 @@ export async function actualizarMaterialLimpiezaInventario(req, res) {
   }
 }
 
+
+
+
 /*
  * Elimina físicamente un material de limpieza de un inventario.
  *
@@ -363,6 +384,9 @@ export async function eliminarMaterialLimpiezaInventario(req, res) {
     return res.status(500).json({ status: "error", message: "Error interno del servidor." });
   }
 }
+
+
+
 
 /*
  * Crea un material de limpieza en un inventario existente.

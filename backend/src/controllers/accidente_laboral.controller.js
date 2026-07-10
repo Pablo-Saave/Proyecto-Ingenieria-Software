@@ -7,11 +7,6 @@ import { handleErrorServer, handleSuccess } from "../handlers/responseHandlers.j
 const repo = AppDataSource.getRepository(AccidenteLaboralSchema);
 
 
-
-
-
-
-
 /**
  * getAllAccidentesLaborales
  *
@@ -110,13 +105,6 @@ export async function getAllAccidentesLaborales(req, res) {
     return handleErrorServer(res, 500, "Error al obtener los accidentes laborales.", error.message);
   }
 }
-
-
-
-
-
-
-
 
 
 
@@ -228,17 +216,6 @@ export async function getAccidentesFromMyProyecto(req, res) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 /**
  * registrarAccidenteLaboral
  *
@@ -315,18 +292,6 @@ export async function registrarAccidenteLaboral(req, res) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * editarAccidenteLaboral
  *
@@ -387,15 +352,6 @@ export async function editarAccidenteLaboral(req, res) {
     return handleErrorServer(res, 500, "Error al actualizar el accidente laboral.", error.message);
   }
 }
-
-
-
-
-
-
-
-
-
 
 
 

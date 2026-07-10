@@ -25,82 +25,6 @@ export const getRemuneraciones = async (req, res) => {
   }
 };
 
-/* Obtiene remuneraciones de los trabajadores de forma paginada */
-// Usada para el dashboard
-export const getRemuneracionesPaginadas = async (req, res) => {
-  try {
-    let { page = 1, limit = 10 } = req.query;
-
-    page = parseInt(page);
-    limit = parseInt(limit);
-
-    // Validaciones
-    if (page < 1) page = 1;
-    if (limit < 1) limit = 10;
-
-    // Calcular offset automáticamente
-    const offset = (page - 1) * limit;
-
-    const [remuneraciones, total] = await remuneracionRepo
-      .createQueryBuilder("remuneracion")
-      .leftJoinAndSelect("remuneracion.trabajador", "trabajador")
-      .orderBy("trabajador.apellidos", "ASC")
-      .skip(offset)
-      .take(limit)
-      .getManyAndCount();
-
-    return res.status(200).json({
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      data: remuneraciones,
-    });
-
-  } catch (error) {
-    console.error("Error al obtener remuneraciones paginadas:", error);
-
-    return res.status(500).json({
-      message: "Error interno al obtener remuneraciones",
-    });
-  }
-};
-
-/* Obtiene la remuneracion de un trabajador */
-/* Recibe JSON Body, solo rut */
-export const getRemuneracion = async (req, res) => {
-  try {
-    const { rut } = req.body;
-
-    if (!rut) {
-      return res.status(400).json({
-        message: "El rut es obligatorio",
-      });
-    }
-
-    const remuneracion = await remuneracionRepo
-      .createQueryBuilder("remuneracion")
-      .leftJoinAndSelect("remuneracion.trabajador", "trabajador")
-      .where("trabajador.rut = :rut", { rut })
-      .getOne();
-
-    if (!remuneracion) {
-      return res.status(404).json({
-        message: "No se encontró una remuneración para el trabajador",
-      });
-    }
-
-    return res.status(200).json(remuneracion);
-
-  } catch (error) {
-    console.error("Error al obtener remuneración:", error);
-
-    return res.status(500).json({
-      message: "Error interno al obtener la remuneración",
-    });
-  }
-};
-
 /* Obtiene la remuneración del propio usuario autenticado (Supervisor / Trabajador) */
 /* No recibe rut ni id por parámetro: usa el id_trabajador del token JWT */
 export const getMiRemuneracion = async (req, res) => {
@@ -334,7 +258,6 @@ export async function getRemuneracionesAndContratos(req, res) {
 
 
 /**
- * POST /remuneraciones/
  *
  * Crea una nueva remuneracion para un trabajador.
  * bono y descuento se inicializan en 0, estado_pago en "pendiente" (defaults de entidad).

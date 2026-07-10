@@ -14,7 +14,6 @@ const proyectoRepo = AppDataSource.getRepository(ProyectoSchema);
 const accidenteRepo = AppDataSource.getRepository(AccidenteLaboralSchema);
 
 
-
 /**
  * validarGetAllAccidentesLaborales
  * Middleware de validación para GET
@@ -81,9 +80,7 @@ export function validarGetAllAccidentesLaborales(req, res, next) {
  *   - id_cuadrilla: entero positivo (opcional)
  *   - rut: string no vacío (opcional)
  *
- * Nota: La restricción de que las cuadrillas pertenezcan al proyecto
- * del supervisor se aplica directamente en el controlador vía WHERE
- * sobre proyecto.id_supervisor = req.user.id_trabajador
+ *  pd: la restriccion de que las cudrillas pertenescan al proyecto del supervisor, se aplica directamente en el controlador via WHERE, donde proyecto.id_supervisor = req.user.id_trabajador
  */
 export function validarGetAccidentesFromMyProyecto(req, res, next) {
   const { tipo_usuario } = req.user;
@@ -121,19 +118,6 @@ export function validarGetAccidentesFromMyProyecto(req, res, next) {
 
   next();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /**
@@ -243,21 +227,6 @@ export async function validarRegistrarAccidenteLaboral(req, res, next) {
     return handleErrorServer(res, 500, "Error en la validación del accidente laboral.", error.message);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /**

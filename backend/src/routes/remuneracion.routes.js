@@ -4,8 +4,6 @@ import { Router } from "express";
 
 import {
   getRemuneraciones,
-  getRemuneracionesPaginadas,
-  getRemuneracion,
   getMiRemuneracion,
   crearRemuneracion,
   actualizarRemuneracion,
@@ -24,12 +22,10 @@ router.use(authMiddleware);
 // Supervisor y trabajador: solo su propio pago
 router.get("/mi-pago", autorizar("pagos:ver_propios"), getMiRemuneracion);
 
-// Administrador: gestión y visualización de todos los pagos
+// Admin Dashboard
 router.get("/", autorizar("pagos:ver_todos"), getRemuneraciones);
-router.get("/paginadas/", autorizar("pagos:ver_todos"), getRemuneracionesPaginadas);
-router.post("/get", autorizar("pagos:ver_todos"), getRemuneracion);
 
-// Admin
+// Admin Remuneracion Module
 router.get("/all/", authMiddleware, validateGetRemuneraciones, getRemuneracionesAndContratos);
 router.post("/", authMiddleware, validateCrearRemuneracion, crearRemuneracion);
 router.patch("/:id_remuneracion", authMiddleware, validateActualizarRemuneracion, actualizarRemuneracion);
