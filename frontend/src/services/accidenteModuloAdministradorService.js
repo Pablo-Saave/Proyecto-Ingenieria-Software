@@ -33,7 +33,7 @@ async function apiFetch(path, options = {}) {
 export async function getProyectosParaFiltro() {
   const res = await apiFetch('/api/proyectos/?limit=100');
   // Doble anidado por handleSuccess: res.data = { data: [...], meta: {...} }
-  return Array.isArray(res.data?.data) ? res.data.data : [];
+  return Array.isArray(res.data) ? res.data : [];
 }
 
 /**

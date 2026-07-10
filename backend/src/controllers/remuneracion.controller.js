@@ -333,24 +333,6 @@ export async function getRemuneracionesAndContratos(req, res) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// controllers/remuneracion.controller.js (agregar esta función)
-
 /**
  * POST /remuneraciones/
  *
@@ -385,9 +367,9 @@ export async function crearRemuneracion(req, res) {
       return handleErrorClient(res, 404, "No se encontró un contrato con ese id asociado al trabajador.");
     }
 
-    // 2. El contrato debe estar Activo
-    if (contrato.estado_contrato !== "Activo") {
-      return handleErrorClient(res, 400, "El contrato no está activo. Solo se pueden crear remuneraciones para contratos activos.");
+    // 2. El contrato debe estar Activo o Por vencer
+    if (contrato.estado_contrato !== "Activo" && contrato.estado_contrato !== "Por vencer") {
+      return handleErrorClient(res, 400, "El contrato no está activo. Solo se pueden crear remuneraciones para contratos activos o por vencer.");
     }
 
     // 3. El sueldo debe coincidir con el monto del contrato
