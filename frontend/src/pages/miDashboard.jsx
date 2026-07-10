@@ -129,10 +129,12 @@ function Dashboard({ usuario, onLogout }) {
       } else if (rContrato.status === 'rejected') nuevosErrores.contrato = rContrato.reason?.message;
 
       if (rRemun.status === 'fulfilled' && rRemun.value) {
-        setRemuneracion(rRemun.value);
-      } else if (rRemun.status === 'rejected') {
-        // El 404 "aún no tienes remuneración registrada" es un estado normal
-        // (trabajador nuevo sin pagos aún), no un error real de carga.
+          const lista = Array.isArray(rRemun.value) ? rRemun.value : [rRemun.value];
+          const ultima = lista
+            .slice()
+            .sort((a, b) => new Date(b.fecha_pago) - new Date(a.fecha_pago))[0] ?? null;
+          setRemuneracion(ultima);
+        } else if (rRemun.status === 'rejected') {
         const msg = rRemun.reason?.message ?? '';
         if (!msg.toLowerCase().includes('aún no tienes')) {
           nuevosErrores.remuneracion = msg;
