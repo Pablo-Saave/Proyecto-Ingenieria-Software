@@ -15,6 +15,7 @@ const formatFecha = (fecha) => {
   if (!fecha) return '—';
   return new Date(fecha).toLocaleDateString('es-CL', {
     day: '2-digit', month: 'short', year: 'numeric',
+    timeZone: 'UTC',
   });
 };
 
