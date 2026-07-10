@@ -90,7 +90,7 @@ function DetalleModal({ pago, onClose }) {
 
 /* ─── Componente principal ───────────────────────────────────────────────── */
 function PagosSupervisor({ usuario, onLogout }) {
-  const [pago, setPago]       = useState(null);
+  const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
   const [detalle, setDetalle] = useState(null);
@@ -104,19 +104,16 @@ function PagosSupervisor({ usuario, onLogout }) {
 
   useEffect(() => {
     getMiRemuneracion()
-      .then((data) => setPago(data))
+      .then((data) => setPagos(Array.isArray(data) ? data : []))
       .catch((e) => {
-        // 404 del backend cuando aún no tiene remuneración asignada: no es un error real
         if (e.message?.toLowerCase().includes('no tienes')) {
-          setPago(null);
+          setPagos([]);
         } else {
           setError(e.message || 'No se pudo cargar tu remuneración.');
         }
       })
       .finally(() => setLoading(false));
   }, []);
-
-  const pagos = pago ? [pago] : [];
 
   const pagosFiltrados = pagos.filter((p) => {
     const matchEstado = !filtrosActivos || estadoFiltro === 'Todos' || p.estado_pago === estadoFiltro;

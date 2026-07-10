@@ -502,7 +502,7 @@ function RegistrarAccidentesModuloSupervisor({ usuario, onLogout }) {
                     type="text"
                     value={form.traslado}
                     onChange={handleFormChange}
-                    placeholder="Ej: ambulancia, propio, none"
+                    placeholder="Ej: ambulancia, propio, etc"
                   />
                 </div>
 
