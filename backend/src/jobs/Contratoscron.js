@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { AppDataSource } from '../config/configDb.js';
-import { crearNotificacion, crearNotificacionMasiva } from '../services/notificacion.service.js';
+import { crearNotificacion, crearNotificacionMasiva } from '../services/Notificacion.service.js';
 
 function hoyLocal(date = new Date()) {
   const y = date.getFullYear();

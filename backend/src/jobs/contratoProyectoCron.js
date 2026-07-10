@@ -4,7 +4,7 @@
 
 import cron from 'node-cron';
 import { AppDataSource } from '../config/configDb.js';
-import { crearNotificacionMasiva } from '../services/notificacion.service.js';
+import { crearNotificacionMasiva } from '../services/Notificacion.service.js';
 import { DIAS_UMBRAL_POR_VENCER, hoyLocal } from '../validations/contrato_proyecto.validation.js';
 
 export function iniciarCronContratoProyecto() {

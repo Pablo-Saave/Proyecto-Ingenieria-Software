@@ -1,5 +1,5 @@
 import { AppDataSource } from "../config/configDb.js";
-import { crearNotificacionMasiva } from "./notificacion.service.js";
+import { crearNotificacionMasiva } from "./Notificacion.service.js";
 
 const avisoRepository      = AppDataSource.getRepository("Aviso");
 const trabajadorRepository = AppDataSource.getRepository("Trabajador");
