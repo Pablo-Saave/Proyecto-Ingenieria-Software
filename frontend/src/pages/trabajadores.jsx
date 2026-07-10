@@ -314,7 +314,7 @@ function Trabajadores({ usuario, onLogout }) {
                   { label: 'Apellidos *', name: 'apellidos', type: 'text', required: true, placeholder: 'Garcia Lopez' },
                   { label: 'RUT *', name: 'rut', type: 'text', required: true, placeholder: '12345678-9' },
                   { label: 'Correo *', name: 'correo', type: 'email', required: true, placeholder: 'juan@empresa.cl' },
-                  { label: 'Telefono', name: 'telefono', type: 'text', required: false, placeholder: '+56 9 1234 5678' },
+                  { label: 'Telefono', name: 'telefono', type: 'text', required: false, placeholder: '9 1234 5678' },
                 ].map(({ label, name, type, required, placeholder }) => (
                   <div key={name} className="tw-field" style={{ marginBottom: 0 }}>
                     <label style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4, display: 'block', textTransform: 'uppercase', color: '#6b7280' }}>{label}</label>
