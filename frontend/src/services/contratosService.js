@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'http://146.83.198.35:1323/';
 
 export const TIPOS_CONTRATO = ['Indefinido', 'Plazo Fijo'];
 export const ESTADOS_CONTRATO = ['Activo', 'Inactivo', 'Por vencer'];

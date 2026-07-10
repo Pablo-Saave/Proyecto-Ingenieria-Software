@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://146.83.198.35:1323/';
 const BASE_PATH = '/api/remuneraciones';
 
 async function apiFetch(path, options = {}) {

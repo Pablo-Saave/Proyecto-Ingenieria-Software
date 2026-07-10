@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/auth';
+const API_URL = 'http://146.83.198.35:1323/api/auth';
 
 const TIPOS_CON_ACCESO = ['administrador', 'supervisor', 'trabajador'];
 
