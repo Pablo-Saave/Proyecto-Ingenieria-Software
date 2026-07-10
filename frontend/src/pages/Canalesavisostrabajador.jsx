@@ -48,7 +48,7 @@ function getPrioridadStyle(prioridad) {
   return { background: '#DCFCE7', color: '#15803D' };
 }
 
-// ─── Selector con clases de Contratos ────────────────────────────────────────
+// ─── Selector con clases de Contratos ───────────────────────────────────────
 function SelectFiltro({ label, value, onChange, options }) {
   return (
     <div className="avisos-filter-group">
