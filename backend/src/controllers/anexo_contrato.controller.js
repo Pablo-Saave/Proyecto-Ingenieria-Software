@@ -2,7 +2,7 @@
 
 import { AppDataSource } from "../config/configDb.js";
 import { AnexoContratoSchema } from "../entities/anexo_contrato.entity.js";
-import { crearNotificacion } from "../services/notificacion.service.js";
+import { crearNotificacion } from "../services/Notificacion.service.js";
 import {
   DIAS_UMBRAL_POR_VENCER,
   validarBodyAnexoContrato,

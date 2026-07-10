@@ -3,7 +3,7 @@
 import { AppDataSource } from "../config/configDb.js";
 import { RemuneracionSchema } from "../entities/remuneracion.entity.js";
 import { TrabajadorSchema } from "../entities/trabajador.entity.js";
-import { crearNotificacion } from "../services/notificacion.service.js";
+import { crearNotificacion } from "../services/Notificacion.service.js";
 import { handleSuccess, handleErrorServer, handleErrorClient } from "../handlers/responseHandlers.js";
 import { ContratoTrabajadorSchema } from "../entities/contrato_trabajador.entity.js";
 

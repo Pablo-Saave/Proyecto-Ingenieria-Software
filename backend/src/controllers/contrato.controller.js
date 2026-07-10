@@ -1,6 +1,6 @@
 "use strict";
 import { AppDataSource } from "../config/configDb.js";
-import { crearNotificacion } from "../services/notificacion.service.js";
+import { crearNotificacion } from "../services/Notificacion.service.js";
 
 function getRepo() {
   return AppDataSource.getRepository("ContratoTrabajador");

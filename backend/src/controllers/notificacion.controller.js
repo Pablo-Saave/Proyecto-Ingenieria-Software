@@ -1,5 +1,5 @@
 // controllers/notificacion.controller.js
-import * as notificacionService from "../services/notificacion.service.js";
+import * as notificacionService from "../services/Notificacion.service.js";
 
 const manejarError = (res, error, contexto) => {
   if (error.status) return res.status(error.status).json({ message: error.message });
