@@ -17,7 +17,7 @@ import { JustificacionAusenciaSchema } from "../entities/justificacion_ausencia.
 import { MaterialLimpiezaSchema } from "../entities/material_limpieza.entity.js";
 import { AnexoContratoProyectoSchema } from "../entities/anexo_contrato_proyecto.entity.js";
 import { AnexoContratoSchema } from "../entities/anexo_contrato.entity.js";
-import { NotificacionSchema } from "../entities/notificacion.entity.js";
+import { NotificacionSchema } from "../entities/Notificacion.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
