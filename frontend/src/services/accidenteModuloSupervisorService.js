@@ -1,6 +1,6 @@
 // services/accidenteModuloSupervisorService.js
 
-const API_BASE = 'http://146.83.198.35:1323/';
+const API_BASE = 'http://146.83.198.35:1323';
 
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');

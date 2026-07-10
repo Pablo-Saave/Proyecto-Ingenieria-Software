@@ -1,5 +1,5 @@
 // services/asignacionesService.js
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://146.83.198.35:1323/';
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://146.83.198.35:1323';
 
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('token');

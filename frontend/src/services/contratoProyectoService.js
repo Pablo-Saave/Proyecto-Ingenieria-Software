@@ -1,4 +1,4 @@
-const API_BASE = 'http://146.83.198.35:1323/';
+const API_BASE = 'http://146.83.198.35:1323';
 const API_PATH = '/api/contratos-proyecto';
 
 export const ESTADOS_CONTRATO_PROYECTO = [
