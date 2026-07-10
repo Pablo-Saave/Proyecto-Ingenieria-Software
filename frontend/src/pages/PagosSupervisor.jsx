@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import '../styles/Pagos.css';
+import '../styles/pagos.css';
 import { DollarSign, AlertTriangle, Eye, X, Filter } from 'lucide-react';
 import { getMiRemuneracion } from '../services/remuneracionesService';
 

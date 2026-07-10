@@ -8,7 +8,7 @@ import {
   marcarTodasLeidas as marcarTodasLeidasApi,
 } from '../services/notificacionService';
 
-const SOCKET_URL = 'http://localhost:3000';
+const SOCKET_URL = 'http://146.83.198.35:1323/';
 
 const NotificacionesContext = createContext(null);
 

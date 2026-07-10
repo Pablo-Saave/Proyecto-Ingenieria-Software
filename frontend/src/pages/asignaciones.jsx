@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/trabajadores.css';
 import '../styles/contratos.css';
-import '../styles/asignaciones.css';
+import '../styles/Asignaciones.css';
 import {
   Plus, Search, Trash2, X, Save, AlertCircle, Users, UserPlus,
   HardHat, Shield, MoreVertical, ChevronDown, ChevronRight,
