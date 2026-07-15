@@ -190,7 +190,7 @@ function Login({ onLoginSuccess }) {
                 </svg>
               </button>
             </div>
-
+{/* 1. Boton de cambiar contraseña */}
             <p className="login-footer">
               ¿Olvidaste tu contraseña?{' '}
              <button 

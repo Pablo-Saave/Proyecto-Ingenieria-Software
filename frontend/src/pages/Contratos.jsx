@@ -110,7 +110,11 @@ function IconoFiltro() {
   );
 }
 
-// ─── Modal Crear / Editar ──────────────────────────────────────────────────────
+
+
+
+
+// ─── Modal Crear / Editar Contrato ──────────────────────────────────────────────────────
 
 const FORM_VACIO = {
   id_trabajador:   '',
@@ -121,17 +125,15 @@ const FORM_VACIO = {
   monto:           '',
   observaciones:   '',
 };
-
+//aqui ya se rellena el formulario
 function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
-  const [form, setForm]       = useState(
-    contratoEdit
-      ? {
+  const [form, setForm]  = useState( contratoEdit ? {//verifica si existe ono
           id_trabajador:   contratoEdit.id_trabajador   || '',
           tipo_contrato:   contratoEdit.tipo_contrato   || '',
           estado_contrato: contratoEdit.estado_contrato || 'Activo',
           fecha_inicio:    contratoEdit.fecha_inicio    || '',
           fecha_termino:   contratoEdit.fecha_termino   || '',
-          monto:           contratoEdit.monto ?? '',
+          monto:           contratoEdit.monto ?? '',//algunas validaciones 
           observaciones:   contratoEdit.observaciones   || '',
         }
       : FORM_VACIO
@@ -141,7 +143,7 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
 
   const esIndefinido = form.tipo_contrato === 'Indefinido';
   const hoy          = hoyLocal();
-
+//El usuario llena el formulario dentro del modal
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => {
@@ -155,7 +157,7 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
     // Limpiar errores al editar
     setErrores([]);
   };
-
+//revisa que los campos obligatorios estén, que las fechas tengan sentido
   const handleGuardar = async () => {
     const errs = validarFormContrato(form, !!contratoEdit);
     if (errs.length) { setErrores(errs); return; }
@@ -163,10 +165,9 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
     setGuardando(true);
     setErrores([]);
     try {
-      // En edición solo se puede tocar observaciones; el resto (tipo, fechas,
-      // monto, estado) se cambia creando un anexo — el estado en particular
-      // requiere un anexo de término para pasar a Inactivo.
-      const payload = contratoEdit
+      // En edición solo se puede tocar observaciones; 
+      // el resto (tipo, fechas,monto, estado) se cambia creando un anexo
+      const payload = contratoEdit//el objeto que se manda al backend para crear o actualizar un contrato
         ? {
             observaciones: form.observaciones || null,
           }
@@ -198,6 +199,7 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{contratoEdit ? 'Editar Contrato' : 'Nuevo Contrato'}</h2>
+          {/* 2. Botón para cerra modal */}
           <button className="modal-close" onClick={onClose}><X size={18} /></button>
         </div>
 
@@ -322,16 +324,21 @@ function ContratoModal({ onClose, onGuardado, contratoEdit, trabajadores }) {
 
         <div className="modal-footer">
           <button className="btn-cancelar" onClick={onClose}>Cancelar</button>
+          {/* 3. Botón guardar contrato */}
           <button className="btn-guardar" onClick={handleGuardar} disabled={guardando}>
             {guardando ? 'Guardando...' : contratoEdit ? 'Actualizar' : 'Guardar'}
           </button>
         </div>
       </div>
     </div>
-  );
+  );//El usuario hace clic en "Guardar"
 }
 
-// ─── Modal Agregar Anexo ───────────────────────────────────────────────────────
+
+
+
+
+// ─── Modal Crear Anexo ───────────────────────────────────────────────────────
 
 const ANEXO_VACIO = {
   fecha_anexo: '', // se completa con hoy al abrir el modal, ver useEffect en AnexoModal
@@ -352,11 +359,11 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
   const [guardando, setGuardando] = useState(false);
   const [errores,   setErrores]   = useState([]);
   const esIndefinidoNuevo = form.tipo_contrato_nuevo === 'Indefinido';
-
+//aqui ya se rellena el formulario
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => {
-      const next = { ...prev, [name]: type === 'checkbox' ? checked : value };
+      const next = { ...prev, [name]: type === 'checkbox' ? checked : value };//tipo de valor
 
       if (name === 'tipo_contrato_nuevo' && value === 'Indefinido') {
         next.fecha_termino_nueva = '';
@@ -591,7 +598,7 @@ function AnexoModal({ idContrato, onClose, onGuardado }) {
   );
 }
 
-// ─── Modal Ver Detalle ─────────────────────────────────────────────────────────
+// ─── Modal Detalle ─────────────────────────────────────────────────────────
 
 function DetalleModal({ contrato: contratoResumen, onClose, onCambio }) {
   const [contrato, setContrato] = useState(contratoResumen);
@@ -610,7 +617,7 @@ function DetalleModal({ contrato: contratoResumen, onClose, onCambio }) {
     }
   };
 
-  useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { cargar(); }, []); //basicamente trae su contrato
 
 
   return (
@@ -652,6 +659,7 @@ function DetalleModal({ contrato: contratoResumen, onClose, onCambio }) {
         <div className="anexos-section">
           <div className="anexos-header">
             <h3>Anexos ({contrato.anexos?.length || 0})</h3>
+            {/* 5. Boton de agregar anexo */}
             <button
               className="btn-agregar-anexo"
               onClick={() => setModalAnexo(true)}
@@ -694,7 +702,7 @@ function DetalleModal({ contrato: contratoResumen, onClose, onCambio }) {
             </ul>
           )}
         </div>
-
+{/* 6. Boton pdf */}
         <div className="modal-footer">
           <button className="btn-cancelar" onClick={onClose}>Cerrar</button>
           <button className="btn-guardar" onClick={() => generarPDFContrato(contrato)}
@@ -800,30 +808,30 @@ function Contratos({ usuario, onLogout }) {
   const [pagina,         setPagina]         = useState(1);
 
   const [modalNuevo,      setModalNuevo]      = useState(false);
-  const [contratoEdit,    setContratoEdit]    = useState(null);
+  const [contratoEdit,    setContratoEdit]    = useState(null);//valor inicial es null esto quiere decirno hay ningún contrato en edición ahora mismo.
   const [contratoDetalle, setContratoDetalle] = useState(null);
   const [contratoDelete,  setContratoDelete]  = useState(null);
   const [eliminando,      setEliminando]      = useState(false);
   const [menuAbierto,     setMenuAbierto]     = useState(null);
-
+//muestra contratos 
   const fetchContratos = async () => {
     try {
       setLoading(true);
       setError('');
       const data = await getContratos();
       setContratos(data.map(mapContrato));
-    } catch {
+    } catch {//termina try si falla pasa a catch
       setError('No se pudo cargar los contratos. Verifica que el servidor esté activo.');
     } finally {
       setLoading(false);
     }
   };
-
+//para que se muestrennn
   useEffect(() => {
     fetchContratos();
     getTrabajadores().then(setTrabajadores).catch(() => {});
   }, []);
-
+//filtro
   const getFechaLimite = (rango) => {
     const hoy = new Date();
     switch (rango) {
@@ -867,7 +875,7 @@ function Contratos({ usuario, onLogout }) {
       setEliminando(false);
     }
   };
-
+//abre el modal para crear un nuevo contrato
   return (
     <div className="dashboard-wrapper contratos-page">
       <Sidebar usuario={usuario} />
@@ -881,7 +889,8 @@ function Contratos({ usuario, onLogout }) {
                 <h1 className="vista-general-title">Contratos laborales</h1>
                 <p className="vista-general-subtitle">Gestiona y consulta todos los contratos laborales.</p>
               </div>
-              <button className="btn-nuevo-contrato" onClick={() => setModalNuevo(true)}>
+              {/*1. Boton nuevo contrato */}
+              <button className="btn-nuevo-contrato" onClick={() => setModalNuevo(true)}> 
                 <Plus size={16} /> Nuevo Contrato
               </button>
             </div>
@@ -982,6 +991,7 @@ function Contratos({ usuario, onLogout }) {
                           )}
                         </td>
                         <td className="col-acciones" style={{ position: 'relative' }}>
+                          {/* 4. Boton ver detalles */}
                           <button className="btn-accion" title="Ver detalles"
                             onClick={() => setContratoDetalle(contrato)}>
                             <Eye size={18} />
@@ -1027,10 +1037,10 @@ function Contratos({ usuario, onLogout }) {
         </div>
       </div>
 
-      {(modalNuevo || contratoEdit) && (
+      {(modalNuevo || contratoEdit) && (//abre el modal para crear un nuevo contrato o editar uno existente
         <ContratoModal
           trabajadores={trabajadores}
-          contratoEdit={contratoEdit}
+          contratoEdit={contratoEdit}// null en este caso, porque  si es "crear" no "editar"
           onClose={() => { setModalNuevo(false); setContratoEdit(null); }}
           onGuardado={() => { setModalNuevo(false); setContratoEdit(null); fetchContratos(); }}
         />

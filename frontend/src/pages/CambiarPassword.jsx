@@ -69,9 +69,8 @@ const STEPS_V = ['Correo electrónico', 'Verifica el código', 'Nueva contraseñ
    Sub-componentes
 ───────────────────────────────────────── */
 
-/** Stepper horizontal — panel derecho
+/**  — panel derecho
  *  Estructura: grid de 5 columnas [item | linea | item | linea | item]
- *  Cada item ocupa 1fr, cada linea ocupa 2fr → lineas se estiran siempre igual
  */
 const StepperH = ({ paso }) => (
   <div className="cp-stepper-h">
@@ -160,7 +159,7 @@ const CambiarPassword = () => {
   const [showConfirm, setShowConfirm]     = useState(false);
 
   /* ── Handlers (lógica original intacta) ── */
-  const handleSolicitarCodigo = async () => {
+  const handleSolicitarCodigo = async () => {//solicita service
     if (!correo) return setError('Ingresa tu correo electrónico.');
     setError('');
     setLoading(true);
@@ -174,7 +173,7 @@ const CambiarPassword = () => {
     }
   };
 
-  const handleVerificar = async () => {
+  const handleVerificar = async () => {//aqui revisa el codigo 
     if (!codigo)                      return setError('Ingresa el código de verificación.');
     if (!nuevaPass || !confirmarPass) return setError('Completa todos los campos.');
     if (nuevaPass !== confirmarPass)  return setError('Las contraseñas no coinciden.');

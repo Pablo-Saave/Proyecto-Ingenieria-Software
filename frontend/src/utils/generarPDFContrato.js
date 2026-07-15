@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-
+// Convierte una fecha al formato usado en Chile.
 function formatearFecha(fecha) {
   if (!fecha) return '-';
   return new Date(`${fecha}T00:00:00`).toLocaleDateString('es-CL', {
@@ -46,9 +46,9 @@ function formatearMonto(monto) {
     maximumFractionDigits: 0,
   });
 }
-
+// Genera y descarga el PDF con la información del contrato.
 export function generarPDFContrato(contrato) {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });// Crea una hoja A4 en milímetros.
   const ancho = doc.internal.pageSize.getWidth();
   const esIndefinido = contrato.tipo_contrato === 'Indefinido';
 
@@ -97,7 +97,7 @@ export function generarPDFContrato(contrato) {
   doc.text('DATOS DEL TRABAJADOR', 18, y);
   y += 10;
 
-  const trabajador = getDatosTrabajador(contrato);
+  const trabajador = getDatosTrabajador(contrato);//contrato relacionado con su trabajador
   fila(doc, 14, y, ancho, 'Nombre completo', trabajador.nombre, GRIS_OSC, GRIS_MED); y += 9;
   fila(doc, 14, y, ancho, 'RUT', trabajador.rut, GRIS_OSC, GRIS_MED); y += 9;
   if (trabajador.correo) {
@@ -204,7 +204,7 @@ export function generarPDFContrato(contrato) {
 
   const tipoArchivo = String(contrato.tipo_contrato || 'contrato').toLowerCase().replace(/\s+/g, '_');
   const nombreArchivo = `contrato_${tipoArchivo}_${contrato.id_contrato}.pdf`;
-  doc.save(nombreArchivo);
+  doc.save(nombreArchivo);// Guarda y descarga el PDF en el computador del usuario.
 }
 
 function fila(doc, x, y, ancho, clave, valor, colorValor, colorClave) {

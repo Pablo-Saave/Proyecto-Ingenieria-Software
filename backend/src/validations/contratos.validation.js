@@ -154,7 +154,7 @@ export function validarActualizarContrato(req, res, next) {
     const valorNuevo = req.body[campo];
     const valorActual = contratoActual ? contratoActual[campo] : undefined;
 
-    // Si es el mismo valor que ya tenía, lo ignoramos silenciosamente
+  
     // (evita que el form, al reenviar todo el objeto, rompa la edición).
     const sonIguales =
       contratoActual &&

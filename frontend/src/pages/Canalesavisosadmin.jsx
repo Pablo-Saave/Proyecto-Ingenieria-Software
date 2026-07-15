@@ -96,6 +96,9 @@ function BarraFiltros({ cuadrillas, filtros, setFiltros, filtrosActivos, onFiltr
   );
 }
 
+
+
+
 // ─── Modal nuevo / editar aviso ──────────────────────────────────────────────
 function ModalNuevoAviso({ modo = 'crear', form, setForm, cuadrillas, saving, onClose, onSubmit }) {
   const esEdicion = modo === 'editar';
@@ -124,7 +127,7 @@ function ModalNuevoAviso({ modo = 'crear', form, setForm, cuadrillas, saving, on
 
         <form onSubmit={onSubmit} style={{ padding: '0 22px 22px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: esEdicion ? '1fr' : '2fr 1fr', gap: 12, marginBottom: 14 }}>
-            {!esEdicion && (
+            {!esEdicion && (//si no
               <div>
                 <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 }}>
                   Cuadrilla *
@@ -236,7 +239,7 @@ function ConfirmEliminar({ aviso, onClose, onConfirmar, eliminando }) {
   );
 }
 
-// ─── Menú de acciones (kebab) ──────────────────────────────────────────────────
+// ─── Menú de acciones ──────────────────────────────────────────────────
 function MenuAcciones({ onEditar, onEliminar }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -250,7 +253,7 @@ function MenuAcciones({ onEditar, onEliminar }) {
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen((v) => !v)}//boton 3 puntos
         title="Más acciones"
         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#9CA3AF', borderRadius: 6, display: 'flex', alignItems: 'center' }}
       >
@@ -261,7 +264,7 @@ function MenuAcciones({ onEditar, onEliminar }) {
           <button
             onClick={() => { setOpen(false); onEditar(); }}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#374151', textAlign: 'left' }}
-          >
+          >{/* 2. Boton editar/eliminar aviso */}
             <Edit2 size={14} /> Editar aviso
           </button>
           <button
@@ -302,7 +305,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
   };
 
   useEffect(() => { cargar(); }, []);
-
+//importante repasar aqui se conecta al service
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.titulo.trim() || !form.contenido.trim()) { setError('Título y contenido son obligatorios.'); return; }
@@ -339,7 +342,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
     setAvisoEditar(aviso);
     setFormEditar({ titulo: aviso.titulo, contenido: aviso.contenido, prioridad: aviso.prioridad, id_cuadrilla: aviso.id_cuadrilla });
   };
-
+//editar aviso
   const handleEditarSubmit = async (e) => {
     e.preventDefault();
     if (!formEditar.titulo.trim() || !formEditar.contenido.trim()) { setError('Título y contenido son obligatorios.'); return; }
@@ -386,7 +389,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
             <div>
               <h1 className="vista-general-title">Canales de Avisos</h1>
               <p className="vista-general-subtitle">Gestiona todas las comunicaciones por cuadrilla</p>
-            </div>
+            </div>{/* 1. Boton de nuevo aviso */}
             <button className="btn-nuevo-trabajador" onClick={() => setShowForm(true)}>
               <Plus size={18} /> Nuevo aviso
             </button>
@@ -454,6 +457,7 @@ function CanalesAvisosAdmin({ usuario, onLogout }) {
       </div>
 
       {showForm && (
+        //modal nuevo aviso
         <ModalNuevoAviso
           modo="crear"
           form={form}
