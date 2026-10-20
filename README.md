@@ -36,7 +36,7 @@ Incluye módulos de asignación de personal, gestión de ausencias, contratos, p
 ### Frontend
 - Framework/Librería: React.js  
 - Bundler: Vite  
-- Estilos: Tailwind CSS  
+- Estilos: CSS  
 - Peticiones HTTP: Axios  
 - Routing: React Router DOM  
 
